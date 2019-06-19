@@ -1,0 +1,75 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.exp
+*.pdb
+*.log
+*.tlog
+*.ilk
+*.idb
+*.CopyComplete
+*.pyc
+*.tmp
+
+# Precompiled Headers
+*.gch
+*.pch
+*.ipch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Project files
+*.sln
+*.vcproj
+*.vcxproj
+*.pyproj
+*.suo
+*.db
+*.opendb
+*.user
+*.filters
+.vs/
+.idea/
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug files
+scripts/core/*.json
+scripts/extended/*.json
+
+# Generated docs
+html/
+latex/
+public/
+
+# Build files
+/build*/
+
+# irepo files
+.irepo
+
+# third_party files
+/third_party/*/
+
+# ci exceptions
+!ci/deps/getparentproc/*.exe
+
+# VS CMake settings
+/CMakeSettings.json
