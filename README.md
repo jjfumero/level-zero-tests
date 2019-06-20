@@ -1,12 +1,5 @@
 # Level-Zero Performance Tests
 
-## Preparing Source Repository for Building
-
-```
-irepo select linux.yml
-irepo sync
-```
-
 ## Building
 
 Requires the `intel-loki-core` and `intel-loki-devel` packages to be installed.
