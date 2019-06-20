@@ -5,5 +5,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 
 include(GNUInstallDirs)
 
+find_package(LevelZero REQUIRED)
+
 add_subdirectory(third_party)
 add_subdirectory(perf_tests)

@@ -20,8 +20,6 @@ set(XE_PEAK_BENCHMARKS
 
 add_executable(xe_peak ${XE_PEAK_COMMON} ${XE_PEAK_BENCHMARKS})
 
-find_package(LevelZero REQUIRED)
-
 target_link_libraries(xe_peak
     PRIVATE
         ${LevelZero_LIBRARIES}

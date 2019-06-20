@@ -52,8 +52,6 @@ set(XE_NANO_BENCHMARKS
 
 add_executable(xe_nano ${XE_NANO_COMMON} ${XE_NANO_BENCHMARKS})
 
-find_package(LevelZero REQUIRED)
-
 target_link_libraries(xe_nano
     PRIVATE
         ${LevelZero_LIBRARIES}
