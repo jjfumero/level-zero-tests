@@ -3,8 +3,6 @@ project(level_zero_tests)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 
-include(GNUInstallDirs)
-
 find_package(LevelZero REQUIRED)
 
 add_subdirectory(third_party)
