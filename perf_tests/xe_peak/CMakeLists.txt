@@ -34,29 +34,10 @@ target_include_directories(xe_peak
         ${LevelZero_INCLUDE_DIR}
 )
 
-add_custom_command(
-        TARGET xe_peak POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_peak/kernels/xe_global_bw.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_peak/xe_global_bw.spv
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_peak/kernels/xe_hp_compute.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_peak/xe_hp_compute.spv
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_peak/kernels/xe_sp_compute.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_peak/xe_sp_compute.spv
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_peak/kernels/xe_int_compute.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_peak/xe_int_compute.spv
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_peak/kernels/xe_dp_compute.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_peak/xe_dp_compute.spv)
-
-
 if(UNIX)
-    install(TARGETS xe_peak
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-        COMPONENT loki-xe-peak
+    install(
+        TARGETS xe_peak
+        DESTINATION ${PROJECT_BINARY_DIR}
     )
     install(
         FILES
@@ -65,8 +46,7 @@ if(UNIX)
             "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_sp_compute.spv"
             "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_int_compute.spv"
             "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_dp_compute.spv"
-            DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/xe_peak/
-        COMPONENT loki-xe-peak
+        DESTINATION ${PROJECT_BINARY_DIR}
     )
 endif()
 

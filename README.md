@@ -18,18 +18,12 @@ mkdir build
 cd build
 cmake ..
 make -j`nproc`
+make install
 ```
+
+Executables are installed to your CMAKE build directory.
 
 ## Running
 
 You must execute each benchmark with your current working directory set to the
-one containing that benchmark's `.spv` files.
-
-No useful means of installation are supported yet, so just execute the
-benchmarks in-place from their build directories (which contains the `.spv`
-files and the executable itself), e.g.:
-
-```
-cd build/perf_tests/xe_nano
-./xe_nano
-```
+one containing that benchmark's `.spv` files (by default your build directory).

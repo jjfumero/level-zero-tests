@@ -67,22 +67,14 @@ target_include_directories(xe_nano
         ${LevelZero_INCLUDE_DIR}
 )
 
-add_custom_command(
-        TARGET xe_nano POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_SOURCE_DIR}/perf_tests/xe_nano/kernels/xe_nano_benchmarks.spv
-                ${CMAKE_BINARY_DIR}/perf_tests/xe_nano/xe_nano_benchmarks.spv)
-
 if(UNIX)
-    install(TARGETS xe_nano
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-        COMPONENT loki-xe-nano
+    install(
+        TARGETS xe_nano
+        DESTINATION ${CMAKE_BINARY_DIR}
     )
     install(
-        FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
-        DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/xe_nano/
-        COMPONENT loki-xe-nano
+        FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
+        DESTINATION ${CMAKE_BINARY_DIR}
     )
 endif()
 
