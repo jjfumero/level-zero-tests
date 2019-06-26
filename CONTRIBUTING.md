@@ -37,4 +37,21 @@ distributing to other users to build themselves.
 
 ## Build Automation
 
-No build automation has been setup yet.
+No pipelines have been created yet, but you can manually re-create what the
+pipeline would do on your local machine. Set the following environment variables that will be provided by GitLab:
+- `GITLAB_ONEAPI_READKEY`: a personal access token that you've created in [GitLab](https://gitlab.devtools.intel.com/profile/personal_access_tokens).
+- `GERRITGFX_HTTP_USER`: your Intel IDSID.
+- `GERRITGFX_HTTP_PASSWORD`: an HTTP password you've generated in [Gerrit](https://gerrit-gfx.intel.com/#/settings/http-password).
+
+```
+docker build \
+    -t level_zero_tests-ubuntu1804:latest \
+    --build-arg GITLAB_ONEAPI_READKEY=$GITLAB_ONEAPI_READKEY \
+    ./docker/ubuntu1804
+
+docker run --rm -v \
+    ${PWD}:/project -w /project \
+    --env-file ./ci-env \
+    level_zero_tests-ubuntu1804:latest \
+    ./ci-build.sh
+```

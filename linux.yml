@@ -3,7 +3,7 @@ components:
     branch: master
     clean_on_sync: false
     dest_dir: third_party/googletest
-    repository: ssh://gerrit-gfx.intel.com:29418/mirrors/github/google/googletest
+    repository: https://gerrit-gfx.intel.com/a/mirrors/github/google/googletest
     revision: 0599a7b8410dc5cfdb477900b280475ae775d7f9
     type: git
 converter: E-1180
