@@ -34,6 +34,7 @@ before_script:
 ubuntu1804-image:
   stage: docker-build
   only: ['branches', 'tags', 'merge_requests', 'pushes']
+  tags: ['caas', 'docker', 'linux']
   variables:
     BUILDER_TAG: ${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}-ubuntu1804:${CI_COMMIT_REF_SLUG}
   script:
@@ -45,6 +46,7 @@ ubuntu1804-image:
 ubuntu1804:
   stage: build
   only: ['branches', 'tags', 'merge_requests', 'pushes']
+  tags: ['caas', 'docker', 'linux']
   variables:
     BUILDER_TAG: ${CI_REGISTRY_IMAGE}/${CI_PROJECT_NAME}-ubuntu1804:${CI_COMMIT_REF_SLUG}
   script:
