@@ -24,7 +24,8 @@ stages:
   - build
 
 services:
-  - docker:dind
+  - name: docker:dind
+    command: ["--insecure-registry=$REGISTRY_HOST"]  # workaround for docker:dind not having Intel root CA in it
 
 before_script:
   # need to get a CaaS harbor registry setup, using Lisanna's private registry for now
