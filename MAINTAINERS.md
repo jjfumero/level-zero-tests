@@ -7,7 +7,8 @@ synchronized with a tool called [irepo](https://github.intel.com/GSDI/irepo).
 Ensure you install and use irepo from a unix account with the username matching
 your Intel IDSID so authentication works correctly.
 
-Currently `google-mock` is required to be built as part of the test build.
+Currently `google-mock` is a dependency, which we pull in from the `googletest`
+irepo dependency.
 
 Once irepo is installed, synchronize the third-party assets:
 
@@ -40,10 +41,13 @@ distributing to other users to build themselves.
 ## Build Automation
 
 No pipelines have been created yet, but you can manually re-create what the
-pipeline would do on your local machine. Set the following environment variables that will be provided by GitLab:
-- `GITLAB_ONEAPI_READKEY`: a personal access token that you've created in [GitLab](https://gitlab.devtools.intel.com/profile/personal_access_tokens).
+pipeline would do on your local machine. Set the following environment variables
+that will be provided by GitLab:
+- `GITLAB_ONEAPI_READKEY`: a personal access token that you've created in
+  [GitLab](https://gitlab.devtools.intel.com/profile/personal_access_tokens).
 - `GERRITGFX_HTTP_USER`: your Intel IDSID.
-- `GERRITGFX_HTTP_PASSWORD`: an HTTP password you've generated in [Gerrit](https://gerrit-gfx.intel.com/#/settings/http-password).
+- `GERRITGFX_HTTP_PASSWORD`: an HTTP password you've generated in
+  [Gerrit](https://gerrit-gfx.intel.com/#/settings/http-password).
 
 ```
 docker build \
