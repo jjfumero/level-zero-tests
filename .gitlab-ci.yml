@@ -23,8 +23,8 @@ stages:
   - docker-build
   - build
 
- services:
-   - docker:dind
+services:
+  - docker:dind
 
 before_script:
   # need to get a CaaS harbor registry setup, using Lisanna's private registry for now
