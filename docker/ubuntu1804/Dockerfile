@@ -15,25 +15,15 @@ RUN apt-get update && apt-get install -y \
 # Setup irepo
 RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
 
-# # API key owned by Lisanna Dettwyler <lisanna.dettwyler@intel.com>
-# RUN curl \
-#         -H 'X-JFrog-Art-Api: AKCp5dKE5fAFNtDsVe3jgV7D2X8dEvy4Ho5QNj9xPBEwjYqZEkNQGmBa5f8Qa1XVr1SN7YzX6' \
-#         https://gfx-assets.fm.intel.com/artifactory/gta-repos/tools/gta-asset/gta-asset-linux64/1.0.423/artifacts/qb-asset \
-#         -o /usr/local/bin/qb-asset && \
-#     chmod +x /usr/local/bin/qb-asset
-
 # Install level-zero
 # https://gitlab.devtools.intel.com/one-api/level_zero/tags/loki-0.1.6
 # --force-all is used to avoid having to install NEO
-# Jenkins artifact URLs are used because Jenkins supports authentication tokens
-ARG JENKINS_USER
-ENV JENKINS_USER=$JENKINS_USER
-ARG JENKINS_TOKEN
-ENV JENKINS_TOKEN=$JENKINS_TOKEN
+ARG GFX_ASSETS_FM_JFROG_TOKEN
+ENV GFX_ASSETS_FM_JFROG_TOKEN=$GFX_ASSETS_FM_JFROG_TOKEN
 RUN mkdir /tmp/loki-packages && \
     cd /tmp/loki-packages && \
-    curl -u "$JENKINS_USER:$JENKINS_TOKEN" -O http://opencl.igk.intel.com/jenkins/view/Loki/job/ocl-loki-package-master/390/artifact/ubuntu18/intel-loki-core_0.1.6-382%7Ebionic_release_amd64.deb && \
-    curl -u "$JENKINS_USER:$JENKINS_TOKEN" -O http://opencl.igk.intel.com/jenkins/view/Loki/job/ocl-loki-package-master/390/artifact/ubuntu18/intel-loki-devel_0.1.6-382%7Ebionic_release_amd64.deb && \
+    curl -H "X-JFrog-Art-Api: ${GFX_ASSETS_FM_JFROG_TOKEN}" -O https://gfx-assets.fm.intel.com/artifactory/gfx-compute-build-assets/level_zero/master/449/artifacts/ubuntu18/intel-loki-core_0.2.0-449~bionic_release_amd64.deb && \
+    curl -H "X-JFrog-Art-Api: ${GFX_ASSETS_FM_JFROG_TOKEN}" -O https://gfx-assets.fm.intel.com/artifactory/gfx-compute-build-assets/level_zero/master/449/artifacts/ubuntu18/intel-loki-devel_0.2.0-449~bionic_release_amd64.deb && \
     dpkg --force-all -i ./*.deb && \
     cd - && \
     rm -rf /tmp/loki-packages
