@@ -40,11 +40,18 @@ distributing to other users to build themselves.
 
 ## Build Automation
 
-No pipelines have been created yet, but you can manually re-create what the
-pipeline would do on your local machine. Set the following environment variables
-that will be provided by GitLab:
-- `GITLAB_ONEAPI_READKEY`: a personal access token that you've created in
-  [GitLab](https://gitlab.devtools.intel.com/profile/personal_access_tokens).
+A prototype pipeline has been enabled for Ubuntu 18.04 builds. Each build is
+performed in a Docker image corresponding to the Dockerfile(s) present in the
+commit, ensuring correct build dependencies are always used. A registry is used
+for caching the images.
+
+You can manually re-create the basic steps that the pipeline would do on your
+local machine. Set the following environment variables that will be provided by
+GitLab:
+
+- `JENKINS_USER`: your Intel IDSID.
+- `JENKINS_TOKEN`: access token associated with your [OpenCL IGK Jenkins](http://opencl.igk.intel.com/jenkins/)
+  account.
 - `GERRITGFX_HTTP_USER`: your Intel IDSID.
 - `GERRITGFX_HTTP_PASSWORD`: an HTTP password you've generated in
   [Gerrit](https://gerrit-gfx.intel.com/#/settings/http-password).
@@ -52,7 +59,8 @@ that will be provided by GitLab:
 ```
 docker build \
     -t level_zero_tests-ubuntu1804:latest \
-    --build-arg GITLAB_ONEAPI_READKEY=$GITLAB_ONEAPI_READKEY \
+    --build-arg JENKINS_USER=${JENKINS_USER} \
+    --build-arg JENKINS_TOKEN=${JENKINS_TOKEN} \
     ./docker/ubuntu1804
 
 docker run --rm -v \
