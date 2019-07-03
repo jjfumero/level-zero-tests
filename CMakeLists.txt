@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
-project(intel-loki-perftests
+project(intel-level-zero-perftests
     VERSION 0.2.0  # corresponds to LOKI release
 )
 

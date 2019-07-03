@@ -45,5 +45,5 @@ ubuntu1804:
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
-      - intel-loki-perftests-*-Source.*
-      - intel-loki-perftests-*-Linux.*
+      - intel-level-zero-perftests-*-Source.*
+      - intel-level-zero-perftests-*-Linux.*
