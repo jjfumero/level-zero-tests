@@ -15,20 +15,25 @@ RUN apt-get update && apt-get install -y \
 # Setup irepo
 RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
 
-# Install NEO and level-zero
+# # API key owned by Lisanna Dettwyler <lisanna.dettwyler@intel.com>
+# RUN curl \
+#         -H 'X-JFrog-Art-Api: AKCp5dKE5fAFNtDsVe3jgV7D2X8dEvy4Ho5QNj9xPBEwjYqZEkNQGmBa5f8Qa1XVr1SN7YzX6' \
+#         https://gfx-assets.fm.intel.com/artifactory/gta-repos/tools/gta-asset/gta-asset-linux64/1.0.423/artifacts/qb-asset \
+#         -o /usr/local/bin/qb-asset && \
+#     chmod +x /usr/local/bin/qb-asset
+
+# Install level-zero
 # https://gitlab.devtools.intel.com/one-api/level_zero/tags/loki-0.1.6
-# --force-all is used due to broken loki dependencies
-ARG GITLAB_ONEAPI_READKEY
-ENV GITLAB_ONEAPI_READKEY=$GITLAB_ONEAPI_READKEY
+# --force-all is used to avoid having to install NEO
+# Jenkins artifact URLs are used because Jenkins supports authentication tokens
+ARG JENKINS_USER
+ENV JENKINS_USER=$JENKINS_USER
+ARG JENKINS_TOKEN
+ENV JENKINS_TOKEN=$JENKINS_TOKEN
 RUN mkdir /tmp/loki-packages && \
     cd /tmp/loki-packages && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/f1f6179f0e27d77a7372dc8b2cbdc995/intel-loki-core_0.1.6-400_bionic_release_amd64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/52e65640d5a661ba1274a8ff45b34d51/intel-loki-devel_0.1.6-400_bionic_release_amd64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/4f545fdf09d5604aac5db7cc8ad60bd0/intel-igc-opencl-2.0-2206.u16.04-release.x86_64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/8cea5eaffb36722d94632074c521b20d/intel-igc-core-2.0-2206.u16.04-release.x86_64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/9693274cad3ae0e9d2d139f0a39a1bdb/intel-igc-opencl-devel-2.0-2206.u16.04-release.x86_64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/2fa9428945e9bb4e16a3a956de820bdd/intel-gmmlib-devel-2.0-2206.u16.04-release.x86_64.deb && \
-    curl --header "Private-Token: $GITLAB_ONEAPI_READKEY" -O https://gitlab.devtools.intel.com/one-api/level_zero/uploads/05d184dd029eb32b32bae8849d50438a/intel-gmmlib-2.0-2206.u16.04-release.x86_64.deb && \
+    curl -u "$JENKINS_USER:$JENKINS_TOKEN" -O http://opencl.igk.intel.com/jenkins/view/Loki/job/ocl-loki-package-master/390/artifact/ubuntu18/intel-loki-core_0.1.6-382%7Ebionic_release_amd64.deb && \
+    curl -u "$JENKINS_USER:$JENKINS_TOKEN" -O http://opencl.igk.intel.com/jenkins/view/Loki/job/ocl-loki-package-master/390/artifact/ubuntu18/intel-loki-devel_0.1.6-382%7Ebionic_release_amd64.deb && \
     dpkg --force-all -i ./*.deb && \
     cd - && \
     rm -rf /tmp/loki-packages
