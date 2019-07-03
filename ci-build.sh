@@ -21,3 +21,4 @@ mkdir build
 cd build
 cmake ..
 make -j`nproc` package_source package
+mv intel-loki-perftests-* ..
