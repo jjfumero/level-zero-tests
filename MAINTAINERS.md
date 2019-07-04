@@ -52,8 +52,8 @@ local machine. Set the following environment variables that will be provided by
 GitLab:
 
 - `JENKINS_USER`: your Intel IDSID.
-- `JENKINS_TOKEN`: access token associated with your [OpenCL IGK Jenkins](http://opencl.igk.intel.com/jenkins/)
-  account.
+- `GFX_ASSETS_FM_JFROG_TOKEN`: access token associated with your
+  [GFX Assets FM Artifactory](https://gfx-assets.fm.intel.com) account.
 - `GERRITGFX_HTTP_USER`: your Intel IDSID.
 - `GERRITGFX_HTTP_PASSWORD`: an HTTP password you've generated in
   [Gerrit](https://gerrit-gfx.intel.com/#/settings/http-password).
