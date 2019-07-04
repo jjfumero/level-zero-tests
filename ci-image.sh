@@ -13,5 +13,5 @@ docker build \
     --cache-from $CACHE_FROM \
     -t ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} \
     -t ${BUILDER_IMAGE}:latest \
-    --build-arg GFX_ASSETS_FM_JFROG_TOKEN=${GFX_ASSETS_FM_JFROG_TOKEN} \
+    --build-arg GFX_ASSETS_FM_JFROG_TOKEN=${ARTIFACTORY_TOKEN} \
     ./docker/ubuntu1804
