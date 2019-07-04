@@ -45,6 +45,8 @@ performed in a Docker image corresponding to the Dockerfile(s) present in the
 commit, ensuring correct build dependencies are always used. A registry is used
 for caching the images.
 
+The automation will run for merge requests, branches, and tags.
+
 You can manually re-create the basic steps that the pipeline would do on your
 local machine. Set the following environment variables that will be provided by
 GitLab:
@@ -69,3 +71,8 @@ docker run --rm -v \
     level_zero_tests-ubuntu1804:latest \
     ./ci-build.sh
 ```
+
+## Merge Requests
+
+**Do not create merge requests from forks**. Due to security limitations, the CI
+pipelines will not run. Only create merge requests from project branches.
