@@ -13,6 +13,5 @@ docker build \
     --cache-from $CACHE_FROM \
     -t ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} \
     -t ${BUILDER_IMAGE}:latest \
-    --build-arg JENKINS_USER=${JENKINS_USER} \
-    --build-arg JENKINS_TOKEN=${JENKINS_TOKEN} \
+    --build-arg GFX_ASSETS_FM_JFROG_TOKEN=${GFX_ASSETS_FM_JFROG_TOKEN} \
     ./docker/ubuntu1804
