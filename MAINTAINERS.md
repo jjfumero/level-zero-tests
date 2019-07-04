@@ -51,7 +51,6 @@ You can manually re-create the basic steps that the pipeline would do on your
 local machine. Set the following environment variables that will be provided by
 GitLab:
 
-- `JENKINS_USER`: your Intel IDSID.
 - `GFX_ASSETS_FM_JFROG_TOKEN`: access token associated with your
   [GFX Assets FM Artifactory](https://gfx-assets.fm.intel.com) account.
 - `GERRITGFX_HTTP_USER`: your Intel IDSID.
@@ -61,8 +60,7 @@ GitLab:
 ```
 docker build \
     -t level_zero_tests-ubuntu1804:latest \
-    --build-arg JENKINS_USER=${JENKINS_USER} \
-    --build-arg JENKINS_TOKEN=${JENKINS_TOKEN} \
+    --build-arg GFX_ASSETS_FM_JFROG_TOKEN=${ARTIFACTORY_APIKEY} \
     ./docker/ubuntu1804
 
 docker run --rm -v \
