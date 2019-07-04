@@ -74,3 +74,10 @@ docker run --rm -v \
 
 **Do not create merge requests from forks**. Due to security limitations, the CI
 pipelines will not run. Only create merge requests from project branches.
+
+## Releases and Tags
+
+Tags are used to specify releases. Tagged commits will be automatically built
+like normal, and will additionally have the artifacts published to Artifactory.
+- Builds: https://gfx-assets.fm.intel.com/artifactory/webapp/#/builds/level_zero_tests
+- Artifacts: https://gfx-assets.fm.intel.com/artifactory/gfx-sandbox-fm/level_zero_tests
