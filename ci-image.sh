@@ -2,11 +2,9 @@ set -eu
 
 # A version of the image from a prior build of the same ref name is more likely
 # to be useful for caching than the latest prior build.
-CACHE_FROM=
+CACHE_FROM=${BUILDER_IMAGE}:latest
 if docker pull ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}; then
     CACHE_FROM=${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-elif docker pull ${BUILDER_IMAGE}:latest; then
-    CACHE_FROM=${BUILDER_IMAGE}:latest
 fi
 
 docker build \

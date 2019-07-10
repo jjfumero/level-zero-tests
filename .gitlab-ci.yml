@@ -26,7 +26,7 @@ stages:
 services:
   - name: docker:dind
     entrypoint: ["dockerd-entrypoint.sh"]
-    command: ["--insecure-registry", "registry.citadel.ra.intel.com"] # workaround for docker:dind not having Intel root CA in it
+    command: ["--insecure-registry", "amr-registry-pre.caas.intel.com"] # workaround for docker:dind not having Intel root CA in it
 
 ubuntu1804:
   stage: build
@@ -35,9 +35,12 @@ ubuntu1804:
     - tags
   tags: ['caas', 'docker', 'linux']
   variables:
-    BUILDER_IMAGE: ${REGISTRY_HOST}/${CI_PROJECT_NAME}-${CI_JOB_NAME}
+    BUILDER_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-${CI_JOB_NAME}
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
+    HARBOR_USER2: ${HARBOR_USER}
+    HARBOR_TOKEN2: ${HARBOR_TOKEN}
   script:
-    - docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY_HOST}
+    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
     - docker info
     - sh ./ci-image.sh
     - docker run --rm -v ${PWD}:/root/project -w /root/project --env-file ./ci-env ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} ./ci-build.sh
