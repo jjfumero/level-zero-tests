@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
         curl \
         git \
         ocl-icd-opencl-dev \
+        libpapi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Setup irepo
