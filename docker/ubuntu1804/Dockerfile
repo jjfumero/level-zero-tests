@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
         cmake \
         curl \
         git \
-        ocl-icd-opencl-dev \
         libpapi-dev \
+        ocl-icd-opencl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Setup irepo
