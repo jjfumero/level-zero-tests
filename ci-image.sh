@@ -5,6 +5,8 @@ set -eu
 CACHE_FROM=${BUILDER_IMAGE}:latest
 if docker pull ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}; then
     CACHE_FROM=${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
+else
+    docker pull ${BUILDER_IMAGE}:latest
 fi
 
 docker build \
