@@ -10,9 +10,7 @@ stages:
   - deploy
 
 services:
-  - name: docker:dind
-    entrypoint: ["dockerd-entrypoint.sh"]
-    command: ["--insecure-registry", "amr-registry-pre.caas.intel.com"] # workaround for docker:dind not having Intel root CA in it
+  - amr-registry.caas.intel.com/caas/docker:stable-dind
 
 ubuntu1804:
   stage: build
