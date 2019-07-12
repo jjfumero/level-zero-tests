@@ -34,6 +34,9 @@ ubuntu1804:
         -v ${PWD}:/root/project
         -w /root/project
         --env-file ./ci-env
+        -v /ccache:/ccache
+        -e CCACHE_DIR=/ccache
+        -e CCACHE_BASEDIR=/root/project
         ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
         ./ci-build.sh
     - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}

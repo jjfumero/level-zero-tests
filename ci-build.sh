@@ -19,6 +19,6 @@ echo "password $GERRITGFX_HTTP_PASSWORD" >> ~/.netrc
 
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 make -j`nproc` package_source package
 mv intel-level-zero-perftests-* ..

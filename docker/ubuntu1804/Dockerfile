@@ -6,6 +6,7 @@ RUN echo 'Acquire::http::Proxy "http://proxy-chain.intel.com:911";' > /etc/apt/a
 
 RUN apt-get update && apt-get install -y \
         build-essential \
+        ccache \
         cmake \
         curl \
         git \
