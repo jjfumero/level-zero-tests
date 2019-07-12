@@ -31,7 +31,8 @@ ubuntu1804:
         --rm
         -v ${PWD}:/root/project
         -w /root/project
-        --env-file ./ci-env
+        -e GERRITGFX_HTTP_USER
+        -e GERRITGFX_HTTP_PASSWORD
         -v /ccache:/ccache
         -e CCACHE_DIR=/ccache
         -e CCACHE_BASEDIR=/root/project
