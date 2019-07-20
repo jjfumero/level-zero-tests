@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
         curl \
         git \
         libpapi-dev \
+        ninja-build \
         ocl-icd-opencl-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,4 +31,4 @@ RUN mkdir /tmp/loki-packages && \
     cd - && \
     rm -rf /tmp/loki-packages
 
-CMD [ "bash" ]
+CMD ["/bin/bash"]
