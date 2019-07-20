@@ -27,9 +27,8 @@ set(CPACK_SOURCE_IGNORE_FILES
     /nbproject
     /CONTRIBUTING.md
     /MAINTAINERS.md
-    /linux.yml
+    /dependencies.yml
     /docker
     /ci-build.sh
-    /ci-env
 )
 include(CPack)
