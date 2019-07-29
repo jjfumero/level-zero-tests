@@ -8,6 +8,7 @@ ubuntu1804:
   only:
     - merge_requests
     - tags
+    - web
   tags: ['caas', 'docker', 'linux']
   services:
     - amr-registry.caas.intel.com/caas/docker:stable-dind
