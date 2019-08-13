@@ -1,6 +1,8 @@
-# Level-Zero Performance Tests
+# Level-Zero Tests
 
-Performance Benchmarks implemented using the Level-Zero Runtime Library.
+Level Zero test source repository containing:
+ * Conformance test content for validating all features of the Level Zero Runtime Library.
+ * Performance Benchmarks implemented using the Level-Zero Runtime Library.
 
 ## Getting Started
 
@@ -15,18 +17,6 @@ Performance Benchmarks implemented using the Level-Zero Runtime Library.
 ## Build
 
 Build instructions in [BUILD](BUILD.md) file.
-
-## Running
-
-You must execute each benchmark with your current working directory set to the
-one containing that benchmark's `.spv` files (by default your build directory).
-Example:
-
-```
-$ ls
-  xe_nano xe_nano_benchmarks.spv ...
-$ ./xe_nano
-```
 
 ## Maintainers
 

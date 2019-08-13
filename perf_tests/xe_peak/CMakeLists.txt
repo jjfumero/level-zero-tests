@@ -20,38 +20,13 @@ set(XE_PEAK_BENCHMARKS
 
 add_executable(xe_peak ${XE_PEAK_COMMON} ${XE_PEAK_BENCHMARKS})
 
-target_link_libraries(xe_peak
-    PRIVATE
-        ${LevelZero_LIBRARIES}
-        ${OS_SPECIFIC_LIBS}
+add_performance_application(xe_peak)
+
+install_resources_performance(xe_peak
+    FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_global_bw.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_hp_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_sp_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_int_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_dp_compute.spv"
 )
-
-target_include_directories(xe_peak
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${LevelZero_INCLUDE_DIR}
-)
-
-if(UNIX)
-    install(
-        TARGETS xe_peak
-        DESTINATION ${PROJECT_BINARY_DIR}
-    )
-    install(
-        FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_global_bw.spv"
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_hp_compute.spv"
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_sp_compute.spv"
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_int_compute.spv"
-            "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_dp_compute.spv"
-        DESTINATION ${PROJECT_BINARY_DIR}
-    )
-endif()
-
-if(MSVC)
-    set_target_properties(xe_peak
-        PROPERTIES
-            VS_DEBUGGER_COMMAND_ARGUMENTS ""
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
-    )
-endif()

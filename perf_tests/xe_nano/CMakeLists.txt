@@ -54,32 +54,12 @@ add_executable(xe_nano ${XE_NANO_COMMON} ${XE_NANO_BENCHMARKS})
 
 target_link_libraries(xe_nano
     PRIVATE
-        ${LevelZero_LIBRARIES}
         gmock
-        ${OS_SPECIFIC_LIBS}
 )
 
-target_include_directories(xe_nano
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${LevelZero_INCLUDE_DIR}
+add_performance_application(xe_nano)
+
+install_resources_performance(test_xe_module
+    FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
 )
-
-if(UNIX)
-    install(
-        TARGETS xe_nano
-        DESTINATION ${CMAKE_BINARY_DIR}
-    )
-    install(
-        FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
-        DESTINATION ${CMAKE_BINARY_DIR}
-    )
-endif()
-
-if(MSVC)
-    set_target_properties(xe_nano
-        PROPERTIES
-            VS_DEBUGGER_COMMAND_ARGUMENTS ""
-            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
-    )
-endif()

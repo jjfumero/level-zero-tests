@@ -21,49 +21,48 @@
  */
 
 void launch_function_no_parameter(XeApp *benchmark,
-				  probe_config_t &probe_setting) {
-    xe_function_handle_t function;
-    xe_command_list_handle_t command_list;
-    benchmark->commandListCreate(&command_list);
+                                  probe_config_t &probe_setting) {
+  xe_function_handle_t function;
+  xe_command_list_handle_t command_list;
+  benchmark->commandListCreate(&command_list);
 
-    benchmark->functionCreate(&function, "function_no_parameter");
+  benchmark->functionCreate(&function, "function_no_parameter");
 
-    xe_thread_group_dimensions_t thread_group_dimensions;
-    thread_group_dimensions.groupCountX = 1;
-    thread_group_dimensions.groupCountY = 1;
-    thread_group_dimensions.groupCountZ = 1;
+  xe_thread_group_dimensions_t thread_group_dimensions;
+  thread_group_dimensions.groupCountX = 1;
+  thread_group_dimensions.groupCountY = 1;
+  thread_group_dimensions.groupCountZ = 1;
 
-    /* Warm up */
-    for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-	xeCommandListAppendLaunchFunction(command_list, function,
-					  &thread_group_dimensions,
-					  nullptr, 0, nullptr);
-    }
+  /* Warm up */
+  for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
+    xeCommandListAppendLaunchFunction(
+        command_list, function, &thread_group_dimensions, nullptr, 0, nullptr);
+  }
 
-    NANO_PROBE(" Function with no parameters\t", probe_setting,
-	       xeCommandListAppendLaunchFunction, command_list, function,
-	       &thread_group_dimensions, nullptr, 0, nullptr);
+  NANO_PROBE(" Function with no parameters\t", probe_setting,
+             xeCommandListAppendLaunchFunction, command_list, function,
+             &thread_group_dimensions, nullptr, 0, nullptr);
 
-    benchmark->functionDestroy(function);
-    benchmark->commandListDestroy(command_list);
+  benchmark->functionDestroy(function);
+  benchmark->commandListDestroy(command_list);
 }
 
 void command_list_empty_execute(XeApp *benchmark,
                                 probe_config_t &probe_setting) {
-    xe_command_list_handle_t command_list;
+  xe_command_list_handle_t command_list;
 
-    benchmark->commandListCreate(&command_list);
-    benchmark->commandListClose(command_list);
+  benchmark->commandListCreate(&command_list);
+  benchmark->commandListClose(command_list);
 
-    /* Warm up */
-    for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-	xeCommandQueueExecuteCommandLists(benchmark->command_queue, 1,
-					  &command_list, nullptr);
-    }
+  /* Warm up */
+  for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
+    xeCommandQueueExecuteCommandLists(benchmark->command_queue, 1,
+                                      &command_list, nullptr);
+  }
 
-    NANO_PROBE(" Empty command list\t", probe_setting,
-	       xeCommandQueueExecuteCommandLists, benchmark->command_queue, 1,
-	       &command_list, nullptr);
+  NANO_PROBE(" Empty command list\t", probe_setting,
+             xeCommandQueueExecuteCommandLists, benchmark->command_queue, 1,
+             &command_list, nullptr);
 
-    benchmark->commandListDestroy(command_list);
+  benchmark->commandListDestroy(command_list);
 }

@@ -1,0 +1,8 @@
+# Default reviewers of Level-Zero-tests repo
+@ledettwy @nrspruit 
+
+# Default reviewers for Conformance tests
+conformance-tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
+
+# Default reviewers for Performance tests
+perf-tests/ @rwmcguir @sanchez1 @jarteaga

@@ -27,91 +27,89 @@ using namespace xe_api_benchmarks;
 
 namespace {
 class XeNano : public ::testing::Test {
-    protected:
-        XeNano() {
-            api_static_probe_init();
-            benchmark = new XeApp("xe_nano_benchmarks.spv");
-            probe_setting.warm_up_iteration = 0;
-            probe_setting.measure_iteration = 0;
-        }
+protected:
+  XeNano() {
+    api_static_probe_init();
+    benchmark = new XeApp("xe_nano_benchmarks.spv");
+    probe_setting.warm_up_iteration = 0;
+    probe_setting.measure_iteration = 0;
+  }
 
-        ~XeNano() override {
-              api_static_probe_cleanup();
-              delete benchmark;
-        }
+  ~XeNano() override {
+    api_static_probe_cleanup();
+    delete benchmark;
+  }
 
-        void header_print_iteration(std::string prefix,
-                                    probe_config_t &probe_setting) {
-            std::cout << " All measurements are averaged per call except the function call rate metric"
-                      << std::endl;
-            std::cout << std::left << std::setw(25) << " " + prefix
-                      << std::internal
-                      << "Warm up iterations "
-                      << probe_setting.warm_up_iteration
-                      << std::setw(30) << " Measured iterations "
-                      << probe_setting.measure_iteration
-                      << std::endl;
-        }
+  void header_print_iteration(std::string prefix,
+                              probe_config_t &probe_setting) {
+    std::cout << " All measurements are averaged per call except the function "
+                 "call rate metric"
+              << std::endl;
+    std::cout << std::left << std::setw(25) << " " + prefix << std::internal
+              << "Warm up iterations " << probe_setting.warm_up_iteration
+              << std::setw(30) << " Measured iterations "
+              << probe_setting.measure_iteration << std::endl;
+  }
 
-        XeApp *benchmark;
-        probe_config_t probe_setting;
+  XeApp *benchmark;
+  probe_config_t probe_setting;
 };
 
 TEST_F(XeNano, xeFunctionSetArgumentValue_Buffer) {
-    probe_setting.warm_up_iteration = 1000;
-    probe_setting.measure_iteration = 9000;
+  probe_setting.warm_up_iteration = 1000;
+  probe_setting.measure_iteration = 9000;
 
-    header_print_iteration("Buffer argument", probe_setting);
-    latency::parameter_buffer(benchmark, probe_setting);
-    hardware_counter::parameter_buffer(benchmark, probe_setting);
-    fuction_call_rate::parameter_buffer(benchmark, probe_setting);
-    std::cout << std::endl;
+  header_print_iteration("Buffer argument", probe_setting);
+  latency::parameter_buffer(benchmark, probe_setting);
+  hardware_counter::parameter_buffer(benchmark, probe_setting);
+  fuction_call_rate::parameter_buffer(benchmark, probe_setting);
+  std::cout << std::endl;
 }
 
 TEST_F(XeNano, xeFunctionSetArgumentValue_Immediate) {
-    probe_setting.warm_up_iteration = 1000;
-    probe_setting.measure_iteration = 9000;
+  probe_setting.warm_up_iteration = 1000;
+  probe_setting.measure_iteration = 9000;
 
-    header_print_iteration("Immediate argument", probe_setting);
-    latency::parameter_integer(benchmark, probe_setting);
-    hardware_counter::parameter_integer(benchmark, probe_setting);
-    fuction_call_rate::parameter_integer(benchmark, probe_setting);
-    std::cout << std::endl;
+  header_print_iteration("Immediate argument", probe_setting);
+  latency::parameter_integer(benchmark, probe_setting);
+  hardware_counter::parameter_integer(benchmark, probe_setting);
+  fuction_call_rate::parameter_integer(benchmark, probe_setting);
+  std::cout << std::endl;
 }
 
 TEST_F(XeNano, xeFunctionSetArgumentValue_Image) {
-    probe_setting.warm_up_iteration = 1000;
-    probe_setting.measure_iteration = 9000;
+  probe_setting.warm_up_iteration = 1000;
+  probe_setting.measure_iteration = 9000;
 
-    header_print_iteration("Image argument", probe_setting);
-    latency::parameter_integer(benchmark, probe_setting);
-    hardware_counter::parameter_integer(benchmark, probe_setting);
-    fuction_call_rate::parameter_integer(benchmark, probe_setting);
-    std::cout << std::endl;
+  header_print_iteration("Image argument", probe_setting);
+  latency::parameter_integer(benchmark, probe_setting);
+  hardware_counter::parameter_integer(benchmark, probe_setting);
+  fuction_call_rate::parameter_integer(benchmark, probe_setting);
+  std::cout << std::endl;
 }
 
 TEST_F(XeNano, xeCommandListAppendLaunchFunction) {
-    probe_setting.warm_up_iteration = 142;
-    probe_setting.measure_iteration = 567;
+  probe_setting.warm_up_iteration = 142;
+  probe_setting.measure_iteration = 567;
 
-    header_print_iteration("", probe_setting);
-    latency::launch_function_no_parameter(benchmark, probe_setting);
-    hardware_counter::launch_function_no_parameter(benchmark, probe_setting);
-    std::cout << std::endl;
+  header_print_iteration("", probe_setting);
+  latency::launch_function_no_parameter(benchmark, probe_setting);
+  hardware_counter::launch_function_no_parameter(benchmark, probe_setting);
+  std::cout << std::endl;
 }
 
 TEST_F(XeNano, xeCommandQueueExecuteCommandLists) {
-    probe_setting.warm_up_iteration = 5;
-    probe_setting.measure_iteration = 10;
-    header_print_iteration("", probe_setting);
-    latency::command_list_empty_execute(benchmark, probe_setting);
-    hardware_counter::command_list_empty_execute(benchmark, probe_setting);
-    fuction_call_rate::command_list_empty_execute(benchmark, probe_setting);
-    std::cout << std::endl;
+  probe_setting.warm_up_iteration = 5;
+  probe_setting.measure_iteration = 10;
+  header_print_iteration("", probe_setting);
+  latency::command_list_empty_execute(benchmark, probe_setting);
+  hardware_counter::command_list_empty_execute(benchmark, probe_setting);
+  fuction_call_rate::command_list_empty_execute(benchmark, probe_setting);
+  std::cout << std::endl;
 }
 } /* end namespace */
 
 int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

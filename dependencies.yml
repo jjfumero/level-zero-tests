@@ -6,5 +6,26 @@ components:
     repository: https://gerrit-gfx.intel.com/a/mirrors/github/google/googletest
     revision: 0599a7b8410dc5cfdb477900b280475ae775d7f9
     type: git
+  level_zero_linux:
+    type: artifactory
+    root_url: https://gfx-assets.fm.intel.com/artifactory
+    asset_path: gfx-sandbox-fm/level_zero_external_build_artifacts
+    asset_name: linux-release-internal64-gcc8
+    asset_version: test_artifactsv0.0.5
+    dest_dir: third_party/level_zero_linux
+  level_zero_windows:
+    type: artifactory
+    root_url: https://gfx-assets.fm.intel.com/artifactory
+    asset_path: gfx-sandbox-fm/level_zero_external_build_artifacts
+    asset_name: windows-release-internal64
+    asset_version: test_artifactsv0.0.5
+    dest_dir: third_party/level_zero_windows
+  yuv_samples:
+    type: artifactory
+    root_url: https://gfx-assets.fm.intel.com/artifactory
+    asset_path: gfx-sandbox-fm
+    asset_name: yuv_samples
+    asset_version: 1
+    dest_dir: mediadata/external/yuv
 converter: E-1180
 version: '1'

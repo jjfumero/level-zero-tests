@@ -10,7 +10,9 @@ echo "password $GERRITGFX_HTTP_PASSWORD" >> ~/.netrc
 
 # Synchronize third-party assets with irepo
 ~/.irepo/irepo select ./dependencies.yml
-~/.irepo/irepo sync
+~/.irepo/irepo sync -c googletest
+~/.irepo/irepo sync -c level_zero_linux
+~/.irepo/irepo sync -c yuv_samples
 
 mkdir build
 cd build
@@ -20,6 +22,7 @@ cmake \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DCMAKE_BUILD_TYPE=Release \
   ..
+cmake --build . --config Release --target clang-format-check
 cmake --build . --config Release --target package_source
 cmake --build . --config Release --target package
-mv intel-level-zero-perftests-* ..
+mv intel-level-zero-* ..

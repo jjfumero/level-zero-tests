@@ -26,12 +26,8 @@
 #include "api_static_probe.hpp"
 
 namespace xe_api_benchmarks {
-inline void init() {
-    api_static_probe_init();
-}
-inline void cleanup() {
-    api_static_probe_cleanup();
-}
+inline void init() { api_static_probe_init(); }
+inline void cleanup() { api_static_probe_cleanup(); }
 
 namespace latency {
 #include "benchmark_template/set_parameter.hpp"
