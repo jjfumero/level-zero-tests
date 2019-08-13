@@ -43,7 +43,14 @@ maintains a standard of C++ standards.
 ### Coding Standards Enforcement
 
 * clang-format: Code Formatting before committing changes
+    * Run thru `make clang-format`
 * clang-tidy: Naming & Coding standards verified at build time if enabled
+    * Enabled with `export CLANG_TIDY_CHECK=1`
+    * Reconfigure the build:
+        * `cd build`
+        * `cmake ..`
+        * `rm CMakeCache.txt`
+        * `make -j` This will run clang-tidy on all compiled binaries and headers
 * Manual: Code Review checking (hopefully minimal due to above)
 
 

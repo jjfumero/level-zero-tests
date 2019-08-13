@@ -1,0 +1,20 @@
+---
+Checks:          '-*,readability-identifier-naming, modernize-avoid-c-arrays, readability-magic-numbers, cppcoreguidelines-no-malloc, modernize-use-nullptr, modernize-redundant-void-arg, modernize-replace-auto-ptr'
+WarningsAsErrors: ''
+HeaderFilterRegex: '(utils/xe_test_harness/include/xe_test_harness/*)|(utils/xe_utils/include/xe_utils/*)'
+AnalyzeTemporaryDtors: false
+FormatStyle:     LLVM
+CheckOptions:
+  - key:             readability-identifier-naming.ClassMemberCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ClassMemberSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.FunctionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.EnumCase
+    value:           lower_case
+  - key:             readability-identifier-naming.NamespaceCase
+    value:           lower_case
+
