@@ -8,7 +8,7 @@ TMP_SRC=$TMP_DIR/src
 cp -r $1 $TMP_SRC
 
 git -C $TMP_SRC add -u >/dev/null
-git -C $TMP_SRC -c "user.name=null" -c "user.email=null" commit -m "base" >/dev/null
+git -C $TMP_SRC -c "user.name=null" -c "user.email=null" commit -m "base" >/dev/null || true
 
 FILES=$( \
     find \
