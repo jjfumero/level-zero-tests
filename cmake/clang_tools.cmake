@@ -1,42 +1,18 @@
-file(GLOB_RECURSE CONFORMANCE_SOURCE_FILES conformance_tests/*.cpp)
-file(GLOB_RECURSE CONFORMANCE_HEADER_FILES conformance_tests/*.hpp)
-file(GLOB_RECURSE PERF_SOURCE_FILES perf_tests/*.cpp)
-file(GLOB_RECURSE PERF_HEADER_FILES perf_tests/*.hpp)
-file(GLOB_RECURSE UTILS_SOURCE_FILES utils/*.cpp)
-file(GLOB_RECURSE UTILS_HEADER_FILES utils/*.hpp)
-set(ALL_SOURCE_FILES
-  ${CONFORMANCE_SOURCE_FILES}
-  ${PERF_SOURCE_FILES}
-  ${UTILS_SOURCE_FILES}
-)
-set(ALL_HEADER_FILES
-  ${CONFORMANCE_HEADER_FILES}
-  ${PERF_HEADER_FILES}
-  ${UTILS_HEADER_FILES}
-)
-set(ALL_TEST_FILES ${ALL_SOURCE_FILES} ${ALL_HEADER_FILES})
-
 find_program(CLANG_FORMAT NAMES clang-format-7)
 if (CLANG_FORMAT)
     MESSAGE(STATUS "clang format" ${CLANG_FORMAT})
     add_custom_target(clang-format
-      COMMAND ${CLANG_FORMAT}
-      -style=file
-      -i
-      ${ALL_TEST_FILES}
+      COMMENT "Checking code formatting and fixing issues"
+      COMMAND
+        ${CMAKE_SOURCE_DIR}/clang-format-patch.sh ${CMAKE_SOURCE_DIR} |
+        git apply -
     )
     add_custom_target(clang-format-check
-      COMMENT "Checking format compliance"
-      COMMAND ${CLANG_FORMAT}
-      -style=file
-      --output-replacements-xml
-      ${ALL_TEST_FILES} > ${CMAKE_BINARY_DIR}/clang_format_results
+      COMMENT "Checking code formatting"
       COMMAND
-        echo "Clang-Format returned Changes Required# ";
-        `grep -c "replacement offset" ${CMAKE_BINARY_DIR}/clang_format_results`
-      COMMAND
-        ! grep -c "replacement offset"
-        ${CMAKE_BINARY_DIR}/clang_format_results > /dev/null
+        ${CMAKE_SOURCE_DIR}/clang-format-patch.sh ${CMAKE_SOURCE_DIR}
+        | tee ${CMAKE_BINARY_DIR}/clang_format_results.patch
+      COMMAND ! [ -s ${CMAKE_BINARY_DIR}/clang_format_results.patch ]
     )
 endif ()
 
