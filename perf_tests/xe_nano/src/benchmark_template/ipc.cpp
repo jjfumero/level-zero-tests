@@ -19,19 +19,19 @@
  * express and approved by Intel in writing.
  */
 
-#include "../include/common.h"
+void ipc_memory_handle_get(XeApp *benchmark, probe_config_t &probe_setting) {
+  void *buffer;
+  xe_ipc_mem_handle_t ipc_handle;
+  size_t buffer_size = sizeof(uint8_t);
 
-using namespace std;
+  benchmark->memoryAlloc(buffer_size, &buffer);
+  /* Warm up */
+  for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
+    xeDeviceGroupGetMemIpcHandle(benchmark->device_group, buffer, &ipc_handle);
+  }
 
-void Timer::start() { tick = chrono::high_resolution_clock::now(); }
+  NANO_PROBE(" IPC Handle Get\t", probe_setting, xeDeviceGroupGetMemIpcHandle,
+             benchmark->device_group, buffer, &ipc_handle);
 
-float Timer::stopAndTime() {
-  tock = chrono::high_resolution_clock::now();
-  return (
-      float)(chrono::duration_cast<chrono::microseconds>(tock - tick).count());
-}
-
-uint64_t roundToMultipleOf(uint64_t number, uint64_t base, uint64_t maxValue) {
-  uint64_t n = (number > maxValue) ? maxValue : number;
-  return (n / base) * base;
+  benchmark->memoryFree(&buffer);
 }

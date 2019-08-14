@@ -1,24 +1,24 @@
 /*
- * Copyright(c) 2019 Intel Corporation
+ * INTEL CONFIDENTIAL
+ * Copyright (c) 2016 - 2019 Intel Corporation. All Rights Reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * The source code contained or described herein and all documents related to
+ * the source code ("Material") are owned by Intel Corporation or its suppliers
+ * or licensors. Title to the Material remains with Intel Corporation or its
+ * suppliers and licensors. The Material contains trade secrets and proprietary
+ * and confidential information of Intel or its suppliers and licensors. The
+ * Material is protected by worldwide copyright and trade secret laws and
+ * treaty provisions. No part of the Material may be used, copied, reproduced,
+ * modified, published, uploaded, posted, transmitted, distributed, or
+ * disclosed in any way without Intel's prior express written permission.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * No license under any patent, copyright, trade secret or other intellectual
+ * property right is granted to or conferred upon you by disclosure or delivery
+ * of the Materials, either expressly, by implication, inducement, estoppel or
+ * otherwise. Any license under such intellectual property rights must be
+ * express and approved by Intel in writing.
  */
+
 #include "../include/xe_peak.h"
 
 // There is no equivalent of cl_half (i.e. 16 bit floating point)
@@ -35,7 +35,7 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
   float input_value = 1.3f;
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("xe_hp_compute.spv");
+      context.load_binary_file("test_files/spv_modules/xe_hp_compute.spv");
 
   context.create_module(binary_file);
 
@@ -48,39 +48,23 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
   number_of_work_items =
       set_workgroups(context, number_of_work_items, &workgroup_info);
 
-  void *device_input_value;
-  result = xeDeviceMemAlloc(context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                            sizeof(cl_half), 1, &device_input_value);
-  if (result) {
-    throw std::runtime_error("xeDeviceMemAlloc failed: " + result);
-  }
-  if (verbose)
-    std::cout << "device input value allocated\n";
-
   void *device_output_buffer;
-  result = xeDeviceMemAlloc(context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                            (number_of_work_items * sizeof(cl_half)), 1,
-                            &device_output_buffer);
+  result = xeDeviceGroupAllocDeviceMem(
+      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+      static_cast<size_t>((number_of_work_items * sizeof(cl_half))), 1,
+      &device_output_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceMemAlloc failed: " + result);
+    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "device output buffer allocated\n";
-
-  result = xeCommandListAppendMemoryCopy(context.command_list,
-                                         device_input_value, &input_value,
-                                         sizeof(cl_half), nullptr, 0, nullptr);
-  if (result) {
-    throw std::runtime_error("xeCommandListAppendMemoryCopy failed: " + result);
-  }
-  if (verbose)
-    std::cout << "Input value copy encoded\n";
 
   result =
       xeCommandListAppendBarrier(context.command_list, nullptr, 0, nullptr);
   if (result) {
     throw std::runtime_error("xeCommandListAppendExecutionBarrier failed: " +
-                             result);
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Execution barrier appended\n";
@@ -90,20 +74,20 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
   /*Begin setup of Function*/
 
   xe_function_handle_t compute_hp_v1;
-  setup_function(context, compute_hp_v1, "compute_hp_v1", device_input_value,
-                 device_output_buffer);
+  setup_function(context, compute_hp_v1, "compute_hp_v1", device_output_buffer,
+                 &input_value, sizeof(float));
   xe_function_handle_t compute_hp_v2;
-  setup_function(context, compute_hp_v2, "compute_hp_v2", device_input_value,
-                 device_output_buffer);
+  setup_function(context, compute_hp_v2, "compute_hp_v2", device_output_buffer,
+                 &input_value, sizeof(float));
   xe_function_handle_t compute_hp_v4;
-  setup_function(context, compute_hp_v4, "compute_hp_v4", device_input_value,
-                 device_output_buffer);
+  setup_function(context, compute_hp_v4, "compute_hp_v4", device_output_buffer,
+                 &input_value, sizeof(float));
   xe_function_handle_t compute_hp_v8;
-  setup_function(context, compute_hp_v8, "compute_hp_v8", device_input_value,
-                 device_output_buffer);
+  setup_function(context, compute_hp_v8, "compute_hp_v8", device_output_buffer,
+                 &input_value, sizeof(float));
   xe_function_handle_t compute_hp_v16;
-  setup_function(context, compute_hp_v16, "compute_hp_v16", device_input_value,
-                 device_output_buffer);
+  setup_function(context, compute_hp_v16, "compute_hp_v16",
+                 device_output_buffer, &input_value, sizeof(float));
 
   std::cout << "Half Precision Compute (GFLOPS)\n";
 
@@ -144,56 +128,56 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
 
   result = xeFunctionDestroy(compute_hp_v1);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " + result);
+    throw std::runtime_error("xeFunctionDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v1 Function Destroyed\n";
 
   result = xeFunctionDestroy(compute_hp_v2);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " + result);
+    throw std::runtime_error("xeFunctionDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v2 Function Destroyed\n";
 
   result = xeFunctionDestroy(compute_hp_v4);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " + result);
+    throw std::runtime_error("xeFunctionDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v4 Function Destroyed\n";
 
   result = xeFunctionDestroy(compute_hp_v8);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " + result);
+    throw std::runtime_error("xeFunctionDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v8 Function Destroyed\n";
 
   result = xeFunctionDestroy(compute_hp_v16);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " + result);
+    throw std::runtime_error("xeFunctionDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v16 Function Destroyed\n";
 
-  result = xeMemFree(device_input_value);
+  result = xeDeviceGroupFreeMem(context.device_group, device_output_buffer);
   if (result) {
-    throw std::runtime_error("xeMemFree failed: " + result);
-  }
-  if (verbose)
-    std::cout << "Input Buffer freed\n";
-
-  result = xeMemFree(device_output_buffer);
-  if (result) {
-    throw std::runtime_error("xeMemFree failed: " + result);
+    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Output Buffer freed\n";
 
   result = xeModuleDestroy(context.module);
   if (result) {
-    throw std::runtime_error("xeModuleDestroy failed: " + result);
+    throw std::runtime_error("xeModuleDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Module destroyed\n";

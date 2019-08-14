@@ -1,46 +1,47 @@
 /*
- * Copyright(c) 2019 Intel Corporation
+ * INTEL CONFIDENTIAL
+ * Copyright (c) 2016 - 2019 Intel Corporation. All Rights Reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * The source code contained or described herein and all documents related to
+ * the source code ("Material") are owned by Intel Corporation or its suppliers
+ * or licensors. Title to the Material remains with Intel Corporation or its
+ * suppliers and licensors. The Material contains trade secrets and proprietary
+ * and confidential information of Intel or its suppliers and licensors. The
+ * Material is protected by worldwide copyright and trade secret laws and
+ * treaty provisions. No part of the Material may be used, copied, reproduced,
+ * modified, published, uploaded, posted, transmitted, distributed, or
+ * disclosed in any way without Intel's prior express written permission.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * No license under any patent, copyright, trade secret or other intellectual
+ * property right is granted to or conferred upon you by disclosure or delivery
+ * of the Materials, either expressly, by implication, inducement, estoppel or
+ * otherwise. Any license under such intellectual property rights must be
+ * express and approved by Intel in writing.
  */
+
 #ifndef _API_STATIC_PROBE_HPP_
 #define _API_STATIC_PROBE_HPP_
 
-#include <string>
-#include <locale>
-#include <assert.h>
-#include <iomanip>
-#include "xe_api.h"
 #include "common.hpp"
 #include "hardware_counter.hpp"
+#include "xe_api.h"
+
+#include <assert.h>
+#include <iomanip>
+#include <locale>
+#include <string>
 
 const std::string PREFIX_LATENCY = "[ PERF LATENCY nS ]\t";
 const std::string PREFIX_FUNCTION_CALL_RATE = "[ PERF FUNC_CALL_RATE ]\t";
 const std::string PREFIX_CYCLES = "[ PERF CYCLES ]\t\t";
 const std::string PREFIX_INSTRUCTION = "[ PERF INSTRUCTIONS ]\t";
-const std::string PREFIX_CPI = "[ PERF CPI ]\t\t";
+const std::string PREFIX_IPC = "[ PERF IPC ]\t\t";
 
 const std::string UNIT_LATENCY = "nanoseconds";
 const std::string UNIT_FUNCTION_CALL_RATE = "function calls/sec";
 const std::string UNIT_CYCLES = "cycles";
 const std::string UNIT_INSTRUCTION = "instructions";
-const std::string UNIT_CPI = UNIT_CYCLES + "/" + UNIT_INSTRUCTION;
+const std::string UNIT_IPC = UNIT_INSTRUCTION + "/" + UNIT_CYCLES;
 
 extern HardwareCounter *hardware_counters;
 void api_static_probe_init();
@@ -78,7 +79,7 @@ int64_t _function_call_iter_measure_latency(
     const probe_config_t &probe_setting,
     xe_result_t (*api_function)(Params... params), Args... args) {
   int iteration_number = probe_setting.measure_iteration;
-  TimerNanosecond timer;
+  Timer<std::chrono::nanoseconds> timer;
 
   timer.start();
   for (int i = 0; i < iteration_number; i++) {
@@ -134,17 +135,17 @@ void _function_call_iter_hardware_counters(
   auto normalized_instruction_count =
       total_instruction_count / iteration_number;
   auto normalized_cycle_count = total_cycle_count / iteration_number;
-  auto cycle_per_instruction =
-      normalized_cycle_count /
-      static_cast<double>(normalized_instruction_count);
+  auto instruction_per_cycle =
+      static_cast<double>(normalized_instruction_count) /
+      normalized_cycle_count;
 
   print_probe_output(PREFIX_INSTRUCTION + prefix, filename, line_number,
                      function_name, normalized_instruction_count,
                      UNIT_INSTRUCTION);
   print_probe_output(PREFIX_CYCLES + prefix, filename, line_number,
                      function_name, normalized_cycle_count, UNIT_CYCLES);
-  print_probe_output(PREFIX_CPI + prefix, filename, line_number, function_name,
-                     cycle_per_instruction, UNIT_CPI);
+  print_probe_output(PREFIX_IPC + prefix, filename, line_number, function_name,
+                     instruction_per_cycle, UNIT_IPC);
 }
 
 #define PROBE_MEASURE_FUNCTION_CALL_RATE(prefix, probe_setting, function_name, \
@@ -157,17 +158,17 @@ void _function_call_rate_iter(const std::string filename, const int line_number,
                               const std::string prefix,
                               xe_result_t (*api_function)(Params... params),
                               Args... args) {
-  TimerNanosecond timer;
+  Timer<std::chrono::nanoseconds> timer;
   const int one_second_in_nano = 1000000000;
   /*
    * 500 ms will be used to count function calls. This is determined by
-   * dividing 1 nanoseocnd by division_factor.
+   * dividing 1 second in nanoseconds by division_factor.
    */
   const int division_factor = 2;
   const int period = one_second_in_nano / division_factor;
   int function_call_counter = 0;
 
-  /* Determine number of function calls per 250 milliseocnds */
+  /* Determine number of function calls per 500 milliseconds */
   while (timer.has_it_been(period) == false) {
     api_function(args...);
     function_call_counter++;

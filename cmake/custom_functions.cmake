@@ -215,6 +215,7 @@ function(add_performance_application name)
     target_include_directories(${name}
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/perf_tests/common/include
             ${LevelZero_INCLUDE_DIRS}
     )
 

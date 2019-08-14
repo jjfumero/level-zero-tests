@@ -1,25 +1,26 @@
 /*
- * Copyright(c) 2019 Intel Corporation
+ * INTEL CONFIDENTIAL
+ * Copyright (c) 2016 - 2019 Intel Corporation. All Rights Reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * The source code contained or described herein and all documents related to
+ * the source code ("Material") are owned by Intel Corporation or its suppliers
+ * or licensors. Title to the Material remains with Intel Corporation or its
+ * suppliers and licensors. The Material contains trade secrets and proprietary
+ * and confidential information of Intel or its suppliers and licensors. The
+ * Material is protected by worldwide copyright and trade secret laws and
+ * treaty provisions. No part of the Material may be used, copied, reproduced,
+ * modified, published, uploaded, posted, transmitted, distributed, or
+ * disclosed in any way without Intel's prior express written permission.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * No license under any patent, copyright, trade secret or other intellectual
+ * property right is granted to or conferred upon you by disclosure or delivery
+ * of the Materials, either expressly, by implication, inducement, estoppel or
+ * otherwise. Any license under such intellectual property rights must be
+ * express and approved by Intel in writing.
  */
+
 #include "../include/xe_peak.h"
+
 #include <algorithm>
 
 #define ONE_KB (1 * 1024ULL)
@@ -66,7 +67,8 @@ void L0Context::reset_commandlist() {
 
   result = xeCommandListReset(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListReset failed: " + result);
+    throw std::runtime_error("xeCommandListReset failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command list reset\n";
@@ -92,7 +94,8 @@ void L0Context::create_module(std::vector<uint8_t> binary_file) {
 
   result = xeModuleCreate(device, &module_description, &module, nullptr);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateModule failed: " + result);
+    throw std::runtime_error("xeDeviceCreateModule failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Module created\n";
@@ -136,21 +139,41 @@ void L0Context::init_xe() {
 
   result = xeInit(XE_INIT_FLAG_NONE);
   if (result) {
-    throw std::runtime_error("xeDriverInit failed: " + result);
+    throw std::runtime_error("xeDriverInit failed: " + std::to_string(result));
   }
   if (verbose)
     std::cout << "Driver initialized\n";
 
-  result = xeDeviceGetCount(&device_count);
+  std::cout << "xeDeviceGroupGet...\n";
+  uint32_t device_group_count = 0;
+  result = xeDeviceGroupGet(&device_group_count, nullptr);
+  if (result || device_group_count == 0) {
+    throw std::runtime_error("xeDeviceGroupGet failed: " +
+                             std::to_string(result));
+  }
+
+  /* Retrieve only one device group */
+  device_group_count = 1;
+  result = xeDeviceGroupGet(&device_group_count, &device_group);
   if (result) {
-    throw std::runtime_error("xeDriverGetDeviceCount failed: " + result);
+    throw std::runtime_error("xeDeviceGroupGet failed: " +
+                             std::to_string(result));
+  }
+
+  device_count = 0;
+  result = xeDeviceGroupGetDevices(device_group, &device_count, nullptr);
+  if (result || device_count == 0) {
+    throw std::runtime_error("xeDeviceGroupGetDevices failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Device count retrieved\n";
 
-  result = xeDeviceGet(0, &device);
+  device_count = 1;
+  result = xeDeviceGroupGetDevices(device_group, &device_count, &device);
   if (result) {
-    throw std::runtime_error("xeDriverGetDevice failed: " + result);
+    throw std::runtime_error("xeDeviceGroupGetDevices failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Device retrieved\n";
@@ -158,7 +181,8 @@ void L0Context::init_xe() {
   device_property.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
   result = xeDeviceGetProperties(device, &device_property);
   if (result) {
-    throw std::runtime_error("xeDeviceGetProperties failed: " + result);
+    throw std::runtime_error("xeDeviceGetProperties failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Device Properties retrieved\n";
@@ -169,7 +193,8 @@ void L0Context::init_xe() {
       XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
   result = xeDeviceGetComputeProperties(device, &device_compute_property);
   if (result) {
-    throw std::runtime_error("xeDeviceGetComputeProperties failed: " + result);
+    throw std::runtime_error("xeDeviceGetComputeProperties failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Device Compute Properties retrieved\n";
@@ -179,7 +204,8 @@ void L0Context::init_xe() {
   result =
       xeCommandListCreate(device, &command_list_description, &command_list);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateCommandList failed: " + result);
+    throw std::runtime_error("xeDeviceCreateCommandList failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "command_list created\n";
@@ -191,7 +217,8 @@ void L0Context::init_xe() {
   result =
       xeCommandQueueCreate(device, &command_queue_description, &command_queue);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateCommandQueue failed: " + result);
+    throw std::runtime_error("xeDeviceCreateCommandQueue failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command queue created\n";
@@ -206,14 +233,16 @@ void L0Context::clean_xe() {
 
   result = xeCommandQueueDestroy(command_queue);
   if (result) {
-    throw std::runtime_error("xeCommandQueueDestroy failed: " + result);
+    throw std::runtime_error("xeCommandQueueDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command queue destroyed\n";
 
   result = xeCommandListDestroy(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListDestroy failed: " + result);
+    throw std::runtime_error("xeCommandListDestroy failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "command_list destroyed\n";
@@ -231,7 +260,8 @@ void L0Context::execute_commandlist_and_sync() {
 
   result = xeCommandListClose(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListClose failed: " + result);
+    throw std::runtime_error("xeCommandListClose failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command list closed\n";
@@ -240,29 +270,20 @@ void L0Context::execute_commandlist_and_sync() {
                                              nullptr);
   if (result) {
     throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
-                             result);
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command list enqueued\n";
 
   result = xeCommandQueueSynchronize(command_queue, UINT32_MAX);
   if (result) {
-    throw std::runtime_error("xeCommandQueueSynchronize failed: " + result);
+    throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Command queue synchronized\n";
 
   reset_commandlist();
-}
-
-//---------------------------------------------------------------------
-// Utility function to convert a global work size and a local work size
-// into the number of work items that would be executed with OpenCL.
-//---------------------------------------------------------------------
-uint64_t XePeak::convert_cl_to_xe_work_item_count(uint64_t global_work_size,
-                                                  uint64_t local_size) {
-  uint64_t number_of_workgroups = global_work_size / local_size;
-  return number_of_workgroups * (local_size + local_size + local_size);
 }
 
 //---------------------------------------------------------------------
@@ -347,7 +368,7 @@ uint64_t XePeak::set_workgroups(L0Context &context,
 }
 
 //---------------------------------------------------------------------
-// Utility function to execute the command lists and sync the command queue.
+// Utility function to execute the command lists on the command queue.
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void XePeak::run_command_queue(L0Context &context) {
@@ -356,12 +377,20 @@ void XePeak::run_command_queue(L0Context &context) {
                                              &context.command_list, nullptr);
   if (result) {
     throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
-                             result);
+                             std::to_string(result));
   }
+}
 
+//---------------------------------------------------------------------
+// Utility function to synchronize the command queue.
+// On error, an exception will be thrown describing the failure.
+//---------------------------------------------------------------------
+void XePeak::synchronize_command_queue(L0Context &context) {
+  xe_result_t result = XE_RESULT_SUCCESS;
   result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
   if (result) {
-    throw std::runtime_error("xeCommandQueueSynchronize failed: " + result);
+    throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+                             std::to_string(result));
   }
 }
 
@@ -377,7 +406,8 @@ void single_event_pool_create(
   result = xeEventPoolCreate(context.device, &kernel_launch_event_pool_desc,
                              kernel_launch_event_pool);
   if (result) {
-    throw std::runtime_error("xeEventPoolCreate failed: " + result);
+    throw std::runtime_error("xeEventPoolCreate failed: " +
+                             std::to_string(result));
   }
 }
 
@@ -392,7 +422,7 @@ void single_event_create(xe_event_pool_handle_t event_pool,
   event_desc.version = XE_EVENT_DESC_VERSION_CURRENT;
   result = xeEventCreate(event_pool, &event_desc, event);
   if (result) {
-    throw std::runtime_error("xeEventCreate failed: " + result);
+    throw std::runtime_error("xeEventCreate failed: " + std::to_string(result));
   }
 }
 //---------------------------------------------------------------------
@@ -419,7 +449,8 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
                                   workgroup_info.group_size_y,
                                   workgroup_info.group_size_z);
   if (result) {
-    throw std::runtime_error("xeFunctionSetGroupSize failed: " + result);
+    throw std::runtime_error("xeFunctionSetGroupSize failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Group size set\n";
@@ -434,14 +465,15 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
         nullptr, 0, nullptr);
     if (result) {
       throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
-                               result);
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
     result = xeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " + result);
+      throw std::runtime_error("xeCommandListClose failed: " +
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Command list closed\n";
@@ -450,10 +482,13 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
       run_command_queue(context);
     }
 
+    synchronize_command_queue(context);
+
     timer.start();
     for (uint32_t i = 0; i < iters; i++) {
       run_command_queue(context);
     }
+    synchronize_command_queue(context);
     timed = timer.stopAndTime();
   } else if (type == TimingMeasurement::BANDWIDTH_EVENT_TIMING) {
     xe_event_pool_handle_t event_pool;
@@ -472,14 +507,15 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
         function_event, 0, nullptr);
     if (result) {
       throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
-                               result);
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
     result = xeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " + result);
+      throw std::runtime_error("xeCommandListClose failed: " +
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Command list closed\n";
@@ -489,22 +525,25 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
         throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
-                                 result);
+                                 std::to_string(result));
       }
 
       result = xeEventHostSynchronize(function_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " + result);
+        throw std::runtime_error("xeEventHostSynchronize failed: " +
+                                 std::to_string(result));
       }
 
       result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " + result);
+        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+                                 std::to_string(result));
       }
 
       result = xeEventReset(function_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " + result);
+        throw std::runtime_error("xeEventReset failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset" << std::endl;
@@ -516,25 +555,28 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
         throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
-                                 result);
+                                 std::to_string(result));
       }
 
       result = xeEventHostSynchronize(function_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " + result);
+        throw std::runtime_error("xeEventHostSynchronize failed: " +
+                                 std::to_string(result));
       }
       timed += timer.stopAndTime();
 
       result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " + result);
+        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
       result = xeEventReset(function_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " + result);
+        throw std::runtime_error("xeEventReset failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset\n";
@@ -555,7 +597,7 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
                                             kernel_launch_event);
     if (result) {
       throw std::runtime_error("xeCommandListAppendSignalEvent failed: " +
-                               result);
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Kernel Launch Event signal appended to command list\n";
@@ -565,27 +607,31 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
         nullptr, 0, nullptr);
     if (result) {
       throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
-                               result);
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
     result = xeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " + result);
+      throw std::runtime_error("xeCommandListClose failed: " +
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Command list closed\n";
 
     for (uint32_t i = 0; i < warmup_iterations; i++) {
       run_command_queue(context);
+      synchronize_command_queue(context);
       result = xeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " + result);
+        throw std::runtime_error("xeEventHostSynchronize failed: " +
+                                 std::to_string(result));
       }
       result = xeEventReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " + result);
+        throw std::runtime_error("xeEventReset failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset\n";
@@ -597,25 +643,28 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
         throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
-                                 result);
+                                 std::to_string(result));
       }
 
       result = xeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " + result);
+        throw std::runtime_error("xeEventHostSynchronize failed: " +
+                                 std::to_string(result));
       }
       timed += timer.stopAndTime();
 
       result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " + result);
+        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
       result = xeEventReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " + result);
+        throw std::runtime_error("xeEventReset failed: " +
+                                 std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset\n";
@@ -626,14 +675,15 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
         nullptr, 0, nullptr);
     if (result) {
       throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
-                               result);
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
     result = xeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " + result);
+      throw std::runtime_error("xeCommandListClose failed: " +
+                               std::to_string(result));
     }
     if (verbose)
       std::cout << "Command list closed\n";
@@ -642,9 +692,12 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
       run_command_queue(context);
     }
 
+    synchronize_command_queue(context);
+
     for (uint32_t i = 0; i < iters; i++) {
       timer.start();
       run_command_queue(context);
+      synchronize_command_queue(context);
       timed += timer.stopAndTime();
     }
   }
@@ -660,7 +713,8 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void XePeak::setup_function(L0Context &context, xe_function_handle_t &function,
-                            const char *name, void *input, void *output) {
+                            const char *name, void *input, void *output,
+                            size_t outputSize) {
   xe_function_desc_t function_description;
   xe_result_t result = XE_RESULT_SUCCESS;
 
@@ -670,21 +724,30 @@ void XePeak::setup_function(L0Context &context, xe_function_handle_t &function,
 
   result = xeFunctionCreate(context.module, &function_description, &function);
   if (result) {
-    throw std::runtime_error("xeModuleCreateFunction failed: " + result);
+    throw std::runtime_error("xeModuleCreateFunction failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Function created\n";
 
   result = xeFunctionSetArgumentValue(function, 0, sizeof(input), &input);
   if (result) {
-    throw std::runtime_error("xeFunctionSetArgumentValue failed: " + result);
+    throw std::runtime_error("xeFunctionSetArgumentValue failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Input buffer set as function argument\n";
 
-  result = xeFunctionSetArgumentValue(function, 1, sizeof(output), &output);
+  // some kernels require scalar to be used on argument 1
+  if (outputSize) {
+    result = xeFunctionSetArgumentValue(function, 1, outputSize, output);
+  } else {
+    result = xeFunctionSetArgumentValue(function, 1, sizeof(output), &output);
+  }
+
   if (result) {
-    throw std::runtime_error("xeFunctionSetArgumentValue failed: " + result);
+    throw std::runtime_error("xeFunctionSetArgumentValue failed: " +
+                             std::to_string(result));
   }
   if (verbose)
     std::cout << "Output buffer set as function argument\n";
@@ -761,9 +824,11 @@ unsigned long long int total_available_memory() {
 
 #endif
 
-#if defined(_WIN64) || defined(_WIN64)
+#if defined(_WIN64) || defined(_WIN64) || defined(_WIN32)
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 
 unsigned long long int total_available_memory() {
@@ -788,7 +853,8 @@ uint64_t max_device_object_size(L0Context &context) {
 
   result = xeDeviceGetProperties(context.device, &device_properties);
   if (result) {
-    throw std::runtime_error("xeDeviceGetProperties failed: " + result);
+    throw std::runtime_error("xeDeviceGetProperties failed: " +
+                             std::to_string(result));
   }
 
   if (is_integrated_gpu(device_properties)) {

@@ -61,5 +61,5 @@ To run all benchmarks, use the following command. Additional Options and filteri
 
 * Example: Run only the global_bw benchmark:
 ```
-      $ ./xe_peak –global_bw
+      $ ./xe_peak -global_bw
 ```

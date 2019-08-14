@@ -2,8 +2,8 @@
  * INTEL CONFIDENTIAL
  * Copyright (c) 2016 - 2019 Intel Corporation. All Rights Reserved.
  *
- * The source code contained or described herein and all documents related to
- * the source code ("Material") are owned by Intel Corporation or its suppliers
+ * The source code contained or described herein and all documents related to the
+ * source code ("Material") are owned by Intel Corporation or its suppliers
  * or licensors. Title to the Material remains with Intel Corporation or its
  * suppliers and licensors. The Material contains trade secrets and proprietary
  * and confidential information of Intel or its suppliers and licensors. The
@@ -19,19 +19,8 @@
  * express and approved by Intel in writing.
  */
 
-#include "../include/common.h"
-
-using namespace std;
-
-void Timer::start() { tick = chrono::high_resolution_clock::now(); }
-
-float Timer::stopAndTime() {
-  tock = chrono::high_resolution_clock::now();
-  return (
-      float)(chrono::duration_cast<chrono::microseconds>(tock - tick).count());
-}
-
-uint64_t roundToMultipleOf(uint64_t number, uint64_t base, uint64_t maxValue) {
-  uint64_t n = (number > maxValue) ? maxValue : number;
-  return (n / base) * base;
+__kernel void single_copy_peer_to_peer(__global ulong *dest,
+                                       __global ulong *src) {
+    const int g_id = get_global_id(0);
+    dest[g_id] = src[g_id];
 }
