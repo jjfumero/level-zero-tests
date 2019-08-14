@@ -5,7 +5,7 @@ if (CLANG_FORMAT)
       COMMENT "Checking code formatting and fixing issues"
       COMMAND
         ${CMAKE_SOURCE_DIR}/clang-format-patch.sh ${CMAKE_SOURCE_DIR} |
-        git apply -
+        git -C ${CMAKE_SOURCE_DIR} apply -
     )
     add_custom_target(clang-format-check
       COMMENT "Checking code formatting"
