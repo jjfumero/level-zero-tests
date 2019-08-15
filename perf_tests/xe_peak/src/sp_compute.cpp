@@ -30,7 +30,7 @@ void XePeak::xe_peak_sp_compute(L0Context &context) {
   float input_value = 1.3f;
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("test_files/spv_modules/xe_sp_compute.spv");
+      context.load_binary_file("xe_sp_compute.spv");
 
   context.create_module(binary_file);
 

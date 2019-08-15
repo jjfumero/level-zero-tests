@@ -31,7 +31,7 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
   xe_result_t result = XE_RESULT_SUCCESS;
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("test_files/spv_modules/xe_global_bw.spv");
+      context.load_binary_file("xe_global_bw.spv");
 
   context.create_module(binary_file);
 

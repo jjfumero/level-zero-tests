@@ -1,6 +1,48 @@
 stages:
+  - generate-spv
   - build
   - deploy
+
+generate-spv:
+  stage: generate-spv
+  image: docker:stable
+  only: ["merge_requests", "tags", "web"]
+  # docker:dind doesn't work on AMR production, so using preproduction for now:
+  # https://soco.intel.com/message/5438325
+  tags: ["caas", "dind", "docker", "linux", "privileged", "preproduction"]
+  services:
+    - amr-registry.caas.intel.com/caas/docker:stable-dind
+  variables:
+    DOCKER_HOST: tcp://localhost:2375/
+    DOCKER_DRIVER: overlay2
+    BUILDER_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-${CI_JOB_NAME}
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
+    HARBOR_USER2: ${HARBOR_USER}
+    HARBOR_TOKEN2: ${HARBOR_TOKEN}
+  script:
+    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
+    - docker pull ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} ||
+      docker pull ${BUILDER_IMAGE}:latest ||
+      true
+    - docker build
+        --cache-from ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${BUILDER_IMAGE}:latest
+        -t ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
+        -t ${BUILDER_IMAGE}:latest
+        ./docker/${CI_JOB_NAME}
+    - docker run
+        --rm
+        -v ${PWD}:/root/project
+        -w /root/project
+        ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
+        ./ci-build-spv.sh
+    - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
+    - docker push ${BUILDER_IMAGE}:latest
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - perf_tests/**.spv
+      - conformance_tests/**.spv
 
 windows:
   stage: build
@@ -40,6 +82,11 @@ windows:
     - if not exist windows_build_succeeded (
           exit /b 1
       )
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/out/perf_tests
+      - build/out/conformance_tests
 
 ubuntu1804:
   stage: build
@@ -108,8 +155,8 @@ ubuntu1804:
     name: "$CI_JOB_NAME"
     paths:
       - intel-level-zero-tests-*-Source.*
-      - intel-level-zero-*-Linux-*conformance-tests.*
-      - intel-level-zero-*-Linux-*perf-tests.*
+      - build/out/perf_tests
+      - build/out/conformance_tests
   artifacts:
     name: "$CI_JOB_NAME clang-format diff"
     when: on_failure

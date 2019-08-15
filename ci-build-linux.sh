@@ -22,7 +22,7 @@ cmake \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DCMAKE_BUILD_TYPE=Release \
   ..
-cmake --build . --config Release --target clang-format-check
+cmake --build . --target clang-format-check
+cmake --build . --config Release --target install
 cmake --build . --config Release --target package_source
-cmake --build . --config Release --target package
 mv intel-level-zero-* ..

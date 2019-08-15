@@ -32,7 +32,7 @@
 class XePeer {
 public:
   XePeer() {
-    benchmark = new XeApp("test_files/spv_modules/xe_peer_benchmarks.spv");
+    benchmark = new XeApp("xe_peer_benchmarks.spv");
 
     device_group_count = benchmark->deviceGroupCount();
     assert(device_group_count > 0);

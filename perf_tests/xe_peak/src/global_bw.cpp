@@ -29,7 +29,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   TimingMeasurement type = is_bandwidth_with_event_timer();
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("test_files/spv_modules/xe_global_bw.spv");
+      context.load_binary_file("xe_global_bw.spv");
 
   context.create_module(binary_file);
 
