@@ -3,7 +3,7 @@ stages:
   - build
   - deploy
 
-generate-spv:
+clang-spv:
   stage: generate-spv
   image: docker:stable
   only: ["merge_requests", "tags", "web"]
