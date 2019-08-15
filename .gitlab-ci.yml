@@ -127,7 +127,7 @@ deploy-artifactory:
     - docker
     - linux
   image:
-    name: amr-registry-pre.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432
+    name: amr-registry.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none
