@@ -30,7 +30,7 @@ void XePeak::xe_peak_int_compute(L0Context &context) {
   int input_value = 4;
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("test_files/spv_modules/xe_int_compute.spv");
+      context.load_binary_file("xe_int_compute.spv");
 
   context.create_module(binary_file);
 

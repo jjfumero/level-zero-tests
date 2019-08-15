@@ -33,10 +33,10 @@ target_link_libraries(test_xe_memory_overcommit
     compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )
-add_kernels(test_xe_memory_overcommit
-	"test_xe_fill_device_memory.cl"
-)
-install_resources(test_xe_memory_overcommit
-	FILES
-	"test_xe_fill_device_memory.spv"
+# add_kernels(test_xe_memory_overcommit
+# 	"test_xe_fill_device_memory.cl"
+# )
+install_resources_conformance(test_xe_memory_overcommit
+  FILES
+    "test_xe_fill_device_memory.spv"
 )
