@@ -42,11 +42,11 @@ add_executable(xe_peak ${XE_PEAK_COMMON} ${XE_PEAK_BENCHMARKS})
 
 add_performance_application(xe_peak)
 
-# install_resources_performance(xe_peak
-#     FILES
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_global_bw.spv"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_hp_compute.spv"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_sp_compute.spv"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_int_compute.spv"
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_dp_compute.spv"
-# )
+install_resources_performance(xe_peak
+    FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_global_bw.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_hp_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_sp_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_int_compute.spv"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_dp_compute.spv"
+)
