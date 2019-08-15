@@ -134,15 +134,11 @@ ubuntu1804:
     - docker push ${BUILDER_IMAGE}:latest
   artifacts:
     name: "$CI_JOB_NAME"
+    when: always
     paths:
       - intel-level-zero-tests-*-Source.*
       - build/out/perf_tests
       - build/out/conformance_tests
-  artifacts:
-    name: "$CI_JOB_NAME clang-format diff"
-    when: on_failure
-    expire_in: 1 week
-    paths:
       - build/clang_format_results.patch
 
 deploy-artifactory:
