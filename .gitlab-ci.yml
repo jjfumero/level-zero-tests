@@ -45,8 +45,8 @@ windows:
     - move build\out\conformance_tests out\%CI_JOB_NAME%
     - mkdir out\archived\perf_tests
     - mkdir out\archived\conformance_tests
-    - move build\intel-level-zero-*-win64-perf-tests.zip out\archived\perf_tests
-    - move build\intel-level-zero-*-win64-conformance-tests.zip out\archived\conformance_tests
+    - move build\perf-tests-intel-level-zero-*-win64.zip out\archived\perf_tests
+    - move build\conformance-tests-intel-level-zero-*-win64.zip out\archived\conformance_tests
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
@@ -120,8 +120,8 @@ ubuntu1804:
     - mv build/out/conformance_tests out/${CI_JOB_NAME}
     - mkdir -p out/archived/perf_tests
     - mkdir -p out/archived/conformance_tests
-    - mv build/intel-level-zero-*-Linux-perf-tests.tar.gz out/archived/perf_tests
-    - mv build/intel-level-zero-*-Linux-conformance-tests.tar.gz out/archived/conformance_tests
+    - mv build/perf-tests-intel-level-zero-*-Linux.tar.gz out/archived/perf_tests
+    - mv build/conformance-tests-intel-level-zero-*-Linux.tar.gz out/archived/conformance_tests
   artifacts:
     name: "$CI_JOB_NAME"
     when: always
