@@ -16,5 +16,7 @@ for path in $(find perf_tests conformance_tests -name "*.cl"); do
       -include opencl.h \
       -x cl \
       -o $dir/$filename.spv \
-      $path
+      $path &
 done
+
+wait
