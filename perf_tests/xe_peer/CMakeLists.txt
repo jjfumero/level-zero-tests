@@ -128,7 +128,7 @@ target_include_directories(xe_peer
 
 add_performance_application(xe_peer)
 
-install_resources_performance(xe_peak
+install_resources_performance(xe_peer
   FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_peer_benchmarks.spv"
 )
