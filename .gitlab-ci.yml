@@ -3,43 +3,20 @@ stages:
   - build
   - deploy
 
-clang-spv:
+generate-spv:
   stage: generate-spv
-  image: docker:stable
-  only: ["merge_requests", "tags", "web"]
-  # docker:dind doesn't work on AMR production, so using preproduction for now:
-  # https://soco.intel.com/message/5438325
-  tags: ["caas", "dind", "docker", "linux", "privileged", "preproduction"]
-  services:
-    - amr-registry.caas.intel.com/caas/docker:stable-dind
-  variables:
-    DOCKER_HOST: tcp://localhost:2375/
-    DOCKER_DRIVER: overlay2
-    BUILDER_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-${CI_JOB_NAME}
-    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
-    HARBOR_USER2: ${HARBOR_USER}
-    HARBOR_TOKEN2: ${HARBOR_TOKEN}
+  only:
+    - tags
+  tags:
+    - caas
+    - docker
+    - linux
+  image:
+    name: amr-registry.caas.intel.com/level-zero-linux-compute/clang-spv:latest
+    entrypoint: [""]
   script:
-    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    - docker pull ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} ||
-      docker pull ${BUILDER_IMAGE}:latest ||
-      true
-    - docker build
-        --cache-from ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${BUILDER_IMAGE}:latest
-        -t ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        -t ${BUILDER_IMAGE}:latest
-        ./docker/${CI_JOB_NAME}
-    - docker run
-        --rm
-        -v ${PWD}:/root/project
-        -w /root/project
-        ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        ./ci-build-spv.sh
-    - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-    - docker push ${BUILDER_IMAGE}:latest
+    - ./ci-build-spv.sh
   artifacts:
-    name: "$CI_JOB_NAME"
     paths:
       - perf_tests/**.spv
       - conformance_tests/**.spv
