@@ -141,16 +141,16 @@ deploy-artifactory:
             --root-url https://gfx-assets.fm.intel.com/artifactory
             -u ${ARTIFACTORY_USER}
             -p ${ARTIFACTORY_PASSWORD}
-            gfx-sandbox-fm
-            level-zero-conformance/$platform
+            gfx-sandbox-fm/level-zero-conformance
+            $platform
             ${CI_COMMIT_TAG}
             ./out/$platform/conformance_tests;
           gta-asset push
             --root-url https://gfx-assets.fm.intel.com/artifactory
             -u ${ARTIFACTORY_USER}
             -p ${ARTIFACTORY_PASSWORD}
-            gfx-sandbox-fm
-            level-zero-perf/$platform
+            gfx-sandbox-fm/level-zero-perf
+            $platform
             ${CI_COMMIT_TAG}
             ./out/$platform/perf_tests;
       done
