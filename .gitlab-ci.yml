@@ -20,8 +20,10 @@ generate-spv:
     - ./ci-build-spv.sh
   artifacts:
     paths:
-      - perf_tests/**.spv
-      - conformance_tests/**.spv
+      - perf_tests/*/*.spv
+      - perf_tests/*/*/*.spv
+      - conformance_tests/*/*.spv
+      - conformance_tests/*/*/*.spv
 
 windows:
   stage: build
