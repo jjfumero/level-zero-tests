@@ -132,19 +132,19 @@ deploy-artifactory:
   variables:
     GIT_STRATEGY: none
   script:
-    - gta-asset delete
-        --root-url https://gfx-assets.fm.intel.com/artifactory
-        -u ${ARTIFACTORY_USER}
-        -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm
-        level_zero_tests
-        ${CI_COMMIT_TAG}
-      || true
     - gta-asset push
         --root-url https://gfx-assets.fm.intel.com/artifactory
         -u ${ARTIFACTORY_USER}
         -p ${ARTIFACTORY_PASSWORD}
         gfx-sandbox-fm
-        level_zero_tests
+        level-zero-conformance
         ${CI_COMMIT_TAG}
-        ./external_build_artifacts
+        ./build/out/conformance_tests
+    - gta-asset push
+        --root-url https://gfx-assets.fm.intel.com/artifactory
+        -u ${ARTIFACTORY_USER}
+        -p ${ARTIFACTORY_PASSWORD}
+        gfx-sandbox-fm
+        level-zero-perf
+        ${CI_COMMIT_TAG}
+        ./build/out/perf_tests
