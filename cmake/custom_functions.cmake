@@ -252,7 +252,7 @@ function(install_resources_conformance target)
     endforeach()
     foreach(resource ${PARSED_ARGS_DIRECTORIES})
         file(COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-        install(DIRECTORY "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/conformance_tests" COMPONENT conformance-tests)
+        install(DIRECTORY "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests" COMPONENT conformance-tests)
     endforeach()
 endfunction()
 
