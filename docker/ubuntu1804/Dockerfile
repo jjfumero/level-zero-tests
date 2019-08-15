@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:bionic-20190718
 
 ENV http_proxy http://proxy-chain.intel.com:911
 ENV https_proxy http://proxy-chain.intel.com:911
