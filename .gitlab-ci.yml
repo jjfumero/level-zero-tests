@@ -6,7 +6,9 @@ stages:
 generate-spv:
   stage: generate-spv
   only:
+    - merge_requests
     - tags
+    - web
   tags:
     - caas
     - docker
