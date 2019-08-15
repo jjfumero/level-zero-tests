@@ -168,8 +168,8 @@ deploy-artifactory:
         --no-archive
         -u ${ARTIFACTORY_USER}
         -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm/level-zero-conformance-archived
-        $platform
+        gfx-sandbox-fm
+        level-zero-conformance-archived
         ${CI_COMMIT_TAG}
         ./out/archived/conformance_tests
     - gta-asset push
@@ -177,7 +177,7 @@ deploy-artifactory:
         --no-archive
         -u ${ARTIFACTORY_USER}
         -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm/level-zero-perf-archived
-        $platform
+        gfx-sandbox-fm
+        level-zero-perf-archived
         ${CI_COMMIT_TAG}
         ./out/archived/perf_tests
