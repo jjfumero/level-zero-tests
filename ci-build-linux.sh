@@ -24,5 +24,5 @@ cmake \
   ..
 cmake --build . --target clang-format-check
 cmake --build . --config Release --target install
-cmake --build . --config Release --target package
-cmake --build . --config Release --target package_source
+# cmake --build . --config Release --target package
+# cmake --build . --config Release --target package_source
