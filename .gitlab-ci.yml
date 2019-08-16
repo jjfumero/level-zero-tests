@@ -40,11 +40,12 @@ windows:
     - if not exist windows_build_succeeded (
           exit /b 1
       )
-    - mkdir out\%CI_JOB_NAME%
-    - move build\out\perf_tests out\%CI_JOB_NAME%
-    - move build\out\conformance_tests out\%CI_JOB_NAME%
-    - mkdir out\archived\perf_tests
-    - mkdir out\archived\conformance_tests
+    - mkdir out
+    # - mkdir out\%CI_JOB_NAME%
+    # - move build\out\perf_tests out\%CI_JOB_NAME%
+    # - move build\out\conformance_tests out\%CI_JOB_NAME%
+    # - mkdir out\archived\perf_tests
+    # - mkdir out\archived\conformance_tests
     # TODO: this is crazy
     - move build\intel-level-zero-*-win64-perf-tests.zip out\archived\perf_tests\intel-level-zero-perf-tests-win64.zip
     - move build\intel-level-zero-*-win64-conformance-tests.zip out\archived\conformance_tests\intel-level-zero-conformance-tests-win64.zip
@@ -116,11 +117,12 @@ ubuntu1804:
     # Upload the builder images used only if the build succeeded
     - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
     - docker push ${BUILDER_IMAGE}:latest
-    - mkdir -p out/${CI_JOB_NAME}
-    - mv build/out/perf_tests out/${CI_JOB_NAME}
-    - mv build/out/conformance_tests out/${CI_JOB_NAME}
-    - mkdir -p out/archived/perf_tests
-    - mkdir -p out/archived/conformance_tests
+    - mkdir out
+    # - mkdir -p out/${CI_JOB_NAME}
+    # - mv build/out/perf_tests out/${CI_JOB_NAME}
+    # - mv build/out/conformance_tests out/${CI_JOB_NAME}
+    # - mkdir -p out/archived/perf_tests
+    # - mkdir -p out/archived/conformance_tests
     # TODO: this is crazy
     - mv build/intel-level-zero-*-Linux-perf-tests.tar.gz out/archived/perf_tests/intel-level-zero-perf-tests-Linux.tar.gz
     - mv build/intel-level-zero-*-Linux-conformance-tests.tar.gz out/archived/conformance_tests/intel-level-zero-conformance-tests-Linux.tar.gz
