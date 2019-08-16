@@ -43,7 +43,7 @@ windows:
 
 ubuntu1804:
   stage: build
-  image: docker:stable
+  image: docker:19.03.1
   only:
     - merge_requests
     - tags
@@ -54,12 +54,14 @@ ubuntu1804:
     - docker
     - linux
     - privileged
-    # docker:dind doesn't work on AMR production, so using preproduction for
-    # now: https://soco.intel.com/message/5438325
-    - preproduction
+    - production
+  # workaround for https://soco.intel.com/message/5439810
   services:
-    - amr-registry.caas.intel.com/caas/docker:stable-dind
+    - name: amr-registry.caas.intel.com/caas/docker:19.03.0-dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
   variables:
+    DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://localhost:2375/  # Kubernetes executor
     # DOCKER_HOST: tcp://docker:2375/  # non- Kubernetes executor
     DOCKER_DRIVER: overlay2  # better performance for dind
