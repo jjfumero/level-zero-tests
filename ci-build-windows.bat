@@ -12,7 +12,7 @@ call irepo sync -c yuv_samples || exit /b
 mkdir build
 cd build
 call cmake -T host=x64 -A x64 -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=C:\boost -DBoost_COMPILER="-vc142" -DZLIB_ROOT=C:\zlib -DPNG_ROOT=C:\libpng -DOPENCL_ROOT=C:\opencl .. || exit /b
-call cmake --build . --config Release --target package || exit /b
+call cmake --build . --config Release --target install || exit /b
 
 cd..
 copy /y nul windows_build_succeeded
