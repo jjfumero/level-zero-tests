@@ -43,7 +43,7 @@ windows:
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
-      - out
+      - build/out
 
 ubuntu1804:
   stage: build
@@ -112,7 +112,7 @@ ubuntu1804:
     name: "$CI_JOB_NAME"
     when: always
     paths:
-      - out
+      - build/out
       - build/clang_format_results.patch
 
 deploy-artifactory:
@@ -158,7 +158,7 @@ deploy-artifactory:
         gfx-sandbox-fm
         level-zero-conformance-archived
         ${CI_COMMIT_TAG}
-        ./out/archived/conformance_tests-Linux.tar.gz
+        ./build/out/archived/conformance_tests-Linux.tar.gz
     - gta-asset push
         --root-url https://gfx-assets.fm.intel.com/artifactory
         --no-archive
@@ -167,4 +167,4 @@ deploy-artifactory:
         gfx-sandbox-fm
         level-zero-perf-archived
         ${CI_COMMIT_TAG}
-        ./out/archived/perf_tests-Linux.tar.gz
+        ./build/out/archived/perf_tests-Linux.tar.gz
