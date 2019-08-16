@@ -158,7 +158,7 @@ deploy-artifactory:
         gfx-sandbox-fm
         level-zero-conformance-archived
         ${CI_COMMIT_TAG}
-        ./build/out/archived/conformance_tests-Linux.tar.gz
+        ./build/out/archived/conformance-tests-Linux.tar.gz
     - gta-asset push
         --root-url https://gfx-assets.fm.intel.com/artifactory
         --no-archive
@@ -167,4 +167,4 @@ deploy-artifactory:
         gfx-sandbox-fm
         level-zero-perf-archived
         ${CI_COMMIT_TAG}
-        ./build/out/archived/perf_tests-Linux.tar.gz
+        ./build/out/archived/perf-tests-Linux.tar.gz
