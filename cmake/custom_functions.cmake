@@ -197,11 +197,11 @@ function(install_resources_performance target)
     cmake_parse_arguments(PARSED_ARGS "" "" "FILES;DIRECTORIES" ${ARGN})
     foreach(resource ${PARSED_ARGS_FILES})
         file(COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-        install(FILES "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/out/perf_tests" COMPONENT perf-tests)
+        install(FILES "${resource}" DESTINATION "." COMPONENT perf-tests)
     endforeach()
     foreach(resource ${PARSED_ARGS_DIRECTORIES})
         file(COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-        install(DIRECTORY "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/out/perf_tests" COMPONENT perf-tests)
+        install(DIRECTORY "${resource}" DESTINATION "." COMPONENT perf-tests)
     endforeach()
 endfunction()
 
@@ -219,13 +219,11 @@ function(add_performance_application name)
             ${LevelZero_INCLUDE_DIRS}
     )
 
-    if(UNIX)
-        install(
-            TARGETS ${name}
-            DESTINATION "${CMAKE_BINARY_DIR}/out/perf_tests"
-            COMPONENT perf-tests
-        )
-    endif()
+    install(
+        TARGETS ${name}
+        DESTINATION "."
+        COMPONENT perf-tests
+    )
 
     if(MSVC)
         set_target_properties(${name}
@@ -248,11 +246,11 @@ function(install_resources_conformance target)
     cmake_parse_arguments(PARSED_ARGS "" "" "FILES;DIRECTORIES" ${ARGN})
     foreach(resource ${PARSED_ARGS_FILES})
         file(COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-        install(FILES "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests" COMPONENT conformance-tests)
+        install(FILES "${resource}" DESTINATION "." COMPONENT conformance-tests)
     endforeach()
     foreach(resource ${PARSED_ARGS_DIRECTORIES})
         file(COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-        install(DIRECTORY "${resource}" DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests" COMPONENT conformance-tests)
+        install(DIRECTORY "${resource}" DESTINATION "." COMPONENT conformance-tests)
     endforeach()
 endfunction()
 
@@ -282,7 +280,7 @@ function(add_test_suite name)
     )
 
     install(TARGETS ${name}
-            DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+            DESTINATION "."
             COMPONENT conformance-tests)
 
     set_target_properties(${name} PROPERTIES FOLDER tests/${name})
