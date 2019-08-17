@@ -33,6 +33,8 @@ windows:
         -w C:\project
         -e GERRITGFX_HTTP_USER
         -e GERRITGFX_HTTP_PASSWORD
+        -v C:\clcache:C:\clcache
+        -e CLCACHE_DIR=C:\clcache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
         .\ci-build-windows.bat
     # Use a file to signal success/fail because error codes do not correctly

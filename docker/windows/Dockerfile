@@ -41,7 +41,12 @@ SHELL ["powershell"]
 ENV chocolateyVersion "0.10.15"
 RUN [System.Net.ServicePointManager]::SecurityProtocol = 3072 -bor 768 -bor 192 -bor 48; `
     iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')); `
-    choco install -y --no-progress --fail-on-error-output 7zip
+    wget `
+      -Uri https://github.com/frerich/clcache/releases/download/v4.2.0/clcache.4.2.0.nupkg `
+      -OutFile clcache.4.2.0.nupkg `
+      -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::InternetExplorer; `
+    choco install -y --no-progress --fail-on-error-output 7zip; `
+    choco install -y --no-progress --fail-on-error-output clcache --source=.
 
 # cpack (an alias from chocolatey) and cmake's cpack conflict.
 RUN Remove-Item -Force 'C:\ProgramData\chocolatey\bin\cpack.exe'
