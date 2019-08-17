@@ -40,7 +40,10 @@ class xeDeviceMakeMemoryResidentTests : public ::testing::Test {
 protected:
   void SetUp() override { memory_ = cs::allocate_device_memory(size_); }
 
-  void TearDown() override { EXPECT_EQ(XE_RESULT_SUCCESS, xeMemFree(memory_)); }
+  void TearDown() override {
+    EXPECT_EQ(XE_RESULT_SUCCESS,
+              xeDeviceGroupFreeMem(cs::get_default_device_group(), memory_));
+  }
 
   void *memory_ = nullptr;
   const size_t size_ = 1024;

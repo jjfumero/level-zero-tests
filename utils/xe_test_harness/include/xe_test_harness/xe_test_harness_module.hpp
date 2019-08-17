@@ -36,11 +36,23 @@ xe_function_handle_t create_function(xe_module_handle_t module,
                                      std::string func_name);
 void destroy_function(xe_function_handle_t function);
 
+// This function is useful when only a single argument is needed.
 void create_and_execute_function(xe_device_handle_t device,
                                  xe_module_handle_t module,
                                  std::string func_name, int group_size,
                                  void *arg);
 
+struct FunctionArg {
+  size_t arg_size;
+  void *arg_value;
+};
+
+// Group size can only be set in x dimension
+// Accepts arbitrary amounts of function arguments
+void create_and_execute_function(xe_device_handle_t device,
+                                 xe_module_handle_t module,
+                                 std::string func_name, int group_size,
+                                 const std::vector<FunctionArg> &args);
 } // namespace compute_samples
 
 #endif

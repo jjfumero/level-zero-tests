@@ -24,16 +24,18 @@
 
 add_core_library(xe_test_harness
     SOURCE
-    "include/xe_test_harness/xe_test_harness.hpp"
-    "include/xe_test_harness/xe_test_harness_device.hpp"
-    "include/xe_test_harness/xe_test_harness_cmdlist.hpp"
-    "include/xe_test_harness/xe_test_harness_cmdqueue.hpp"
-    "include/xe_test_harness/xe_test_harness_event.hpp"
-    "include/xe_test_harness/xe_test_harness_memory.hpp"
-    "include/xe_test_harness/xe_test_harness_image.hpp"
-    "include/xe_test_harness/xe_test_harness_fence.hpp"
-    "include/xe_test_harness/xe_test_harness_module.hpp"
+    # "include/xe_test_harness/xe_test_harness.hpp"
+    # "include/xe_test_harness/xe_test_harness_device.hpp"
+    # "include/xe_test_harness/xe_test_harness_driver.hpp"
+    # "include/xe_test_harness/xe_test_harness_cmdlist.hpp"
+    # "include/xe_test_harness/xe_test_harness_cmdqueue.hpp"
+    # "include/xe_test_harness/xe_test_harness_event.hpp"
+    # "include/xe_test_harness/xe_test_harness_memory.hpp"
+    # "include/xe_test_harness/xe_test_harness_image.hpp"
+    # "include/xe_test_harness/xe_test_harness_fence.hpp"
+    # "include/xe_test_harness/xe_test_harness_module.hpp"
     "src/xe_test_harness_device.cpp"
+    "src/xe_test_harness_driver.cpp"
     "src/xe_test_harness_cmdlist.cpp"
     "src/xe_test_harness_cmdqueue.cpp"
     "src/xe_test_harness_event.cpp"
@@ -52,6 +54,8 @@ target_link_libraries(xe_test_harness
     ${LevelZero_LIBRARIES}
 )
 target_include_directories(xe_test_harness
-  PRIVATE
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
     ${LevelZero_INCLUDE_DIRS}
 )

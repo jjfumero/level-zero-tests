@@ -50,9 +50,7 @@ TEST_F(
   void *memory = allocate_device_memory(size);
   const int value = 0x00;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(cl.command_list_, memory, value, size,
-                                         nullptr, 0, nullptr));
+  append_memory_set(cl.command_list_, memory, value, size);
   free_memory(memory);
 }
 
@@ -113,6 +111,92 @@ TEST_F(
   free_memory(memory);
 }
 
+class xeCommandListAppendMemorySetVerificationTests : public ::testing::Test {
+protected:
+  xeCommandListAppendMemorySetVerificationTests() {
+    command_list = create_command_list();
+    cq = create_command_queue();
+  }
+
+  ~xeCommandListAppendMemorySetVerificationTests() {
+    destroy_command_queue(cq);
+    destroy_command_list(command_list);
+  }
+  xe_command_list_handle_t command_list;
+  xe_command_queue_handle_t cq;
+};
+
+TEST_F(xeCommandListAppendMemorySetVerificationTests,
+       GivenHostMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+
+  size_t size = 16;
+  auto memory = allocate_host_memory(size);
+  uint8_t value = 0xAB;
+
+  append_memory_set(command_list, memory, value, size);
+  append_barrier(command_list, nullptr, 0, nullptr);
+  close_command_list(command_list);
+  execute_command_lists(cq, 1, &command_list, nullptr);
+  synchronize(cq, UINT32_MAX);
+
+  for (uint32_t i = 0; i < size; i++) {
+    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], value)
+        << "Memory Set did not match.";
+  }
+
+  free_memory(memory);
+}
+
+TEST_F(xeCommandListAppendMemorySetVerificationTests,
+       GivenSharedMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+
+  size_t size = 16;
+  auto memory = allocate_shared_memory(size);
+  uint8_t value = 0xAB;
+
+  append_memory_set(command_list, memory, value, size);
+  append_barrier(command_list, nullptr, 0, nullptr);
+  close_command_list(command_list);
+  execute_command_lists(cq, 1, &command_list, nullptr);
+  synchronize(cq, UINT32_MAX);
+
+  for (uint32_t i = 0; i < size; i++) {
+    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], value)
+        << "Memory Set did not match.";
+  }
+
+  free_memory(memory);
+}
+
+TEST_F(xeCommandListAppendMemorySetVerificationTests,
+       GivenDeviceMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+
+  size_t size = 16;
+  auto memory = allocate_device_memory(size);
+  auto local_mem = allocate_host_memory(size);
+  uint8_t value = 0xAB;
+
+  append_memory_set(command_list, memory, value, size);
+  append_barrier(command_list, nullptr, 0, nullptr);
+  close_command_list(command_list);
+  execute_command_lists(cq, 1, &command_list, nullptr);
+  synchronize(cq, UINT32_MAX);
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListReset(command_list));
+  append_memory_copy(command_list, local_mem, memory, size, nullptr, 0,
+                     nullptr);
+  append_barrier(command_list, nullptr, 0, nullptr);
+  close_command_list(command_list);
+  execute_command_lists(cq, 1, &command_list, nullptr);
+  synchronize(cq, UINT32_MAX);
+
+  for (uint32_t i = 0; i < size; i++) {
+    ASSERT_EQ(static_cast<uint8_t *>(local_mem)[i], value)
+        << "Memory Set did not match.";
+  }
+
+  free_memory(memory);
+}
+
 class xeCommandListCommandQueueTests : public ::testing::Test {
 protected:
   xeCommandList cl;
@@ -142,7 +226,7 @@ TEST_F(
   append_memory_copy(cl.command_list_, host_memory2.data(), device_memory,
                      size_in_bytes(host_memory2), nullptr, 0, nullptr);
   append_barrier(cl.command_list_, nullptr, 0, nullptr);
-  close(cl.command_list_);
+  close_command_list(cl.command_list_);
   execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
   synchronize(cq.command_queue_, UINT32_MAX);
 
@@ -272,6 +356,8 @@ protected:
       append_barrier(cl.command_list_, nullptr, 0, nullptr);
     }
 
+    // Close the command list:
+    close_command_list(cl.command_list_);
     // Execute all of the copies:
     execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
     synchronize(cq.command_queue_, UINT32_MAX);

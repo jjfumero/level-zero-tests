@@ -24,20 +24,11 @@
 
 #include "gmock/gmock.h"
 #include "logging/logging.hpp"
-#include "xe_utils/xe_utils.hpp"
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleMock(&argc, argv);
   std::vector<std::string> command_line(argv + 1, argv + argc);
   compute_samples::init_logging(command_line);
 
-  xe_result_t result = xeInit(XE_INIT_FLAG_NONE);
-  if (result) {
-    throw std::runtime_error("xeInit failed: " +
-                             compute_samples::to_string(result));
-  }
-  LOG_TRACE << "Driver initialized";
-
-  compute_samples::print_platform_overview();
   return RUN_ALL_TESTS();
 }

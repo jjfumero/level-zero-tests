@@ -57,5 +57,7 @@ void execute_command_lists(xe_command_queue_handle_t cq,
                            xe_fence_handle_t hFence);
 void synchronize(xe_command_queue_handle_t cq, uint32_t timeout);
 
+void destroy_command_queue(xe_command_queue_handle_t cq);
+
 }; // namespace compute_samples
 #endif

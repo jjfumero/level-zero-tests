@@ -100,8 +100,8 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandQueueSynchronize(command_queue, UINT32_MAX));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(command_queue));
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(command_list));
+    cs::destroy_command_queue(command_queue);
+    cs::destroy_command_list(command_list);
     EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(function));
   }
 

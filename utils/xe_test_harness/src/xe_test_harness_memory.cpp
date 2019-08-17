@@ -38,8 +38,12 @@ void *allocate_host_memory(const size_t size) {
 void *allocate_host_memory(const size_t size, const size_t alignment) {
   const xe_host_mem_alloc_flag_t flags = XE_HOST_MEM_ALLOC_FLAG_DEFAULT;
 
+  xe_device_group_handle_t device_group = cs::get_default_device_group();
+
   void *memory = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeHostMemAlloc(flags, size, alignment, &memory));
+  EXPECT_EQ(
+      XE_RESULT_SUCCESS,
+      xeDeviceGroupAllocHostMem(device_group, flags, size, alignment, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;
@@ -56,22 +60,35 @@ void *allocate_device_memory(const size_t size, const size_t alignment) {
 
 void *allocate_device_memory(const size_t size, const size_t alignment,
                              const xe_device_mem_alloc_flag_t flags) {
+
+  xe_device_group_handle_t device_group = cs::get_default_device_group();
   xe_device_handle_t device = xeDevice::get_instance()->get_device();
-  return allocate_device_memory(size, alignment, flags, device);
+  return allocate_device_memory(size, alignment, flags, device, device_group);
 }
 
 void *allocate_device_memory(const size_t size, const size_t alignment,
                              const xe_device_mem_alloc_flag_t flags,
-                             xe_device_handle_t device) {
+                             xe_device_handle_t device,
+                             xe_device_group_handle_t device_group) {
 
+  return allocate_device_memory(size, alignment, flags, 0, device,
+                                device_group);
+}
+
+void *allocate_device_memory(const size_t size, const size_t alignment,
+                             const xe_device_mem_alloc_flag_t flags,
+                             const uint32_t ordinal,
+                             xe_device_handle_t device_handle,
+                             xe_device_group_handle_t device_group) {
   void *memory = nullptr;
+
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceMemAlloc(device, flags, size, alignment, &memory));
+            xeDeviceGroupAllocDeviceMem(device_group, device_handle, flags,
+                                        ordinal, size, alignment, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;
 }
-
 void *allocate_shared_memory(const size_t size) {
   return allocate_shared_memory(size, 1);
 }
@@ -84,6 +101,7 @@ void *allocate_shared_memory(const size_t size, const size_t alignment) {
 void *allocate_shared_memory(const size_t size, const size_t alignment,
                              const xe_device_mem_alloc_flag_t dev_flags,
                              const xe_host_mem_alloc_flag_t host_flags) {
+
   xe_device_handle_t device = xeDevice::get_instance()->get_device();
 
   return allocate_shared_memory(size, alignment,
@@ -95,16 +113,25 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
                              const xe_device_mem_alloc_flag_t dev_flags,
                              const xe_host_mem_alloc_flag_t host_flags,
                              xe_device_handle_t device) {
+
+  uint32_t ordinal = 0;
+  auto device_group = cs::get_default_device_group();
+
   void *memory = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeSharedMemAlloc(device, dev_flags, host_flags,
-                                                size, alignment, &memory));
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
+                                   device_group, device, dev_flags, ordinal,
+                                   host_flags, size, alignment, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;
 }
 
 void free_memory(const void *ptr) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemFree(ptr));
+  free_memory(cs::get_default_device_group(), ptr);
+}
+
+void free_memory(xe_device_group_handle_t device_group, const void *ptr) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupFreeMem(device_group, (void *)ptr));
 }
 
 void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *mem_handle,
@@ -125,24 +152,8 @@ void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *mem_handle,
     break;
   }
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeIpcGetMemHandle(*memory, mem_handle));
-}
-
-void *allocate_device_group_device_memory(xe_device_group_handle_t group_handle,
-                                          xe_device_handle_t device_handle,
-                                          xe_device_mem_alloc_flag_t flags,
-                                          uint32_t ordinal, size_t size,
-                                          size_t alignment) {
-  void *mem_ptr;
-
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupAllocDeviceMem(group_handle, device_handle, flags,
-                                        ordinal, size, alignment, &mem_ptr));
-  return mem_ptr;
-}
-
-void free_device_group_memory(xe_device_group_handle_t group_handle,
-                              void *mem_ptr) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupFreeMem(group_handle, mem_ptr));
+            xeDeviceGroupGetMemIpcHandle(cs::get_default_device_group(),
+                                         *memory, mem_handle));
 }
 }; // namespace compute_samples

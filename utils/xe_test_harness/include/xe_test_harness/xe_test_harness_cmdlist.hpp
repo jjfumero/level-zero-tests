@@ -47,6 +47,9 @@ protected:
 xe_command_list_handle_t create_command_list(xe_device_handle_t device);
 xe_command_list_handle_t create_command_list();
 
+void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
+                       size_t size);
+
 void append_memory_copy(xe_command_list_handle_t cl, void *dstptr,
                         const void *srcptr, size_t size,
                         xe_event_handle_t hSignalEvent, uint32_t numWaitEvents,
@@ -61,7 +64,8 @@ void append_memory_copy_region(xe_command_list_handle_t hCommandList,
                                xe_event_handle_t *phWaitEvents);
 void append_barrier(xe_command_list_handle_t cl, xe_event_handle_t hSignalEvent,
                     uint32_t numWaitEvents, xe_event_handle_t *phWaitEvents);
-void close(xe_command_list_handle_t cl);
+void close_command_list(xe_command_list_handle_t cl);
+void destroy_command_list(xe_command_list_handle_t cl);
 
 }; // namespace compute_samples
 #endif

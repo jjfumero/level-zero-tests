@@ -21,24 +21,18 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
+#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_DRIVER_HPP
+#define COMPUTE_SAMPLES_XE_TEST_HARNESS_DRIVER_HPP
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#include "xe_driver.h"
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
+namespace compute_samples {
 
-class xeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  compute_samples::xeEventPool ep;
-  compute_samples::xeCommandList cl;
-};
+void xe_init();
+void xe_init(xe_init_flag_t init_flag);
+
+uint32_t get_driver_version(xe_device_group_handle_t device_group);
+
+}; // namespace compute_samples
 
 #endif

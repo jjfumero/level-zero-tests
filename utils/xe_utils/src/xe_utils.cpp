@@ -44,7 +44,7 @@ xe_device_group_handle_t get_default_device_group() {
   uint32_t count = 1;
   result = xeDeviceGroupGet(&count, &device_group);
 
-  if (result) {
+  if (result || !device_group) {
     throw std::runtime_error("xeDeviceGroupGet failed: " + to_string(result));
   }
   LOG_TRACE << "Device group retrieved";
@@ -359,6 +359,7 @@ void print_header_version() {
 
 void print_driver_version() {
   uint32_t version = 0;
+  xe_device_group_handle_t dg = get_default_device_group();
   xe_result_t result = xeGetDriverVersion(&version);
   if (result) {
     std::runtime_error("xeDriverGetVersion failed: " + to_string(result));
@@ -373,14 +374,17 @@ void print_device_group_overview(const xe_device_group_handle_t device_group) {
 
   xe_device_properties_t device_properties;
   device_properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-  result = xeDeviceGroupGetDeviceProperties(device_group, &device_properties);
-  if (result) {
-    std::runtime_error("xeDeviceGroupGetDeviceProperties failed: " +
-                       to_string(result));
+  auto devices = get_devices(device_group);
+  if (devices.size() > 0) {
+    auto device = devices[0];
+    result = xeDeviceGetProperties(device, &device_properties);
+    if (result) {
+      std::runtime_error("xeDeviceGetDeviceProperties failed: " +
+                         to_string(result));
+    }
+    LOG_TRACE << "DeviceGroup properties retrieved";
+    LOG_INFO << "DeviceGroup name: " << device_properties.name;
   }
-  LOG_TRACE << "Device properties retrieved";
-
-  LOG_INFO << "Device name: " << device_properties.name;
 
   xe_api_version_t api_version;
   result = xeDeviceGroupGetApiVersion(device_group, &api_version);

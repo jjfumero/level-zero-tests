@@ -25,34 +25,38 @@
 #include "ocl_utils/embargo/unified_shared_memory.hpp"
 
 namespace compute_samples {
-std::string to_string(const usm_type &x) {
-  if (x == usm_type::host) {
+std::string to_string(const compute::usm_type &x) {
+  if (x == compute::usm_type::host) {
     return "host";
-  } else if (x == usm_type::device) {
+  } else if (x == compute::usm_type::device) {
     return "device";
-  } else if (x == usm_type::shared) {
+  } else if (x == compute::usm_type::shared) {
     return "shared";
   } else {
     return "unknown";
   }
 }
+} // namespace compute_samples
 
-std::ostream &operator<<(std::ostream &os, const usm_type &x) {
-  return os << to_string(x);
+namespace boost {
+namespace compute {
+std::ostream &operator<<(std::ostream &os, const compute::usm_type &x) {
+  return os << compute_samples::to_string(x);
 }
 
-std::istream &operator>>(std::istream &is, usm_type &x) {
+std::istream &operator>>(std::istream &is, compute::usm_type &x) {
   std::string s = "";
   is >> s;
   if (s == "host") {
-    x = usm_type::host;
+    x = compute::usm_type::host;
   } else if (s == "device") {
-    x = usm_type::device;
+    x = compute::usm_type::device;
   } else if (s == "shared") {
-    x = usm_type::shared;
+    x = compute::usm_type::shared;
   } else {
     is.setstate(std::ios_base::failbit);
   }
   return is;
 }
-} // namespace compute_samples
+} // namespace compute
+} // namespace boost

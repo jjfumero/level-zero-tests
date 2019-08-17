@@ -60,8 +60,9 @@ std::string to_string(const xe_image_desc_version_t version);
 
 void print_header_version();
 void print_driver_version();
-void print_device_overview(const xe_device_handle_t device);
-void print_device_overview(const std::vector<xe_device_handle_t> devices);
+void print_device_group_overview(const xe_device_group_handle_t device_group);
+void print_device_group_overview(
+    const std::vector<xe_device_group_handle_t> device_groups);
 void print_platform_overview();
 
 } // namespace compute_samples

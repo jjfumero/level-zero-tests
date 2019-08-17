@@ -166,7 +166,7 @@ TEST(
 }
 
 TEST(
-    xeDeviceGetMemoryPropertiesTests,
+    xeDeviceGroupGetMemoryPropertiesTests,
     GivenValidCountPointerWhenRetrievingMemoryPropertiesThenValidCountReturned) {
   // FIXME: VLCLJ-354 - The level zero spec indicates the last argument to this
   // API is optional but this test fails with an
@@ -179,7 +179,7 @@ TEST(
 }
 
 TEST(
-    xeDeviceGetMemoryPropertiesTests,
+    xeDeviceGroupGetMemoryPropertiesTests,
     GivenValidDeviceWhenRetrievingMemoryPropertiesThenValidPropertiesAreReturned) {
 
   auto device_groups = cs::get_xe_device_groups();

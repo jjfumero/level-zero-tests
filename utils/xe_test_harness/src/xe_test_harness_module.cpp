@@ -79,13 +79,23 @@ void create_and_execute_function(xe_device_handle_t device,
                                  xe_module_handle_t module,
                                  std::string func_name, int group_size,
                                  void *arg) {
+  std::vector<FunctionArg> args;
+  FunctionArg func_arg{sizeof(arg), &arg};
+  args.push_back(func_arg);
+  create_and_execute_function(device, module, func_name, group_size, args);
+}
+
+void create_and_execute_function(xe_device_handle_t device,
+                                 xe_module_handle_t module,
+                                 std::string func_name, int group_size,
+                                 const std::vector<FunctionArg> &args) {
 
   xe_function_handle_t function = create_function(module, func_name);
   xe_command_list_handle_t cmdlist = create_command_list(device);
   xe_command_queue_handle_t cmdq = create_command_queue(device);
-  uint32_t group_size_x = 0;
-  uint32_t group_size_y = 0;
-  uint32_t group_size_z = 0;
+  uint32_t group_size_x = group_size;
+  uint32_t group_size_y = 1;
+  uint32_t group_size_z = 1;
   EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionSuggestGroupSize(
                                    function, group_size, 1, 1, &group_size_x,
                                    &group_size_y, &group_size_z));
@@ -94,11 +104,15 @@ void create_and_execute_function(xe_device_handle_t device,
             xeFunctionSetGroupSize(function, group_size_x, group_size_y,
                                    group_size_z));
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeFunctionSetArgumentValue(function, 0, sizeof(arg), &arg));
+  int i = 0;
+  for (auto arg : args) {
+    EXPECT_EQ(
+        XE_RESULT_SUCCESS,
+        xeFunctionSetArgumentValue(function, i++, arg.arg_size, arg.arg_value));
+  }
 
   xe_thread_group_dimensions_t thread_group_dimensions;
-  thread_group_dimensions.groupCountX = group_size_x;
+  thread_group_dimensions.groupCountX = 1;
   thread_group_dimensions.groupCountY = 1;
   thread_group_dimensions.groupCountZ = 1;
 
@@ -113,12 +127,7 @@ void create_and_execute_function(xe_device_handle_t device,
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandQueueExecuteCommandLists(cmdq, 1, &cmdlist, nullptr));
 
-  // FIXME: LOKI-301 - xeCommandQueueSynchronize is preferred over sleep but it
-  // is currently not working
-  // EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueSynchronize(cmdq, UINT32_MAX));
-
-  std::chrono::milliseconds timespan(500);
-  std::this_thread::sleep_for(timespan);
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueSynchronize(cmdq, UINT32_MAX));
 
   destroy_function(function);
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(cmdq));

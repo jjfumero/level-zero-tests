@@ -26,9 +26,11 @@ add_core_library(ocl_entrypoints
     "include/ocl_entrypoints/embargo/cl_intel_unified_shared_memory.h"
     "include/ocl_entrypoints/embargo/cl_intel_create_buffer_with_properties_intel.h"
     "include/ocl_entrypoints/embargo/cl_intel_aubs.h"
+    "include/ocl_entrypoints/embargo/cl_intel_function_pointers.h"
     "src/embargo/cl_intel_unified_shared_memory.cpp"
     "src/embargo/cl_intel_create_buffer_with_properties_intel.cpp"
     "src/embargo/cl_intel_aubs.cpp"
+    "src/embargo/cl_intel_function_pointers.cpp"
 )
 target_link_libraries(ocl_entrypoints
     PUBLIC

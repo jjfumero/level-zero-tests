@@ -60,10 +60,13 @@ protected:
     for (auto device : devices) {
       DevInstance instance;
       instance.dev = device;
+      instance.dev_grp = device_groups[0];
       instance.src_region = cs::allocate_device_memory(
-          mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device);
+          mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device,
+          device_groups[0]);
       instance.dst_region = cs::allocate_device_memory(
-          mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device);
+          mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device,
+          device_groups[0]);
       instance.cmd_list = cs::create_command_list(device);
       instance.cmd_q = cs::create_command_queue(device);
 
@@ -77,8 +80,8 @@ protected:
   void TearDown() override {
     for (auto instance : dev_instance_) {
 
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(instance.cmd_q));
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(instance.cmd_list));
+      cs::destroy_command_queue(instance.cmd_q);
+      cs::destroy_command_list(instance.cmd_list);
 
       cs::free_memory(instance.src_region);
       cs::free_memory(instance.dst_region);
@@ -87,6 +90,7 @@ protected:
 
   struct DevInstance {
     xe_device_handle_t dev;
+    xe_device_group_handle_t dev_grp;
     void *src_region;
     void *dst_region;
     xe_command_list_handle_t cmd_list;
@@ -162,10 +166,8 @@ TEST_F(
                                  XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
 
   // Set memory region on device 0 and copy to device 1
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(dev0_.cmd_list, dev0_.src_region,
-                                         static_cast<int>(value), mem_size_,
-                                         nullptr, 0, nullptr));
+  cs::append_memory_set(dev0_.cmd_list, dev0_.src_region,
+                        static_cast<int>(value), mem_size_);
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendBarrier(dev0_.cmd_list, nullptr, 0, nullptr));
   EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -206,9 +208,7 @@ TEST_F(xeP2PTests,
   std::string func_name = "xe_multi_device_function";
 
   // zero memory region on device 1
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(dev1_.cmd_list, dev1_.src_region, 0,
-                                         mem_size_, nullptr, 0, nullptr));
+  cs::append_memory_set(dev1_.cmd_list, dev1_.src_region, 0, mem_size_);
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendBarrier(dev1_.cmd_list, nullptr, 0, nullptr));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
@@ -233,7 +233,6 @@ TEST_F(xeP2PTests,
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandQueueSynchronize(dev1_.cmd_q, UINT32_MAX));
-
   ASSERT_EQ(*(int *)shr_mem, 0x1) << "Memory Copied from Device did not match.";
 
   cs::destroy_module(module);
@@ -250,7 +249,9 @@ protected:
     ASSERT_GE(device_groups.size(), 1);
 
     std::vector<xe_device_handle_t> devices;
-    for (auto device_group : device_groups) {
+    xe_device_group_handle_t device_group;
+    for (auto dg : device_groups) {
+      device_group = dg;
       devices = cs::get_devices(device_group);
 
       if (devices.size() >= 2)
@@ -278,6 +279,7 @@ protected:
     for (auto device : devices) {
       DevAccess instance;
       instance.dev = device;
+      instance.dev_grp = device_group;
       instance.device_mem_local = nullptr;
       instance.device_mem_remote = nullptr;
       instance.shared_mem = nullptr;
@@ -289,14 +291,16 @@ protected:
       instance.kernel_add_val = 0;
       dev_compute_properties.version =
           XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGetComputeProperties(device, &dev_compute_properties));
+      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetComputeProperties(
+                                       device_group, &dev_compute_properties));
       instance.group_size_x = std::min(
           static_cast<uint32_t>(128), dev_compute_properties.maxTotalGroupSize);
       instance.dev_mem_properties.version =
           XE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT;
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGetMemoryProperties(
-                                       device, &instance.dev_mem_properties));
+      uint32_t num_mem_properties = 1;
+      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemoryProperties(
+                                       device_group, &num_mem_properties,
+                                       &instance.dev_mem_properties));
       dev_access_.push_back(instance);
     }
   }
@@ -318,10 +322,10 @@ protected:
               xeFunctionSetGroupSize(function, group_size_x, 1, 1));
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(function, 0, sizeof(int), &arg1));
+              xeFunctionSetArgumentValue(function, 0, sizeof(arg1), &arg1));
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(function, 1, sizeof(int), &arg2));
+              xeFunctionSetArgumentValue(function, 1, sizeof(arg2), &arg2));
 
     return function;
   }
@@ -386,7 +390,6 @@ protected:
                                                  events_sync_end[i - 1]));
       }
     }
-
     if (i == 0) {
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListAppendMemoryCopy(
@@ -420,7 +423,8 @@ protected:
     dev_access_[0].kernel_add_val = 10;
     dev_access_[0].device_mem_remote = cs::allocate_device_memory(
         (num * sizeof(int)), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-        dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev);
+        dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev,
+        dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev_grp);
     dev_access_[0].shared_mem = cs::allocate_shared_memory(
         (num * sizeof(int)), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev_access_[0].dev);
@@ -483,7 +487,7 @@ protected:
     cs::free_memory(dev_access_[0].shared_mem);
 
     for (uint32_t i = 0; i < num; i++) {
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(dev_access_[i].cmd_q));
+      cs::destroy_command_queue(dev_access_[i].cmd_q);
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListDestroy(dev_access_[i].cmd_list));
       EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(dev_access_[i].module));
@@ -493,6 +497,7 @@ protected:
 
   typedef struct DevAccess {
     xe_device_handle_t dev;
+    xe_device_group_handle_t dev_grp;
     void *device_mem_local;
     void *device_mem_remote;
     void *shared_mem;
@@ -524,7 +529,6 @@ TEST_P(xeP2PKernelTestsAtomicAccess,
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceGetP2PProperties(dev_access_[0].dev, dev_access_[1].dev,
                                      &dev_p2p_properties));
-
   ASSERT_TRUE(dev_p2p_properties.atomicsSupported);
   ASSERT_EQ(XE_MEMORY_ATOMIC_ACCESS,
             dev_access_[1].dev_mem_properties.deviceAllocCapabilities &

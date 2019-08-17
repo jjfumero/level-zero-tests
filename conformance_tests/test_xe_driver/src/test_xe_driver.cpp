@@ -26,39 +26,30 @@
 
 #include "logging/logging.hpp"
 #include "xe_driver.h"
+#include "xe_test_harness/xe_test_harness.hpp"
+
+namespace cs = compute_samples;
 
 namespace {
-
-TEST(xeInitTests, GivenNoneFlagWhenInitializingDriverThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(XE_INIT_FLAG_NONE));
-}
 
 TEST(
     xeInitTests,
     GivenDriverWasAlreadyInitializedWhenInitializingDriverThenSuccessIsReturned) {
   for (int i = 0; i < 5; ++i) {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(XE_INIT_FLAG_NONE));
+    cs::xe_init();
   }
 }
 
-class xeGetDriverVersionTests : public ::testing::Test {
-  void SetUp() override {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(XE_INIT_FLAG_NONE));
+TEST(xeDeviceGroupGetDriverVersionTests,
+     GivenZeroVersionWhenGettingDriverVersionThenNonZeroVersionIsReturned) {
+
+  cs::xe_init();
+
+  auto device_groups = cs::get_xe_device_groups();
+  for (auto device_group : device_groups) {
+    uint32_t version = cs::get_driver_version(device_group);
+    LOG_INFO << "Driver version: " << version;
   }
-};
-
-TEST_F(xeGetDriverVersionTests,
-       GivenNullVersionWhenGettingDriverVersionThenSuccessIsReturned) {
-  uint32_t version = 0;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeGetDriverVersion(&version));
-}
-
-TEST_F(xeGetDriverVersionTests,
-       GivenZeroVersionWhenGettingDriverVersionThenNonZeroVersionIsReturned) {
-  uint32_t version = 0;
-  xeGetDriverVersion(&version);
-  LOG_INFO << "Driver version: " << version;
-  EXPECT_NE(0u, version);
 }
 
 } // namespace

@@ -70,10 +70,12 @@ TEST_P(xeCommandQueueCreateTests,
       std::get<2>(GetParam())                // priority
   };
   const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_group_handle_t device_group = cs::get_default_device_group();
 
   xe_device_properties_t properties;
   properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGetProperties(device, &properties));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetDeviceProperties(device_group, &properties));
 
   if ((descriptor.flags == XE_COMMAND_QUEUE_FLAG_NONE) ||
       (descriptor.flags == XE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY)) {
@@ -92,7 +94,7 @@ TEST_P(xeCommandQueueCreateTests,
             xeCommandQueueCreate(device, &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(command_queue));
+  cs::destroy_command_queue(command_queue);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -123,7 +125,7 @@ TEST_F(
                                  &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(command_queue));
+  cs::destroy_command_queue(command_queue);
 }
 
 struct CustomExecuteParams {
@@ -138,6 +140,8 @@ protected:
   void SetUp() override {
     const xe_device_handle_t device =
         cs::xeDevice::get_instance()->get_device();
+    const xe_device_group_handle_t device_group =
+        cs::get_default_device_group();
     EXPECT_GT(params.num_command_lists, 0);
 
     print_cmdqueue_exec(params.num_command_lists, params.sync_timeout);
@@ -146,17 +150,21 @@ protected:
 
     for (uint32_t i = 0; i < params.num_command_lists; i++) {
       void *host_shared = nullptr;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeSharedMemAlloc(device, XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                 XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                 buff_size_bytes, 1, &host_shared));
+      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
+                                       device_group, device,
+                                       XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       1, XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       buff_size_bytes, 1, &host_shared));
+
       EXPECT_NE(nullptr, host_shared);
       host_buffer.push_back(static_cast<uint8_t *>(host_shared));
       void *device_shared = nullptr;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeSharedMemAlloc(device, XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                 XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                 buff_size_bytes, 1, &device_shared));
+      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
+                                       device_group, device,
+                                       XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       1, XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       buff_size_bytes, 1, &device_shared));
+
       EXPECT_NE(nullptr, device_shared);
       device_buffer.push_back(static_cast<uint8_t *>(device_shared));
       xe_command_list_handle_t command_list;
@@ -189,7 +197,8 @@ protected:
 
     xe_device_properties_t properties;
     properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGetProperties(device, &properties));
+    EXPECT_EQ(XE_RESULT_SUCCESS,
+              xeDeviceGroupGetDeviceProperties(device_group, &properties));
     EXPECT_GT((uint32_t)properties.numAsyncCopyEngines, 0);
     queue_descriptor.ordinal = (uint32_t)properties.numAsyncCopyEngines - 1;
     EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -206,7 +215,7 @@ protected:
       cs::free_memory(host_buffer.at(i));
       cs::free_memory(device_buffer.at(i));
     }
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(command_queue));
+    cs::destroy_command_queue(command_queue);
   }
 
   const uint32_t buff_size_bytes = 12;

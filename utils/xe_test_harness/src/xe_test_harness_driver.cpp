@@ -22,23 +22,32 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
+#include "xe_test_harness/xe_test_harness_driver.hpp"
+#include "xe_driver.h"
+
 #include "gtest/gtest.h"
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
+namespace compute_samples {
 
-class xeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  compute_samples::xeEventPool ep;
-  compute_samples::xeCommandList cl;
-};
+void xe_init() { xe_init(XE_INIT_FLAG_NONE); }
 
+void xe_init(xe_init_flag_t init_flag) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(init_flag));
+}
+
+uint32_t get_driver_version(xe_device_group_handle_t device_group) {
+
+  uint32_t version = 0;
+#if 0 // FIXME: xeDeviceGroupGetDriverVersion has a segfault: LOKI-434
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetDriverVersion(device_group, &version));
+#else
+  ADD_FAILURE() << "xeDeviceGroupGetDriverVersion failure: LOKI-434";
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeGetDriverVersion(&version));
 #endif
+  EXPECT_NE(version, 0);
+
+  return version;
+}
+
+}; // namespace compute_samples

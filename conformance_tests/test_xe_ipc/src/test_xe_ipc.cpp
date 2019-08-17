@@ -61,7 +61,9 @@ TEST_F(
     GivenDeviceMemoryAllocationWhenGettingIpcMemHandleThenSuccessIsReturned) {
   memory_ = cs::allocate_device_memory(1);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeIpcGetMemHandle(memory_, &ipc_mem_handle_));
+  const xe_device_group_handle_t device_group = cs::get_default_device_group();
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemIpcHandle(
+                                   device_group, memory_, &ipc_mem_handle_));
 
   cs::free_memory(memory_);
 }
@@ -90,10 +92,11 @@ TEST_F(xeIpcMemHandleTests,
 
     memcpy(ipc_handle_, temp_handle, sizeof(struct _xe_ipc_mem_handle_t));
 
-    if (XE_RESULT_SUCCESS !=
-        xeIpcOpenMemHandle(cs::xeDevice::get_instance()->get_device(),
-                           (xe_ipc_mem_handle_t)ipc_handle_,
-                           XE_IPC_MEMORY_FLAG_NONE, &memory_)) {
+    if (XE_RESULT_SUCCESS != xeDeviceGroupOpenMemIpcHandle(
+                                 cs::get_default_device_group(),
+                                 cs::xeDevice::get_instance()->get_device(),
+                                 (xe_ipc_mem_handle_t)ipc_handle_,
+                                 XE_IPC_MEMORY_FLAG_NONE, &memory_)) {
       status = 1;
     }
 
@@ -121,11 +124,13 @@ TEST_F(xeIpcMemHandleTests,
 
     ipc_mem_handle_ = reinterpret_cast<xe_ipc_mem_handle_t>(ipc_mem_handle);
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeIpcOpenMemHandle(cs::xeDevice::get_instance()->get_device(),
-                                 ipc_mem_handle_, XE_IPC_MEMORY_FLAG_NONE,
-                                 &memory_));
+              xeDeviceGroupOpenMemIpcHandle(
+                  cs::get_default_device_group(),
+                  cs::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
+                  XE_IPC_MEMORY_FLAG_NONE, &memory_));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeIpcCloseMemHandle(memory_));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
+                                     cs::get_default_device_group(), memory_));
 
     int status;
     if (waitpid(pid, &status, 0) < 0) {
@@ -150,9 +155,10 @@ protected:
                                         XE_MEMORY_TYPE_DEVICE);
 
     xe_ipc_memory_flag_t flags = XE_IPC_MEMORY_FLAG_NONE;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeIpcOpenMemHandle(cs::xeDevice::get_instance()->get_device(),
-                                 ipc_mem_handle_, flags, &memory_));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupOpenMemIpcHandle(
+                                     cs::get_default_device_group(),
+                                     cs::xeDevice::get_instance()->get_device(),
+                                     ipc_mem_handle_, flags, &memory_));
   }
 
   void TearDown() { cs::free_memory(memory_); }
@@ -161,7 +167,8 @@ protected:
 TEST_F(
     xeIpcMemHandleCloseTests,
     GivenValidPointerToDeviceMemoryAllocationWhenClosingIpcHandleThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeIpcCloseMemHandle(memory_));
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
+                                   cs::get_default_device_group(), memory_));
 }
 
 } // namespace

@@ -35,7 +35,7 @@ compute::context create_multi_tile_context(compute::device &device) {
   properties.push_back(CL_CONTEXT_FLAGS_INTEL);
   properties.push_back(CL_CONTEXT_ALLOW_ALL_KIND_OF_QUEUES_INTEL);
   properties.push_back(0);
-  return compute::context_intel(device, properties.data());
+  return compute::context(device, properties.data());
 }
 
 compute::command_queue

@@ -28,19 +28,18 @@
 #include <iostream>
 #include <string>
 
-#include "ocl_entrypoints/embargo/cl_intel_unified_shared_memory.h"
+#include "boost/compute/intel/usm.hpp"
+namespace compute = boost::compute;
 
 namespace compute_samples {
-enum class usm_type {
-  host = CL_MEM_TYPE_HOST_INTEL,
-  device = CL_MEM_TYPE_DEVICE_INTEL,
-  shared = CL_MEM_TYPE_SHARED_INTEL,
-  unknown = CL_MEM_TYPE_UNKNOWN_INTEL
-};
-std::string to_string(const usm_type &x);
-std::ostream &operator<<(std::ostream &os, const usm_type &x);
-std::ostream &operator<<(std::ostream &os, const usm_type &x);
-std::istream &operator>>(std::istream &is, usm_type &x);
+std::string to_string(const compute::usm_type &x);
 } // namespace compute_samples
+
+namespace boost {
+namespace compute {
+std::ostream &operator<<(std::ostream &os, const compute::usm_type &x);
+std::istream &operator>>(std::istream &is, compute::usm_type &x);
+} // namespace compute
+} // namespace boost
 
 #endif

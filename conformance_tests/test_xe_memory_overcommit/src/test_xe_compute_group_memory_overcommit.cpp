@@ -201,8 +201,8 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandQueueSynchronize(command_queue, UINT32_MAX));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(command_queue));
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(command_list));
+    cs::destroy_command_queue(command_queue);
+    cs::destroy_command_list(command_list);
     EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(fill_function));
     EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(test_function));
   }
@@ -468,25 +468,23 @@ TEST_P(
   size_t pattern_memory_count = pattern_memory_size >> 3; // array of uint64_t
 
   uint64_t *gpu_pattern_buffer;
-  gpu_pattern_buffer =
-      (uint64_t *)compute_samples::allocate_device_group_device_memory(
-          device_group_handle, device_handle, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-          use_this_ordinal_on_device_, pattern_memory_size, 8);
+  gpu_pattern_buffer = (uint64_t *)compute_samples::allocate_device_memory(
+      pattern_memory_size, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+      use_this_ordinal_on_device_, device_handle, device_group_handle);
 
   uint64_t *gpu_expected_output_buffer;
   gpu_expected_output_buffer =
-      (uint64_t *)compute_samples::allocate_device_group_device_memory(
-          device_group_handle, device_handle, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-          use_this_ordinal_on_device_, output_size_, 8);
+      (uint64_t *)compute_samples::allocate_device_memory(
+          output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          use_this_ordinal_on_device_, device_handle, device_group_handle);
   uint64_t *host_expected_output_buffer = new uint64_t[output_count_];
   std::fill(host_expected_output_buffer,
             host_expected_output_buffer + output_count_, 0);
 
   uint64_t *gpu_found_output_buffer;
-  gpu_found_output_buffer =
-      (uint64_t *)compute_samples::allocate_device_group_device_memory(
-          device_group_handle, device_handle, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-          use_this_ordinal_on_device_, output_size_, 8);
+  gpu_found_output_buffer = (uint64_t *)compute_samples::allocate_device_memory(
+      output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+      use_this_ordinal_on_device_, device_handle, device_group_handle);
   uint64_t *host_found_output_buffer = new uint64_t[output_size_];
   std::fill(host_found_output_buffer, host_found_output_buffer + output_count_,
             0);
@@ -519,12 +517,9 @@ TEST_P(
                 gpu_found_output_buffer, output_count_);
 
   LOG_INFO << "call free memory";
-  compute_samples::free_device_group_memory(device_group_handle,
-                                            gpu_pattern_buffer);
-  compute_samples::free_device_group_memory(device_group_handle,
-                                            gpu_expected_output_buffer);
-  compute_samples::free_device_group_memory(device_group_handle,
-                                            gpu_found_output_buffer);
+  compute_samples::free_memory(device_group_handle, gpu_pattern_buffer);
+  compute_samples::free_memory(device_group_handle, gpu_expected_output_buffer);
+  compute_samples::free_memory(device_group_handle, gpu_found_output_buffer);
 
   LOG_INFO << "call destroy module";
   EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(module_handle));

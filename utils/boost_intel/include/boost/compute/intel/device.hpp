@@ -27,9 +27,12 @@
 
 #include "ocl_entrypoints/embargo/cl_intel_command_queue_properties.h"
 #include "ocl_entrypoints/embargo/cl_intel_unified_shared_memory.h"
+#include "ocl_entrypoints/embargo/cl_intel_function_pointers.h"
 
 namespace boost {
 namespace compute {
+
+using function_pointer_intel = cl_ulong;
 
 class device_intel : public device {
   using device::device;
@@ -71,6 +74,19 @@ public:
   shared_system_mem_capabilities() const {
     return get_info<cl_unified_shared_memory_capabilities_intel>(
         CL_DEVICE_SHARED_SYSTEM_MEM_CAPABILITIES_INTEL);
+  }
+
+  function_pointer_intel get_function_pointer(const program &program,
+                                              const char *function_name) const {
+    function_pointer_intel pointer;
+    cl_int ret = clGetDeviceFunctionPointerINTEL(get(), program.get(),
+                                                 function_name, &pointer);
+
+    if (ret != CL_SUCCESS) {
+      BOOST_THROW_EXCEPTION(opencl_error(ret));
+    }
+
+    return pointer;
   }
 };
 

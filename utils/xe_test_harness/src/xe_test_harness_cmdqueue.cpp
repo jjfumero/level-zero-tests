@@ -86,4 +86,8 @@ void synchronize(xe_command_queue_handle_t cq, uint32_t timeout) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueSynchronize(cq, timeout));
 }
 
+void destroy_command_queue(xe_command_queue_handle_t cq) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(cq));
+}
+
 }; // namespace compute_samples

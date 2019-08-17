@@ -40,7 +40,7 @@ namespace cs = compute_samples;
 
 namespace {
 
-class xeDeviceMemAllocTests
+class xeDeviceGroupAllocDeviceMemTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
           std::tuple<xe_device_mem_alloc_flag_t, size_t, size_t>> {
@@ -56,30 +56,35 @@ protected:
   void *memory_ = nullptr;
 };
 
-class xeDeviceMemAllocParamsTests : public xeDeviceMemAllocTests {};
+class xeDeviceGroupAllocDeviceMemParamsTests
+    : public xeDeviceGroupAllocDeviceMemTests {};
 
 TEST_P(
-    xeDeviceMemAllocParamsTests,
+    xeDeviceGroupAllocDeviceMemParamsTests,
     GivenAllocationFlagsAndSizeAndAlignmentWhenAllocatingDeviceMemoryThenNotNullPointerIsReturned) {
 }
 
 INSTANTIATE_TEST_CASE_P(
-    xeDeviceMemAllocTestVaryFlagsAndSizeAndAlignment,
-    xeDeviceMemAllocParamsTests,
+    xeDeviceGroupAllocDeviceMemTestVaryFlagsAndSizeAndAlignment,
+    xeDeviceGroupAllocDeviceMemParamsTests,
     ::testing::Combine(
         ::testing::Values(XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
                           XE_DEVICE_MEM_ALLOC_FLAG_BIAS_CACHED,
                           XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED),
         cs::memory_allocation_sizes, cs::memory_allocation_alignments));
 
-class xeDeviceMemGetPropertiesTests : public xeDeviceMemAllocTests {};
+class xeDeviceMemGetPropertiesTests : public xeDeviceGroupAllocDeviceMemTests {
+};
 
 TEST_P(
     xeDeviceMemGetPropertiesTests,
     GivenValidDeviceMemoryPointerWhenGettingPropertiesThenVersionAndTypeReturned) {
   xe_memory_allocation_properties_t memory_properties;
   memory_properties.version = XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetProperties(memory_, &memory_properties));
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemProperties(
+                                   cs::get_default_device_group(), memory_,
+                                   &memory_properties, nullptr));
+
   EXPECT_EQ(XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT,
             memory_properties.version);
   EXPECT_EQ(XE_MEMORY_TYPE_DEVICE, memory_properties.type);
@@ -87,9 +92,10 @@ TEST_P(
   if (size_ > 0) {
     uint8_t *char_mem = static_cast<uint8_t *>(memory_);
     memory_properties.version = XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetProperties(static_cast<void *>(char_mem + size_ - 1),
-                                 &memory_properties));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemProperties(
+                                     cs::get_default_device_group(),
+                                     static_cast<void *>(char_mem + size_ - 1),
+                                     &memory_properties, nullptr));
     EXPECT_EQ(XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT,
               memory_properties.version);
     EXPECT_EQ(XE_MEMORY_TYPE_DEVICE, memory_properties.type);
@@ -103,18 +109,22 @@ INSTANTIATE_TEST_CASE_P(
                        cs::memory_allocation_sizes,
                        cs::memory_allocation_alignments));
 
-class xeDeviceMemGetAddressRangeTests : public xeDeviceMemAllocTests {};
+class xeDeviceMemGetAddressRangeTests
+    : public xeDeviceGroupAllocDeviceMemTests {};
 
 TEST_P(
     xeDeviceMemGetAddressRangeTests,
     GivenValidDeviceMemoryPointerWhenGettingAddressRangeThenBaseAddressAndSizeReturned) {
 
   void *pBase = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory_, &pBase, NULL));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory_, &pBase, NULL));
   EXPECT_EQ(pBase, memory_);
   size_t addr_range_size = 0;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeMemGetAddressRange(memory_, NULL, &addr_range_size));
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory_, NULL, &addr_range_size));
 
   // Get device mem size rounds size up to nearest page size
   EXPECT_GE(addr_range_size, size_);
@@ -122,12 +132,14 @@ TEST_P(
   addr_range_size = 0;
   if (size_ > 0) {
     uint8_t *char_mem = static_cast<uint8_t *>(memory_);
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(static_cast<void *>(char_mem + size_ - 1),
-                                   &pBase, &addr_range_size));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemAddressRange(
+                                     cs::get_default_device_group(),
+                                     static_cast<void *>(char_mem + size_ - 1),
+                                     &pBase, &addr_range_size));
   } else {
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(memory_, &pBase, &addr_range_size));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemAddressRange(
+                                     cs::get_default_device_group(), memory_,
+                                     &pBase, &addr_range_size));
   }
   EXPECT_EQ(pBase, memory_);
   // Get device mem size rounds size up to nearest page size
@@ -150,13 +162,13 @@ TEST_F(
   cs::free_memory(memory);
 }
 
-class xeSharedMemAllocTests
+class xeDeviceGroupAllocSharedMemTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
           std::tuple<xe_device_mem_alloc_flag_t, xe_host_mem_alloc_flag_t,
                      size_t, size_t>> {};
 TEST_P(
-    xeSharedMemAllocTests,
+    xeDeviceGroupAllocSharedMemTests,
     GivenAllocationFlagsSizeAndAlignmentWhenAllocatingSharedMemoryThenNotNullPointerIsReturned) {
   const xe_device_mem_alloc_flag_t dev_flags = std::get<0>(GetParam());
   const xe_host_mem_alloc_flag_t host_flags = std::get<1>(GetParam());
@@ -165,15 +177,17 @@ TEST_P(
 
   void *memory = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeSharedMemAlloc(cs::xeDevice::get_instance()->get_device(),
-                             dev_flags, host_flags, size, alignment, &memory));
+            xeDeviceGroupAllocSharedMem(
+                cs::get_default_device_group(),
+                cs::xeDevice::get_instance()->get_device(), dev_flags, 1,
+                host_flags, size, alignment, &memory));
   EXPECT_NE(nullptr, memory);
 
   cs::free_memory(memory);
 }
 
 INSTANTIATE_TEST_CASE_P(
-    TestSharedMemFlagPermutations, xeSharedMemAllocTests,
+    TestSharedMemFlagPermutations, xeDeviceGroupAllocSharedMemTests,
     ::testing::Combine(
         ::testing::Values(XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
                           XE_DEVICE_MEM_ALLOC_FLAG_BIAS_CACHED,
@@ -196,7 +210,9 @@ TEST_P(xeSharedMemGetPropertiesTests,
   xe_memory_allocation_properties_t mem_properties;
   void *memory = cs::allocate_shared_memory(size, alignment);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetProperties(memory, &mem_properties));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemProperties(cs::get_default_device_group(),
+                                          memory, &mem_properties, nullptr));
 
   cs::free_memory(memory);
 }
@@ -216,7 +232,9 @@ TEST_F(xeSharedMemGetAddressRangeTests,
   void *memory = cs::allocate_shared_memory(size, alignment);
   size_t size_out;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory, NULL, &size_out));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, NULL, &size_out));
   EXPECT_GE(size_out, size);
   cs::free_memory(memory);
 }
@@ -229,7 +247,9 @@ TEST_F(xeSharedMemGetAddressRangeTests,
   void *memory = cs::allocate_shared_memory(size, alignment);
   void *base = nullptr;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory, &base, NULL));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, &base, NULL));
   EXPECT_EQ(base, memory);
   cs::free_memory(memory);
 }
@@ -250,7 +270,9 @@ TEST_P(
 
   // Test getting address info from begining of memory range
   uint8_t *mem_target = static_cast<uint8_t *>(memory);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory, &base, &size_out));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, &base, &size_out));
   EXPECT_GE(size_out, size);
   EXPECT_EQ(base, memory);
 
@@ -258,14 +280,16 @@ TEST_P(
     // Test getting address info from middle of memory range
     mem_target = static_cast<uint8_t *>(memory) + (size - 1) / 2;
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(mem_target, &base, &size_out));
+              xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                              mem_target, &base, &size_out));
     EXPECT_GE(size_out, size);
     EXPECT_EQ(memory, base);
 
     // Test getting address info from end of memory range
     mem_target = static_cast<uint8_t *>(memory) + (size - 1);
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(mem_target, &base, &size_out));
+              xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                              mem_target, &base, &size_out));
     EXPECT_GE(size_out, size);
     EXPECT_EQ(memory, base);
   }
@@ -277,13 +301,13 @@ INSTANTIATE_TEST_CASE_P(TestSharedMemGetAddressRangePermutations,
                         ::testing::Combine(cs::memory_allocation_sizes,
                                            cs::memory_allocation_alignments));
 
-class xeHostMemAllocTests
+class xeDeviceGroupAllocHostMemTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
           std::tuple<xe_host_mem_alloc_flag_t, size_t, size_t>> {};
 
 TEST_P(
-    xeHostMemAllocTests,
+    xeDeviceGroupAllocHostMemTests,
     GivenFlagsSizeAndAlignmentWhenAllocatingHostMemoryThenNotNullPointerIsReturned) {
 
   const xe_host_mem_alloc_flag_t flags = std::get<0>(GetParam());
@@ -292,15 +316,18 @@ TEST_P(
   const size_t alignment = std::get<2>(GetParam());
 
   void *memory = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeHostMemAlloc(flags, size, alignment, &memory));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupAllocHostMem(cs::get_default_device_group(), flags,
+                                      size, alignment, &memory));
 
   EXPECT_NE(nullptr, memory);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemFree(memory));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupFreeMem(cs::get_default_device_group(), memory));
 }
 
 INSTANTIATE_TEST_CASE_P(
-    TestHostMemParameterCombinations, xeHostMemAllocTests,
+    TestHostMemParameterCombinations, xeDeviceGroupAllocHostMemTests,
     ::testing::Combine(
         ::testing::Values(XE_HOST_MEM_ALLOC_FLAG_DEFAULT,
                           XE_HOST_MEM_ALLOC_FLAG_BIAS_CACHED,
@@ -324,7 +351,9 @@ TEST_P(
   xe_memory_allocation_properties_t mem_properties;
   mem_properties.version = XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetProperties(memory, &mem_properties));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemProperties(cs::get_default_device_group(),
+                                          memory, &mem_properties, nullptr));
 
   EXPECT_EQ(XE_MEMORY_ALLOCATION_PROPERTIES_VERSION_CURRENT,
             mem_properties.version);
@@ -351,7 +380,9 @@ TEST_F(
 
   void *memory = cs::allocate_host_memory(size, alignment);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory, &base, nullptr));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, &base, nullptr));
   EXPECT_EQ(memory, base);
 
   cs::free_memory(memory);
@@ -372,7 +403,8 @@ TEST_P(
   void *memory = cs::allocate_host_memory(size, alignment);
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeMemGetAddressRange(memory, nullptr, &size_out));
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, nullptr, &size_out));
   EXPECT_GE(size_out, size);
 
   cs::free_memory(memory);
@@ -398,19 +430,23 @@ TEST_P(
   void *base = nullptr;
   size_t size_out;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeMemGetAddressRange(memory, &base, &size_out));
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                            memory, &base, &size_out));
   EXPECT_EQ(memory, base);
 
   if (size > 1) {
     uint8_t *mem_target = static_cast<uint8_t *>(memory) + (size - 1) / 2;
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(mem_target, &base, &size_out));
+              xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                              mem_target, &base, &size_out));
     EXPECT_EQ(memory, base);
     EXPECT_GE(size_out, size);
 
     mem_target = static_cast<uint8_t *>(memory) + (size - 1);
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeMemGetAddressRange(mem_target, &base, &size_out));
+              xeDeviceGroupGetMemAddressRange(cs::get_default_device_group(),
+                                              mem_target, &base, &size_out));
     EXPECT_EQ(memory, base);
     EXPECT_GE(size_out, size);
   }

@@ -22,23 +22,15 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#include "ocl_entrypoints/embargo/cl_intel_function_pointers.h"
+#include "ocl_entrypoints/loader.hpp"
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
+namespace cs = compute_samples;
 
-class xeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  compute_samples::xeEventPool ep;
-  compute_samples::xeCommandList cl;
-};
-
-#endif
+CL_API_ENTRY cl_int CL_API_CALL clGetDeviceFunctionPointerINTEL(
+    cl_device_id device, cl_program program, const char *function_name,
+    cl_ulong *function_pointer_ret) CL_API_SUFFIX__VERSION_1_2 {
+  const auto e = cs::load_entrypoint<clGetDeviceFunctionPointerINTEL_fn>(
+      device, "clGetDeviceFunctionPointerINTEL");
+  return e(device, program, function_name, function_pointer_ret);
+}

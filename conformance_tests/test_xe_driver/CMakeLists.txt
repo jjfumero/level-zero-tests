@@ -22,14 +22,37 @@
 # must be express and approved by Intel in writing.
 #
 
+add_test_suite(test_xe_driver_init_flag_none
+    SOURCE
+    "src/test_xe_driver_init_flag_none.cpp"
+    "src/main.cpp"
+)
+add_test_suite(test_xe_driver_init_flag_gpu
+    SOURCE
+    "src/test_xe_driver_init_flag_gpu.cpp"
+    "src/main.cpp"
+)
 add_test_suite(test_xe_driver
     SOURCE
     "src/test_xe_driver.cpp"
     "src/main.cpp"
 )
+
+target_link_libraries(test_xe_driver_init_flag_none
+    PUBLIC
+    compute_samples::logging
+    compute_samples::xe_test_harness
+    ${LevelZero_LIBRARIES}
+)
+target_link_libraries(test_xe_driver_init_flag_gpu
+    PUBLIC
+    compute_samples::logging
+    compute_samples::xe_test_harness
+    ${LevelZero_LIBRARIES}
+)
 target_link_libraries(test_xe_driver
     PUBLIC
     compute_samples::logging
-    compute_samples::xe_utils
+    compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )

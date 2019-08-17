@@ -51,7 +51,7 @@ TEST_P(
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(command_list));
+  cs::destroy_command_list(command_list);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -73,7 +73,7 @@ TEST_F(
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(command_list));
+  cs::destroy_command_list(command_list);
 }
 
 // xeCommandListCreateImmediateTests currently fail with
@@ -100,7 +100,7 @@ TEST_P(xeCommandListCreateImmediateTests,
                                    cs::xeDevice::get_instance()->get_device(),
                                    &descriptor, &command_list));
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(command_list));
+  cs::destroy_command_list(command_list);
 }
 
 INSTANTIATE_TEST_CASE_P(
