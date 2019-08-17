@@ -32,7 +32,7 @@ void XePeak::xe_peak_dp_compute(L0Context &context) {
   /* TODO: Need to verify that the device being used by L0 support DP.*/
 
   std::vector<uint8_t> binary_file =
-      context.load_binary_file("test_files/spv_modules/xe_dp_compute.spv");
+      context.load_binary_file("xe_dp_compute.spv");
 
   context.create_module(binary_file);
 

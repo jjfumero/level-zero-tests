@@ -33,24 +33,15 @@ target_link_libraries(test_xe_p2p
     compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )
-add_kernels(test_xe_p2p "xe_atomic_access.cl")
-add_kernels(test_xe_p2p "xe_concurrent_access.cl")
-add_kernels(test_xe_p2p "xe_atomic_and_concurrent_access.cl")
-add_kernels(test_xe_p2p "xe_p2p_test.cl")
-install_resources(test_xe_p2p
-    FILES
-    "xe_atomic_access.spv"
-)
-install_resources(test_xe_p2p
-    FILES
-    "xe_concurrent_access.spv"
-)
-install_resources(test_xe_p2p
-    FILES
-    "xe_atomic_and_concurrent_access.spv"
-)
+# add_kernels(test_xe_p2p "xe_atomic_access.cl")
+# add_kernels(test_xe_p2p "xe_concurrent_access.cl")
+# add_kernels(test_xe_p2p "xe_atomic_and_concurrent_access.cl")
+# add_kernels(test_xe_p2p "xe_p2p_test.cl")
 
-install_resources(test_xe_p2p
-    FILES
+install_resources_conformance(test_xe_p2p
+  FILES
+    "xe_atomic_access.spv"
+    "xe_concurrent_access.spv"
+    "xe_atomic_and_concurrent_access.spv"
     "xe_p2p_test.spv"
 )

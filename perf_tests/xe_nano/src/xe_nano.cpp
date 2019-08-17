@@ -31,7 +31,7 @@ class XeNano : public ::testing::Test {
 protected:
   XeNano() {
     api_static_probe_init();
-    benchmark = new XeApp("test_files/spv_modules/xe_nano_benchmarks.spv");
+    benchmark = new XeApp("xe_nano_benchmarks.spv");
     benchmark->singleDeviceInit();
     probe_setting.warm_up_iteration = 0;
     probe_setting.measure_iteration = 0;

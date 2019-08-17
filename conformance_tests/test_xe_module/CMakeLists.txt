@@ -35,13 +35,13 @@ target_link_libraries(test_xe_module
     compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )
-add_kernels(test_xe_module
-    "single_global_variable.cl"
-    "multiple_global_variables.cl"
-    "update_variable_on_device.cl"
-)
+# add_kernels(test_xe_module
+#     "single_global_variable.cl"
+#     "multiple_global_variables.cl"
+#     "update_variable_on_device.cl"
+# )
 install_resources_conformance(test_xe_module
-    FILES
+  FILES
     "single_global_variable.spv"
     "multiple_global_variables.spv"
     "update_variable_on_device.spv"

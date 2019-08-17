@@ -166,7 +166,7 @@ target_link_libraries(xe_nano
 
 add_performance_application(xe_nano)
 
-# install_resources_performance(test_xe_module
-#     FILES
-#     "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
-# )
+install_resources_performance(xe_nano
+    FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernels/xe_nano_benchmarks.spv"
+)

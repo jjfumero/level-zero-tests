@@ -42,6 +42,10 @@ windows:
     - if not exist windows_build_succeeded (
           exit /b 1
       )
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/out
 
 ubuntu1804:
   stage: build
@@ -110,15 +114,9 @@ ubuntu1804:
     - docker push ${BUILDER_IMAGE}:latest
   artifacts:
     name: "$CI_JOB_NAME"
+    when: always
     paths:
-      - intel-level-zero-tests-*-Source.*
-      - intel-level-zero-*-Linux-*conformance-tests.*
-      - intel-level-zero-*-Linux-*perf-tests.*
-  artifacts:
-    name: "$CI_JOB_NAME clang-format diff"
-    when: on_failure
-    expire_in: 1 week
-    paths:
+      - build/out
       - build/clang_format_results.patch
 
 deploy-artifactory:
@@ -130,24 +128,47 @@ deploy-artifactory:
     - docker
     - linux
   image:
-    name: amr-registry-pre.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432
+    name: amr-registry.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none
   script:
-    - gta-asset delete
-        --root-url https://gfx-assets.fm.intel.com/artifactory
-        -u ${ARTIFACTORY_USER}
-        -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm
-        level_zero_tests
-        ${CI_COMMIT_TAG}
-      || true
+    # this method is disabled for now
+    # - for platform in `ls -1 out`; do
+    #       gta-asset push
+    #         --root-url https://gfx-assets.fm.intel.com/artifactory
+    #         -u ${ARTIFACTORY_USER}
+    #         -p ${ARTIFACTORY_PASSWORD}
+    #         gfx-sandbox-fm/level-zero-conformance
+    #         $platform
+    #         ${CI_COMMIT_TAG}
+    #         ./out/$platform/conformance_tests;
+    #       gta-asset push
+    #         --root-url https://gfx-assets.fm.intel.com/artifactory
+    #         -u ${ARTIFACTORY_USER}
+    #         -p ${ARTIFACTORY_PASSWORD}
+    #         gfx-sandbox-fm/level-zero-perf
+    #         $platform
+    #         ${CI_COMMIT_TAG}
+    #         ./out/$platform/perf_tests;
+    #   done
+    # also push specially archived versions to work with the test_compute
+    # plugin... ugh
     - gta-asset push
         --root-url https://gfx-assets.fm.intel.com/artifactory
+        --no-archive
         -u ${ARTIFACTORY_USER}
         -p ${ARTIFACTORY_PASSWORD}
         gfx-sandbox-fm
-        level_zero_tests
+        level-zero-conformance-archived
         ${CI_COMMIT_TAG}
-        ./external_build_artifacts
+        ./build/out/archived/conformance-tests-Linux.tar.gz
+    - gta-asset push
+        --root-url https://gfx-assets.fm.intel.com/artifactory
+        --no-archive
+        -u ${ARTIFACTORY_USER}
+        -p ${ARTIFACTORY_PASSWORD}
+        gfx-sandbox-fm
+        level-zero-perf-archived
+        ${CI_COMMIT_TAG}
+        ./build/out/archived/perf-tests-Linux.tar.gz

@@ -15,7 +15,7 @@ call "%VCInstallDir%\Auxiliary\Build\vcvars64.bat"
 set CC=clcache
 set CXX=clcache
 call cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=C:\boost -DBoost_COMPILER="-vc142" -DZLIB_ROOT=C:\zlib -DPNG_ROOT=C:\libpng -DOPENCL_ROOT=C:\opencl .. || exit /b
-call cmake --build . --config Release --target package || exit /b
+call cmake --build . --config Release --target install || exit /b
 
 cd..
 copy /y nul windows_build_succeeded
