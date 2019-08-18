@@ -16,7 +16,8 @@ if (CLANG_FORMAT)
     )
 endif ()
 
-if(DEFINED ENV{CLANG_TIDY_CHECK})
+option(CLANG_TIDY_CHECK "Include clang-tidy code checking as part of the build")
+if(CLANG_TIDY_CHECK)
     find_program(CLANG_TIDY_EXE
       NAMES "clang-tidy" "clang-tidy-6.0"
       DOC "Path to clang-tidy executable"

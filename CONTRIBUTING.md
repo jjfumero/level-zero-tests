@@ -1,12 +1,16 @@
 # Level-Zero Tests Contribution Guidelines
 
-## Coding Guidelines
+## C++ Coding standards
 
-The code written for the Level-Zero Tests repo need to follow a series of coding
-standards such that the look and feel of the tests is the same and the code
-maintains a standard of C++ standards.
+* C++11 maximum support
+* Avoid C Arrays, replace with `std::array<>` / `std::vector<>`
+* Avoid "magic numbers"
+* Avoid C-style memory allocations in favor of C++
+* Use `nullptr` instead of `NULL`
+* Don’t add `void` to empty argument lists
+* Use `std::unique_ptr` in place of `std::auto_ptr`
 
-### Code Naming Conventions
+In addition, these naming conventions should be followed:
 
 * Class - UpperCamelCase - `class MyClass`
 * Class data member - snake_case_with_suffix - `MyClass::my_class_data_member_`
@@ -22,37 +26,70 @@ maintains a standard of C++ standards.
 * Module - snake_case - `my_module`
 * GTEST Test cases will follow the [Given/When/Then naming convention][given_when_then]
 
+A [`.clang-tidy`](./.clang-tidy) file is included in this repository to help
+catch issues in your code related to these. To include these checks in your
+build, set `-DCLANG_TIDY_CHECK=ON` when configuring the cmake project.
+
+**This is still experimental, and a lot of the code currently checked-in is not
+compliant, so expect to see a lot of messages if you run this.**
+
 [given_when_then]: https://martinfowler.com/bliki/GivenWhenThen.html
 
-### C++ Coding standards
+## Code Formatting
 
-* C++11 maximum support
-* Avoid C Arrays, replace with `std::array<>` / `std::vector<>`
-* Avoid "magic numbers"
-* Avoid C-style memory allocations in favor of C++
-* Use `nullptr` instead of `NULL`
-* Don’t add `void` to empty argument lists
-* Use `std::unique_ptr` in place of `std::auto_ptr`
+Follow the [LLVM code formatting guidelines][llvm_code_formatting].
 
-### Code Formatting
+A [`.clang-format`](./.clang-format) file is included in this repository, and
+the GitLab build automation will fail the build if your merge request has
+improperly formatted code.
 
-* Follow [LLVM code formatting][llvm_code_formatting]
+Build targets are provided in the cmake for convenience. `clang-format` will
+check and fix any formatting issues with your code, and `clang-format-check`
+will check for issues and print a diff of the corrections required.
+
+Examples:
+
+```
+cmake --build . --target clang-format-check
+cmake --build . --target clang-format
+```
 
 [llvm_code_formatting]: https://llvm.org/docs/CodingStandards.html#source-code-formatting
 
-### Coding Standards Enforcement
+## Kernels (SPV files)
 
-* clang-format: Code Formatting before committing changes
-    * Run thru `make clang-format`
-* clang-tidy: Naming & Coding standards verified at build time if enabled
-    * Enabled with `export CLANG_TIDY_CHECK=1`
-    * Reconfigure the build:
-        * `cd build`
-        * `cmake ..`
-        * `rm CMakeCache.txt`
-        * `make -j` This will run clang-tidy on all compiled binaries and headers
-* Manual: Code Review checking (hopefully minimal due to above)
+Whenever you add or update any kernels (contained in `.cl` files), you must
+re-generate the binaries (`.spv` files) and commit them with your changes. A
+specialized build of clang is required to do this.
 
+A [Dockerfile][clang-spv] is available in the one-api/devops GitLab repository
+which specifies an image containing this specialized build of clang. You can
+use it to generate an SPV file from an OpenCL C file (`.cl`).
+
+Building the Docker image:
+
+```
+docker build -t clang-spv ./devops/docker/clang-spv
+```
+
+Using it to compile a kernel file called `xe_nano_benchmarks.cl` in the current
+directory:
+
+```
+docker run \
+  --rm \
+  -v $PWD:$PWD \
+  -w $PWD \
+  clang-spv \
+  -o xe_nano_benchmarks.spv \
+  xe_nano_benchmarks.cl
+```
+
+This will soon be automated as part of the GitLab build automation, removing the
+requirement to manually build them and check them in to the repository. For now,
+please continue to manually build and check-in SPV files.
+
+clang-spv: https://gitlab.devtools.intel.com/one-api/devops/blob/master/docker/clang-spv/Dockerfile
 
 ## Submitting Changes
 

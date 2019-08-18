@@ -2,25 +2,27 @@
 
 ## Dependencies
 
-Requires the `intel-loki-core`, `intel-loki-devel`, `opencl-headers`, 
-`libpng-dev`, `ocl-icd-opencl-dev`, `libboost-all-dev`, & `libva-dev` packages
-to be installed.
+Dockerfiles are available in the [docker](./docker) directory which can be used
+as build environments. These are the environments used by the automation, and
+are therefore guaranteed to work. This is the recommended method for building on
+Windows and Linux. Refer to the Dockerfile corresponding with your platform if
+you want to configure your own environment manually.
 
-NOTE: to use a local version of intel-loki-core & intel-loki-devel set the
-following environment variable:
-`L0_ROOT` = `Level_zero_install_directory`
+For building against level-zero, you can either build against the version you
+have installed on your system (automatic, Linux only), or specify an install
+prefix with the `L0_ROOT` environment variable.
 
-`xe_nano` optionally requires `libpapi-dev`.
+## Building
 
-
-### Building Level-Zero Tests
+This project uses cmake to configure the build. The `install` target will create
+an `out` directory in your cmake build directory containing the built
+performance test and the conformance test binaries (e.g.,
+`build/out/perf_tests/` and `build/out/conformance_tests/`). Nothing will get
+installed to your system.
 
 ```
 mkdir build
 cd build
 cmake ..
-make -j`nproc`
-make install
+cmake --build . --config Release --target install
 ```
-
-Executables are installed to your CMAKE build directory.

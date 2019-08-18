@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         ccache \
         clang-format-7 \
+        clang-tidy \
         cmake \
         curl \
         git \
