@@ -386,9 +386,10 @@ repository, where you can use irepo, cmake, and git for manually building.
 
 ## Approvals
 
-Refer to the [`CODEOWNERS`](./CODEOWNERS) file for a list of people to add as
-approvers for your change. For each entry in the file that your change touches,
-you will need approval from at least one of the people listed as owners.
+Approvers for your changes are automatically determined based on entries in the [`CODEOWNERS`](./CODEOWNERS)
+file. You will need at least two approvals total, and one approval from each
+section identified in the [`CODEOWNERS`](./CODEOWNERS) file that your change
+updates.
 
 ## Generating a Source Distribution
 
