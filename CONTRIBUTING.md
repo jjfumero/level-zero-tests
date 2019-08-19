@@ -414,4 +414,6 @@ distributing to other users to build themselves.
 ## Releases and Tags
 
 Tags are used to specify releases. Tagged commits will be automatically built
-like normal, and will additionally have the artifacts published to Artifactory.
+like normal, and will additionally have the artifacts publlished to Artifactory,
+where it can get picked up in GTA jobs. Therefore, only **maintainers** can
+create tags in the repository.
