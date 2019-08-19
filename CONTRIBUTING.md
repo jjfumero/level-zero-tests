@@ -276,12 +276,6 @@ scripts. You will need these prerequisites:
   - [Windows 10][docker_win10]
 - Configure Docker to [use the Intel proxies][docker_proxy]. Use
   `http://proxy-chain.intel.com:911` for the HTTP and HTTPS proxy servers.
-- A Gerrit GFX HTTP password (similar to an API key). To generate one:
-  - Login to [gerrit][gerrit_login].
-  - Click on your name in the upper-right hand corner and choose **Settings**.
-  - Click **HTTP Password**.
-  - If you have already previously generated one, copy it to the clipboard.
-    Otherwise, generate a new one.
 
 Once you have these prerequisites, the next step is to create the build image,
 which will be the Docker image that your changes will be built in. This is the
@@ -306,8 +300,6 @@ docker run \
   --rm \
   -v ${PWD}:/root/project \
   -w /root/project \
-  -e GERRITGFX_HTTP_USER=<IDSID> \
-  -e GERRITGFX_HTTP_PASSWORD=<GERRIT GFX HTTP PASSWORD> \
   -v ${PWD}/ccache:/ccache \
   -e CCACHE_DIR=/ccache \
   -e CCACHE_BASEDIR=/root/project \
@@ -322,18 +314,11 @@ docker run `
   --rm `
   -v %cd%:C:\project `
   -w C:\project `
-  -e GERRITGFX_HTTP_USER `
-  -e GERRITGFX_HTTP_PASSWORD `
   -v C:\clcache:C:\clcache `
   -e CLCACHE_DIR=C:\clcache `
   level_zero_tests:latest `
   .\ci-build-windows.bat
 ```
-
-Be sure to replace `<IDSID>` with your Intel IDSID (e.g., `ledettwy`), and
-`<GERRIT GFX HTTP PASSWORD>` with the gerrit HTTP password you generated as a
-prerequisite. The gerrit HTTP password can sometimes contain special characters,
-so you may need to quote it in the command with 'single quotes'.
 
 The above command will map your current working directory (the root of this
 repo) into the build container and perform a build in a `build` directory
@@ -366,8 +351,6 @@ docker run `
   --rm `
   -v %cd%:C:\project `
   -w C:\project `
-  -e GERRITGFX_HTTP_USER `
-  -e GERRITGFX_HTTP_PASSWORD `
   -v C:\clcache:C:\clcache `
   -e CLCACHE_DIR=C:\clcache `
   level_zero_tests:latest
@@ -384,7 +367,6 @@ repository, where you can use irepo, cmake, and git for manually building.
 [docker_win10]: https://docs.docker.com/docker-for-windows/install/
 [docker_proxy]: https://docs.docker.com/network/proxy/
 [artifactory_web_login]: https://gfx-assets.fm.intel.com/artifactory/webapp/#/login
-[gerrit_login]: https://gerrit-gfx.intel.com/login/
 
 ## Approvals
 
