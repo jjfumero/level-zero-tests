@@ -10,7 +10,7 @@ you want to configure your own environment manually.
 
 For building against level-zero, you can either build against the version you
 have installed on your system (automatic, Linux only), or specify an install
-prefix with the `L0_ROOT` environment variable.
+prefix with the `L0_ROOT` cmake flag during configuration.
 
 ## Building
 
