@@ -60,6 +60,7 @@ RUN git clone https://github.intel.com/GSDI/irepo C:\irepo; `
 FROM toolchain AS build_deps
 
 # install boost
+# boost 1.70 is required to be compatible with Visual Studio 2019
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     cd C:\TEMP; `
     wget `

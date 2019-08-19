@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y \
         opencl-headers \
     && rm -rf /var/lib/apt/lists/*
 
+# boost 1.70 is required to be compatible with Visual Studio 2019 for the
+# windows build, so we also use it on Linux. libboost-all-dev won't work.
 RUN curl -L https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz -O && \
     tar xf boost_1_70_0.tar.gz && \
     rm boost_1_70_0.tar.gz && \
