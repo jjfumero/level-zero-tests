@@ -109,6 +109,8 @@ ubuntu1804:
         -v /ccache:/ccache
         -e CCACHE_DIR=/ccache
         -e CCACHE_BASEDIR=/root/project
+        -v /irepo-cache:/irepo-cache
+        -e IREPO_CACHE_DIR=/irepo-cache
         ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
         ./ci-build-linux.sh
     # Upload the builder images used only if the build succeeded
