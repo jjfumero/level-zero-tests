@@ -3,10 +3,8 @@ include(FindPackageHandleStandardArgs)
 find_path(LevelZero_INCLUDE_DIR
   NAMES xe_api.h
   PATHS
-    $ENV{L0_ROOT}
+    ${L0_ROOT}
     "/usr/local/"
-    "${THIRD_PARTY_DIRECTORY}/level_zero_linux"
-    "${THIRD_PARTY_DIRECTORY}/level_zero_windows"
   PATH_SUFFIXES "include" "include/level_zero"
   NO_DEFAULT_PATH
 )
@@ -22,10 +20,8 @@ find_path(OpenCLHeaders_INCLUDE_DIR
 find_library(LevelZero_LIBRARY
   NAMES level_zero level_zero32 level_zero64
   PATHS
-    $ENV{L0_ROOT}
+    ${L0_ROOT}
     "/usr/local/"
-    "${THIRD_PARTY_DIRECTORY}/level_zero_linux"
-    "${THIRD_PARTY_DIRECTORY}/level_zero_windows"
   PATH_SUFFIXES "lib" "lib/level_zero/"
   NO_DEFAULT_PATH
 )
