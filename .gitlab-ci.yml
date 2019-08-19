@@ -33,8 +33,6 @@ windows:
         --rm
         -v %cd%:C:\project
         -w C:\project
-        -e GERRITGFX_HTTP_USER
-        -e GERRITGFX_HTTP_PASSWORD
         -v C:\clcache:C:\clcache
         -e CLCACHE_DIR=C:\clcache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
@@ -104,8 +102,6 @@ ubuntu1804:
         --rm
         -v ${PWD}:/root/project
         -w /root/project
-        -e GERRITGFX_HTTP_USER
-        -e GERRITGFX_HTTP_PASSWORD
         -v /ccache:/ccache
         -e CCACHE_DIR=/ccache
         -e CCACHE_BASEDIR=/root/project

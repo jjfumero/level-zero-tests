@@ -3,11 +3,6 @@
 set -eu
 set -o pipefail
 
-# irepo authentication
-echo "machine gerrit-gfx.intel.com" >> ~/.netrc
-echo "login $GERRITGFX_HTTP_USER" >> ~/.netrc
-echo "password $GERRITGFX_HTTP_PASSWORD" >> ~/.netrc
-
 # Synchronize third-party assets with irepo
 ~/.irepo/irepo select ./dependencies.yml
 ~/.irepo/irepo sync -c googletest

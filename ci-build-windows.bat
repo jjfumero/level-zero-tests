@@ -1,7 +1,3 @@
-@echo off
-echo machine gerrit-gfx.intel.com >C:\Users\%USERNAME%\_netrc
-echo login %GERRITGFX_HTTP_USER% >>C:\Users\%USERNAME%\_netrc
-echo password %GERRITGFX_HTTP_PASSWORD% >>C:\Users\%USERNAME%\_netrc
 @echo on
 
 call irepo select .\dependencies.yml || exit /b
