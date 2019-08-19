@@ -1,8 +1,19 @@
-# Default reviewers of Level-Zero-tests repo
-@ledettwy @nrspruit 
+# core cmake
+/cmake/ @ledettwy @nrspruit
+/CMakeLists.txt @ledettwy @nrspruit
 
-# Default reviewers for Conformance tests
-conformance-tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
+# coding standards
+/.clang-format @nrspruit @ledettwy
+/.clang-tidy @nrspruit @ledettwy
+/clang-format-patch.sh @nrspruit @ledettwy
 
-# Default reviewers for Performance tests
-perf-tests/ @rwmcguir @sanchez1 @jarteaga
+# build automation
+/docker/ @ledettwy @jchodor
+/.gitlab-ci.yml @ledettwy @jchodor
+/ci-build-linux.sh @ledettwy @jchodor
+/ci-build-windows.bat @ledettwy @jchodor
+
+# test code
+conformance_tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
+perf_tests/ @rwmcguir @sanchez1 @jarteaga
+utils/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
