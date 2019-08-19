@@ -91,6 +91,28 @@ please continue to manually build and check-in SPV files.
 
 clang-spv: https://gitlab.devtools.intel.com/one-api/devops/blob/master/docker/clang-spv/Dockerfile
 
+## Synchronizing Third Party Assets
+
+A fresh git repo checkout will require that the required third party assets are
+synchronized with a tool called [irepo](https://github.intel.com/GSDI/irepo).
+Ensure you install and use irepo from a unix account with the username matching
+your Intel IDSID so authentication works correctly.
+
+Once irepo is installed, synchronize the third-party assets:
+
+```
+irepo select dependencies.yml
+irepo sync -c googletest
+irepo sync -c yuv_samples
+```
+
+Additionally, synchronize the `level_zero_linux` component for building on Linux
+without any prior versions of level-zero installed, and the `level_zero_windows`
+component for building on Windows.
+
+You should synchronize these components whenever their entries are updated in
+the [`dependencies.yml`](./dependencies.yml) file.
+
 ## Submitting Changes
 
 [Merge requests][mrdoc] are used for proposing changes and doing code review.
@@ -222,9 +244,8 @@ the web interface.
 ## Verifying Changes
 
 Changes should be verified before being merged into master. The minimum level of
-verification is currently for your changes to successfully build on Ubuntu
-18.04. Other distros will be added down the road, and Windows builds are still
-in the process of being enabled.
+verification is currently for your changes to successfully build on Ubuntu 18.04
+and Windows.
 
 There are two ways to verify your changes: automated GitLab pipelines, and
 manually using the provided Dockerfiles.
@@ -232,21 +253,17 @@ manually using the provided Dockerfiles.
 ### Automated GitLab Pipelines
 
 The automated GitLab pipelines will automatically build changes for which you
-open a merge request on all of the target platforms. Currently, an Ubuntu 18.04
-pipeline has been enabled. Even if you aren't ready to merge your changes yet,
-you can create a WIP merge request by prepending `WIP: ` to the title, which
-will prevent it from being accidentally merged.
+open a merge request on all of the target platforms. Even if you aren't ready to
+merge your changes yet, you can create a WIP merge request by prepending `WIP: `
+to the title, which will prevent it from being accidentally merged.
 
 You can also manually trigger a GitLab pipeline to run on your branch from the [CI/CD][ci_cd_page]
 page by clicking the **Run Pipeline** button.
 
 ### Manual Verification
 
-Your changes can be verified manually against Ubuntu 18.04 by using the provided
-[Dockerfile](./docker/ubuntu1804/Dockerfile) and [ci-build-linux.sh](./ci-build-linux.sh)
-build script.
-
-You will need these prerequisites:
+You can build your changes locally using the provided Dockerfiles and CI build
+scripts. You will need these prerequisites:
 
 - Docker installed on your development machine. The community edition is
   supported on the following platforms:
@@ -254,13 +271,9 @@ You will need these prerequisites:
   - [Fedora][docker_fedora]
   - [Debian][docker_debian]
   - [CentOS][docker_centos]
+  - [Windows 10][docker_win10]
 - Configure Docker to [use the Intel proxies][docker_proxy]. Use
   `http://proxy-chain.intel.com:911` for the HTTP and HTTPS proxy servers.
-- An API token for the GFX Assets FM Artifactory server. To generate one:
-  - Login to the [web app][artifactory_web_login].
-  - Go to your profile by clicking on your name in the upper-right hand corner.
-  - Enter your login password when prompted to unlock your profile.
-  - Generate an API key.
 - A Gerrit GFX HTTP password (similar to an API key). To generate one:
   - Login to [gerrit][gerrit_login].
   - Click on your name in the upper-right hand corner and choose **Settings**.
@@ -275,17 +288,16 @@ your checkout of this repository, run the following:
 
 ```
 docker build \
-  -t level_zero_tests-ubuntu1804 \
-  --build-arg GFX_ASSETS_FM_JFROG_TOKEN=<ARTIFACTORY API KEY> \
-  ./docker/ubuntu1804
+  -t level_zero_tests:latest \
+  ./docker/<platform>
 ```
 
-This will create the image locally and tag it as `level_zero_tests-ubuntu1804`.
-Be sure to replace `<ARTIFACTORY API KEY>` with the API key you generated as a
-prerequisite.
+This will create the image locally and tag it as `level_zero_tests`.
 
 Now that the build image has been created, you can perform a build of your
 changes, using the following:
+
+Linux example:
 
 ```
 docker run \
@@ -294,11 +306,26 @@ docker run \
   -w /root/project \
   -e GERRITGFX_HTTP_USER=<IDSID> \
   -e GERRITGFX_HTTP_PASSWORD=<GERRIT GFX HTTP PASSWORD> \
-  -v ${PWD}/ccache:/root/project/ccache \
-  -e CCACHE_DIR=/root/project/ccache \
+  -v ${PWD}/ccache:/ccache \
+  -e CCACHE_DIR=/ccache \
   -e CCACHE_BASEDIR=/root/project \
-  level_zero_tests-ubuntu1804 \
+  level_zero_tests:latest \
   ./ci-build-linux.sh
+```
+
+Windows example:
+
+```
+docker run `
+  --rm `
+  -v %cd%:C:\project `
+  -w C:\project `
+  -e GERRITGFX_HTTP_USER `
+  -e GERRITGFX_HTTP_PASSWORD `
+  -v C:\clcache:C:\clcache `
+  -e CLCACHE_DIR=C:\clcache `
+  level_zero_tests:latest `
+  .\ci-build-windows.bat
 ```
 
 Be sure to replace `<IDSID>` with your Intel IDSID (e.g., `ledettwy`), and
@@ -308,17 +335,14 @@ so you may need to quote it in the command with 'single quotes'.
 
 The above command will map your current working directory (the root of this
 repo) into the build container and perform a build in a `build` directory
-(ensure it doesn't already exist). ccache is also used to speed-up subsequent
-compilations, and will store the data in the `ccache/` subdirectory.
-
-If the build succeeds, it will produce the source tarball and binary package
-artifacts in the root of this repository. You can use both of these being
-successfully produced as a verification of your changes.
+(ensure it doesn't already exist). ccache and clcache are also used to speed-up
+subsequent compilations.
 
 The build image is also general-purpose enough to be usable as an interactive
 development environment, as it has all of the build tools and irepo installed
-and ready to go in it. To use the image for interactive development, you can
-launch a container like:
+and ready to go in it.
+
+Linux example:
 
 ```
 docker run \
@@ -326,22 +350,67 @@ docker run \
   --rm \
   -v ${PWD}:/root/project \
   -w /root/project \
-  level_zero_tests-ubuntu1804
+  -v ${PWD}/ccache:/ccache \
+  -e CCACHE_DIR=/ccache \
+  -e CCACHE_BASEDIR=/root/project \
+  level_zero_tests:latest
 ```
 
-This will launch a container with a bash shell in the root of this repository,
-where you can use irepo, cmake, and git for manually building.
+Windows example:
+
+```
+docker run `
+  -it `
+  --rm `
+  -v %cd%:C:\project `
+  -w C:\project `
+  -e GERRITGFX_HTTP_USER `
+  -e GERRITGFX_HTTP_PASSWORD `
+  -v C:\clcache:C:\clcache `
+  -e CLCACHE_DIR=C:\clcache `
+  level_zero_tests:latest
+```
+
+This will launch a container with an interactive shell in the root of this
+repository, where you can use irepo, cmake, and git for manually building.
 
 [ci_cd_page]: https://gitlab.devtools.intel.com/one-api/level_zero_tests/pipelines
 [docker_ubuntu]: https://docs.docker.com/install/linux/docker-ce/ubuntu/
 [docker_fedora]: https://docs.docker.com/install/linux/docker-ce/fedora/
 [docker_debian]: https://docs.docker.com/install/linux/docker-ce/debian/
 [docker_centos]: https://docs.docker.com/install/linux/docker-ce/centos/
+[docker_win10]: https://docs.docker.com/docker-for-windows/install/
 [docker_proxy]: https://docs.docker.com/network/proxy/
 [artifactory_web_login]: https://gfx-assets.fm.intel.com/artifactory/webapp/#/login
 [gerrit_login]: https://gerrit-gfx.intel.com/login/
 
 ## Approvals
 
-TODO: decide on approvers etc. for each class of tests. Maybe leverage a
-CODEOWNERS file?
+Refer to the [`CODEOWNERS`](./CODEOWNERS) file for a list of people to add as
+approvers for your change. For each entry in the file that your change touches,
+you will need approval from at least one of the people listed as owners.
+
+## Generating a Source Distribution
+
+Ensure the project directory is free of any extra files that aren't normally
+part of the repository and aren't generated. An easy way to do this is to clone
+a new copy of the repository independent from your regular development checkout.
+
+Ensure that you have synchronized the third party assets so that they get
+included in the source package. Do not include the level_zero components, as
+those are for CI and local development purposes.
+
+```
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release --target package_source
+```
+
+This will generate `.zip` and `.tar.gz` files of the source code suitable for
+distributing to other users to build themselves.
+
+## Releases and Tags
+
+Tags are used to specify releases. Tagged commits will be automatically built
+like normal, and will additionally have the artifacts published to Artifactory.
