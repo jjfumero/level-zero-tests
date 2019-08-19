@@ -5,8 +5,13 @@
 Dockerfiles are available in the [docker](./docker) directory which can be used
 as build environments. These are the environments used by the automation, and
 are therefore guaranteed to work. This is the recommended method for building on
-Windows and Linux. Refer to the Dockerfile corresponding with your platform if
-you want to configure your own environment manually.
+Windows and Linux. Refer to the Dockerfile corresponding with your platform for
+the exact packages and any other configuration steps required for configuring
+your own environment manually.
+
+Boost 1.70 is required in order to be compatible with Visual Studio 2019.
+Command-lines for downloading and installing boost 1.70 can be found in the
+target platform's Dockerfile.
 
 For building against level-zero, you can either build against the version you
 have installed on your system (automatic, Linux only), or specify an install

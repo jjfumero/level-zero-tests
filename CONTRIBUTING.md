@@ -108,7 +108,9 @@ irepo sync -c yuv_samples
 
 Additionally, synchronize the `level_zero_linux` component for building on Linux
 without any prior versions of level-zero installed, and the `level_zero_windows`
-component for building on Windows.
+component for building on Windows. If you do this, also specify the `L0_ROOT`
+cmake argument to point to whichever level-zero directory gets created in
+`third_party`.
 
 You should synchronize these components whenever their entries are updated in
 the [`dependencies.yml`](./dependencies.yml) file.
