@@ -38,13 +38,8 @@ void xe_init(xe_init_flag_t init_flag) {
 uint32_t get_driver_version(xe_device_group_handle_t device_group) {
 
   uint32_t version = 0;
-#if 0 // FIXME: xeDeviceGroupGetDriverVersion has a segfault: LOKI-434
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceGroupGetDriverVersion(device_group, &version));
-#else
-  ADD_FAILURE() << "xeDeviceGroupGetDriverVersion failure: LOKI-434";
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeGetDriverVersion(&version));
-#endif
   EXPECT_NE(version, 0);
 
   return version;
