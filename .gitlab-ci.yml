@@ -35,6 +35,8 @@ windows:
         -w C:\project
         -v C:\clcache:C:\clcache
         -e CLCACHE_DIR=C:\clcache
+        -v C:\irepo-cache:C:\irepo-cache
+        -e IREPO_CACHE_DIR=C:\irepo-cache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
         .\ci-build-windows.bat
     # Use a file to signal success/fail because error codes do not correctly
