@@ -73,3 +73,7 @@ public/
 
 # VS CMake settings
 /CMakeSettings.json
+
+# Media data files
+mediadata/external/
+mediadata/merged/
