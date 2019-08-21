@@ -64,15 +64,16 @@ FROM toolchain AS build_deps
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     cd C:\TEMP; `
     wget `
-      -Uri https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.zip `
-      -OutFile boost_1_70_0.zip `
+      -Uri https://dl.bintray.com/boostorg/release/1.65.0/source/boost_1_65_0.zip `
+      -OutFile boost_1_65_0.zip `
       -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::InternetExplorer; `
-    . 'C:\Program Files\7-Zip\7z.exe' x boost_1_70_0.zip; `
-    rm boost_1_70_0.zip
+    . 'C:\Program Files\7-Zip\7z.exe' x boost_1_65_0.zip; `
+    rm boost_1_65_0.zip
 SHELL ["cmd", "/S", "/C"]
 ENV BOOST_ROOT "C:\boost"
 RUN cd C:\VS\Common7\Tools & VsDevCmd && `
-    cd C:\TEMP\boost_1_70_0 && `
+    call "%VCInstallDir%\Auxiliary\Build\vcvars64.bat" && `
+    cd C:\TEMP\boost_1_65_0 && `
     .\bootstrap && `
     .\b2 install `
       address-model=64 `
@@ -84,7 +85,7 @@ RUN cd C:\VS\Common7\Tools & VsDevCmd && `
       --with-system `
       -j4 && `
     cd C:\ && `
-    rmdir /S /Q TEMP\boost_1_70_0
+    rmdir /S /Q TEMP\boost_1_65_0
 
 # install zlib
 SHELL ["powershell"]

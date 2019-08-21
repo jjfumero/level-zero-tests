@@ -35,12 +35,14 @@ if(NOT TARGET GTest::GTest AND NOT TARGET GMock::GMock)
 endif()
 enable_testing()
 
-if(NOT TARGET Boost::boost)
-    set(Boost_USE_STATIC_LIBS ON)
-    set(Boost_USE_MULTITHREADED ON)
-    set(Boost_USE_STATIC_RUNTIME OFF)
-    find_package(Boost 1.70 REQUIRED COMPONENTS log program_options timer chrono system)
+# allow BOOST_LIB_TOOLSET to be overridden from the command-line
+if(BOOST_LIB_TOOLSET)
+    add_definitions(-DBOOST_LIB_TOOLSET="${BOOST_LIB_TOOLSET}")
 endif()
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.65 REQUIRED COMPONENTS log program_options timer chrono system)
 
 if(NOT TARGET PNG::PNG)
     # Find static zlib

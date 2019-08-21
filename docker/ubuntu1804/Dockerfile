@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
         cmake \
         curl \
         git \
+        libboost-all-dev \
         libpapi-dev \
         libpng-dev \
         libva-dev \
@@ -19,24 +20,6 @@ RUN apt-get update && apt-get install -y \
         ocl-icd-opencl-dev \
         opencl-headers \
     && rm -rf /var/lib/apt/lists/*
-
-# boost 1.70 is required to be compatible with Visual Studio 2019 for the
-# windows build, so we also use it on Linux. libboost-all-dev won't work.
-RUN curl -L https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz -O && \
-    tar xf boost_1_70_0.tar.gz && \
-    rm boost_1_70_0.tar.gz && \
-    cd boost_1_70_0 && \
-    ./bootstrap.sh && \
-    ./b2 install \
-      address-model=64 \
-      --with-program_options \
-      --with-timer \
-      --with-chrono \
-      --with-log \
-      --with-system \
-      -j`nproc` && \
-    cd .. && \
-    rm -rf boost_1_70_0
 
 # Setup irepo
 RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash

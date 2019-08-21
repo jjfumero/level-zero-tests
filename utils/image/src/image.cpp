@@ -24,7 +24,7 @@
 
 #define png_infopp_NULL (png_infopp) NULL
 #define int_p_NULL (int *)NULL
-#include <boost/gil/extension/io/png.hpp>
+#include <boost/gil/extension/io/png_dynamic_io.hpp>
 namespace gil = boost::gil;
 
 #include "bmp.hpp"
@@ -49,7 +49,7 @@ ImagePNG<T>::ImagePNG(const int width, const int height,
 
 template <> bool ImagePNG<uint32_t>::read(const std::string &image_path) {
   gil::rgba8_image_t image;
-  gil::read_and_convert_image(image_path, image, gil::png_tag());
+  gil::png_read_and_convert_image(image_path, image);
   gil::rgba8_view_t view = gil::view(image);
   for (gil::rgba8_pixel_t pixel : view) {
     uint32_t raw_pixel =
@@ -74,7 +74,7 @@ template <> bool ImagePNG<uint32_t>::write(const std::string &image_path) {
     pixel[0] = (raw_pixel >> 24) & 0xFF;
     view[id] = pixel;
   }
-  gil::write_view(image_path, view, gil::png_tag());
+  gil::png_write_view(image_path, view);
   return false;
 }
 
