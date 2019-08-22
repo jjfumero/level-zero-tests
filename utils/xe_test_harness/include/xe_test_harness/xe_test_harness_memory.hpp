@@ -31,6 +31,10 @@
 
 namespace compute_samples {
 
+#ifndef XE_MAX_IPC_HANDLE_SIZE
+#define XE_MAX_IPC_HANDLE_SIZE 64
+#endif
+
 const auto memory_allocation_sizes =
     ::testing::Values(1, 10, 100, 1000, 10000, 100000, 1000000, 100000000);
 const auto memory_allocation_alignments =

@@ -28,21 +28,28 @@ add_test_suite(test_xe_ipc
     "src/main.cpp"
 )
 
-if(UNIX)
+add_executable(test_xe_ipc_helper
+    "src/test_xe_ipc_helper.cpp")
+target_include_directories(test_xe_ipc_helper
+	PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
+	${LevelZero_INCLUDE_DIRS})
+install(TARGETS test_xe_ipc_helper DESTINATION ".")
+
 target_link_libraries(test_xe_ipc
     PUBLIC
-    rt
     compute_samples::logging
     compute_samples::xe_utils
+    compute_samples::utils
     compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )
-else()
-target_link_libraries(test_xe_ipc
+target_link_libraries(test_xe_ipc_helper
     PUBLIC
     compute_samples::logging
     compute_samples::xe_utils
+    compute_samples::utils
     compute_samples::xe_test_harness
     ${LevelZero_LIBRARIES}
 )
-endif(UNIX)

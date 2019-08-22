@@ -21,34 +21,22 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <chrono>
-#include <thread>
+#ifdef __linux__
+#include <boost/asio.hpp>
+#include <boost/process.hpp>
+#endif
 
 #include "gtest/gtest.h"
-
 #include "xe_utils/xe_utils.hpp"
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
-
 #include "xe_driver.h"
 #include "xe_memory.h"
 
-namespace {
+namespace cs = compute_samples;
 
-// Workaround for using ipc memory handles
-// Should be removed when
-// https://gitlab.devtools.intel.com/one-api/level_zero/issues/198
-// is addressed
-struct _xe_ipc_mem_handle_t {
-  size_t alignment;
-  size_t size;
-  char shmFileName[255];
-};
+namespace {
 
 class xeIpcMemHandleTests : public ::testing::Test {
 protected:
@@ -68,83 +56,51 @@ TEST_F(
   cs::free_memory(memory_);
 }
 
-#ifdef __linux__ // Disabled on Windows until fixed in VLCLJ-285
-TEST_F(xeIpcMemHandleTests,
-       GivenValidIpcMemoryHandleWhenOpeningIpcMemHandleThenSuccessIsReturned) {
-  namespace bi = boost::interprocess;
+#ifdef __linux__
+class xeIpcMemHandleOpenTests : public ::testing::Test {
+protected:
+  void SetUp() override {
+    boost::asio::io_service io_service;
+    boost::asio::ip::tcp::socket sock(io_service);
 
-  bi::shared_memory_object::remove("SharedMem");
+    boost::asio::ip::tcp::acceptor acceptor(
+        io_service,
+        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 65432));
 
-  int pid = fork();
+    // get a handle from another process
+    boost::process::system("./test_xe_ipc_helper");
+    acceptor.accept(sock);
 
-  if (pid < 0) {
-    throw std::runtime_error("Failed to fork child process");
-  } else if (0 == pid) { // Create the IPC handle in a child process
+    boost::system::error_code error;
+    ipc_mem_handle_ = (xe_ipc_mem_handle_t)malloc(XE_MAX_IPC_HANDLE_SIZE);
+    size_t bytes = boost::asio::read(
+        sock, boost::asio::buffer(ipc_mem_handle_, XE_MAX_IPC_HANDLE_SIZE),
+        error);
 
-    int status = 0;
-    bi::managed_shared_memory shm(bi::create_only, "SharedMem", 65536);
-
-    struct _xe_ipc_mem_handle_t *ipc_handle_ =
-        (shm.construct<struct _xe_ipc_mem_handle_t>("MemHandle")());
-    xe_ipc_mem_handle_t temp_handle;
-    cs::allocate_mem_and_get_ipc_handle(&temp_handle, &memory_,
-                                        XE_MEMORY_TYPE_DEVICE);
-
-    memcpy(ipc_handle_, temp_handle, sizeof(struct _xe_ipc_mem_handle_t));
-
-    if (XE_RESULT_SUCCESS != xeDeviceGroupOpenMemIpcHandle(
-                                 cs::get_default_device_group(),
-                                 cs::xeDevice::get_instance()->get_device(),
-                                 (xe_ipc_mem_handle_t)ipc_handle_,
-                                 XE_IPC_MEMORY_FLAG_NONE, &memory_)) {
-      status = 1;
-    }
-
-    // free memory after parent process is done
-    std::chrono::milliseconds ms(500);
-    std::this_thread::sleep_for(ms);
-
-    cs::free_memory(memory_);
-    bi::shared_memory_object::remove("SharedMem");
-
-    // Don't produce test result for child process
-    exit(status);
-  } else {
-    // wait for shared memory object to be created
-    std::chrono::milliseconds ms(100);
-    std::this_thread::sleep_for(ms);
-    bi::managed_shared_memory shm(bi::open_only, "SharedMem");
-
-    std::pair<struct _xe_ipc_mem_handle_t *,
-              bi::managed_shared_memory::size_type>
-        res;
-    res = shm.find<struct _xe_ipc_mem_handle_t>("MemHandle");
-
-    struct _xe_ipc_mem_handle_t *ipc_mem_handle = res.first;
-
-    ipc_mem_handle_ = reinterpret_cast<xe_ipc_mem_handle_t>(ipc_mem_handle);
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeDeviceGroupOpenMemIpcHandle(
-                  cs::get_default_device_group(),
-                  cs::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
-                  XE_IPC_MEMORY_FLAG_NONE, &memory_));
-
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
-                                     cs::get_default_device_group(), memory_));
-
-    int status;
-    if (waitpid(pid, &status, 0) < 0) {
-      ADD_FAILURE() << "Error waiting for ipc test child process";
-    } else {
-      if (WIFEXITED(status)) {
-        status = WEXITSTATUS(status);
-        EXPECT_EQ(0, status)
-            << "ipc test child process exited with error: " << status;
-      } else {
-        ADD_FAILURE() << "ipc test child process exited abnormally";
-      }
+    if (error || bytes < XE_MAX_IPC_HANDLE_SIZE) {
+      FAIL() << "Failed to retrieve ipc handle";
     }
   }
+
+  void TearDown() override {
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
+                                     cs::get_default_device_group(), memory_));
+    cs::free_memory(memory_);
+    free(ipc_mem_handle_);
+  }
+
+  void *memory_ = nullptr;
+  xe_ipc_mem_handle_t ipc_mem_handle_ = nullptr;
+};
+
+TEST_F(xeIpcMemHandleOpenTests,
+       GivenValidIpcMemoryHandleWhenOpeningIpcMemHandleThenSuccessIsReturned) {
+
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeDeviceGroupOpenMemIpcHandle(
+                cs::get_default_device_group(),
+                cs::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
+                XE_IPC_MEMORY_FLAG_NONE, &memory_));
 }
 #endif
 
