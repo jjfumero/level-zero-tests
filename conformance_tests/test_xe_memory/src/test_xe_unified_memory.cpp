@@ -32,5 +32,89 @@ namespace cs = compute_samples;
 
 #include "xe_driver.h"
 #include "xe_memory.h"
+#include "xe_copy.h"
 
-namespace {} // namespace
+namespace {
+
+class xeSharedMemAccessTests : public ::testing::Test {
+protected:
+  xeSharedMemAccessTests() { memory_ = cs::allocate_shared_memory(size_); };
+  ~xeSharedMemAccessTests() { cs::free_memory(memory_); }
+  const size_t size_ = 4 * 1024;
+  void *memory_ = nullptr;
+};
+
+class xeSharedMemAccessHostTests : public xeSharedMemAccessTests {};
+
+TEST_F(
+    xeSharedMemAccessHostTests,
+    GivenSharedAllocationWhenWritingAndReadingBackOnHostThenCorrectDataIsRead) {
+  cs::write_data_pattern(memory_, size_, 1);
+  cs::validate_data_pattern(memory_, size_, 1);
+}
+
+class xeSharedMemAccessCommandListTests : public xeSharedMemAccessTests {
+protected:
+  cs::xeCommandList cmdlist_;
+  cs::xeCommandQueue cmdqueue_;
+};
+
+TEST_F(
+    xeSharedMemAccessCommandListTests,
+    GivenSharedAllocationWhenCopyingAndReadingBackOnHostThenCorrectDataIsRead) {
+  cs::write_data_pattern(memory_, size_, 1);
+  void *other_shared_memory = cs::allocate_shared_memory(size_);
+
+  cs::append_memory_copy(cmdlist_.command_list_, other_shared_memory, memory_,
+                         size_, nullptr, 0, nullptr);
+  cs::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
+  cs::close_command_list(cmdlist_.command_list_);
+  cs::execute_command_lists(cmdqueue_.command_queue_, 1,
+                            &cmdlist_.command_list_, nullptr);
+  cs::synchronize(cmdqueue_.command_queue_, UINT32_MAX);
+  cs::validate_data_pattern(other_shared_memory, size_, 1);
+  cs::free_memory(other_shared_memory);
+}
+
+TEST_F(xeSharedMemAccessCommandListTests,
+       GivenSharedAllocationSettingAndReadingBackOnHostThenCorrectDataIsRead) {
+  const int value = 0x55;
+  cs::write_data_pattern(memory_, size_, 1);
+  cs::append_memory_set(cmdlist_.command_list_, memory_, value, size_);
+  cs::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
+  cs::close_command_list(cmdlist_.command_list_);
+  cs::execute_command_lists(cmdqueue_.command_queue_, 1,
+                            &cmdlist_.command_list_, nullptr);
+  cs::synchronize(cmdqueue_.command_queue_, UINT32_MAX);
+  for (unsigned int ui = 0; ui < size_; ui++)
+    EXPECT_EQ(value, static_cast<uint8_t *>(memory_)[ui]);
+}
+
+class xeSharedMemAccessDeviceTests : public xeSharedMemAccessTests {};
+
+TEST_F(
+    xeSharedMemAccessDeviceTests,
+    GivenSharedAllocationWhenWritingAndReadingBackOnDeviceThenCorrectDataIsRead) {
+  cs::write_data_pattern(memory_, size_, 1);
+  std::string module_name = "xe_unified_mem_test.spv";
+  xe_module_handle_t module = cs::create_module(
+      cs::xeDevice::get_instance()->get_device(), module_name);
+  std::string func_name = "xe_unified_mem_test";
+
+  cs::FunctionArg arg;
+  std::vector<cs::FunctionArg> args;
+
+  arg.arg_size = sizeof(void *);
+  arg.arg_value = &memory_;
+  args.push_back(arg);
+  arg.arg_size = sizeof(int);
+  int size = static_cast<int>(size_);
+  arg.arg_value = &size;
+  args.push_back(arg);
+  cs::create_and_execute_function(cs::xeDevice::get_instance()->get_device(),
+                                  module, func_name, 1, args);
+  cs::validate_data_pattern(memory_, size_, -1);
+  cs::destroy_module(module);
+}
+
+} // namespace

@@ -54,9 +54,21 @@ xeCommandList::~xeCommandList() {
 
 void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
                        size_t size) {
+  append_memory_set(cl, dstptr, value, size, nullptr, 0, nullptr);
+}
+
+void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
+                       size_t size, xe_event_handle_t hSignalEvent) {
+  append_memory_set(cl, dstptr, value, size, hSignalEvent, 0, nullptr);
+}
+
+void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
+                       size_t size, xe_event_handle_t hSignalEvent,
+                       uint32_t numWaitEvents,
+                       xe_event_handle_t *phWaitEvents) {
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(cl, dstptr, value, size, nullptr, 0,
-                                         nullptr));
+            xeCommandListAppendMemorySet(cl, dstptr, value, size, hSignalEvent,
+                                         numWaitEvents, phWaitEvents));
 }
 
 void append_memory_copy(xe_command_list_handle_t cl, void *dstptr,

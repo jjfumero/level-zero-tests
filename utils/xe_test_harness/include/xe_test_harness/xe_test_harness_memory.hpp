@@ -66,5 +66,8 @@ void free_memory(xe_device_group_handle_t device_group, const void *ptr);
 void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *handle, void **memory,
                                      xe_memory_type_t mem_type);
 
+void write_data_pattern(void *buff, size_t size, int8_t data_pattern);
+void validate_data_pattern(void *buff, size_t size, int8_t data_pattern);
+
 }; // namespace compute_samples
 #endif

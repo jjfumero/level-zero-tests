@@ -49,4 +49,7 @@ target_link_libraries(test_xe_memory
 )
 endif(UNIX)
 
-
+install_resources(test_xe_memory
+    FILES
+    "xe_unified_mem_test.spv"
+)

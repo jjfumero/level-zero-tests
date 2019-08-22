@@ -49,6 +49,11 @@ xe_command_list_handle_t create_command_list();
 
 void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
                        size_t size);
+void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
+                       size_t size, xe_event_handle_t hSignalEvent);
+void append_memory_set(xe_command_list_handle_t cl, void *dstptr, uint8_t value,
+                       size_t size, xe_event_handle_t hSignalEvent,
+                       uint32_t numWaitEvents, xe_event_handle_t *phWaitEvents);
 
 void append_memory_copy(xe_command_list_handle_t cl, void *dstptr,
                         const void *srcptr, size_t size,

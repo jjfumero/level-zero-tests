@@ -63,9 +63,7 @@ TEST_F(
   xe_event_handle_t hEvent = nullptr;
 
   ep.create_event(hEvent);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(cl.command_list_, memory, value, size,
-                                         hEvent, 0, nullptr));
+  cs::append_memory_set(cl.command_list_, memory, value, size, hEvent);
   ep.destroy_event(hEvent);
 
   free_memory(memory);
@@ -81,10 +79,8 @@ TEST_F(
   std::vector<xe_event_handle_t> hEvents(event_count, nullptr);
 
   ep.create_events(hEvents, event_count);
-
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemorySet(cl.command_list_, memory, value, size,
-                                         nullptr, event_count, hEvents.data()));
+  cs::append_memory_set(cl.command_list_, memory, value, size, nullptr,
+                        event_count, hEvents.data());
   ep.destroy_events(hEvents);
 
   free_memory(memory);
@@ -102,9 +98,8 @@ TEST_F(
 
   ep.create_event(hEvent);
   ep.create_events(hEvents, event_count);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemorySet(
-                                   cl.command_list_, memory, value, size,
-                                   hEvent, hEvents.size(), hEvents.data()));
+  cs::append_memory_set(cl.command_list_, memory, value, size, hEvent,
+                        hEvents.size(), hEvents.data());
   ep.destroy_event(hEvent);
   ep.destroy_events(hEvents);
 

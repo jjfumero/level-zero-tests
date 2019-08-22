@@ -156,4 +156,23 @@ void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *mem_handle,
             xeDeviceGroupGetMemIpcHandle(cs::get_default_device_group(),
                                          *memory, mem_handle));
 }
+
+void write_data_pattern(void *buff, size_t size, int8_t data_pattern) {
+  int8_t *pbuff = static_cast<int8_t *>(buff);
+  int8_t dp = data_pattern;
+  for (size_t i = 0; i < size; i++) {
+    pbuff[i] = dp;
+    dp = (dp + data_pattern) & 0xff;
+  }
+}
+
+void validate_data_pattern(void *buff, size_t size, int8_t data_pattern) {
+  int8_t *pbuff = static_cast<int8_t *>(buff);
+  int8_t dp = data_pattern;
+  for (size_t i = 0; i < size; i++) {
+    EXPECT_EQ(pbuff[i], dp);
+    dp = (dp + data_pattern) & 0xff;
+  }
+}
+
 }; // namespace compute_samples
