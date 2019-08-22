@@ -121,12 +121,13 @@ xe_api_version_t get_api_version(xe_device_group_handle_t device_group) {
   return api_version;
 }
 
-xe_device_properties_t
+std::vector<xe_device_properties_t>
 get_device_properties(xe_device_group_handle_t device_group) {
-  xe_device_properties_t properties = {};
+  std::vector<xe_device_properties_t> properties(
+      cs::get_xe_device_count(device_group));
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDeviceProperties(device_group, &properties));
+            xeDeviceGroupGetDeviceProperties(device_group, properties.data()));
   return properties;
 }
 

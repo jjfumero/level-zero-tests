@@ -54,7 +54,7 @@ std::vector<xe_device_handle_t> get_xe_sub_devices(xe_device_handle_t device);
 std::vector<xe_device_handle_t> get_xe_sub_devices(xe_device_handle_t device,
                                                    uint32_t count);
 xe_api_version_t get_api_version(xe_device_group_handle_t device_group);
-xe_device_properties_t
+std::vector<xe_device_properties_t>
 get_device_properties(xe_device_group_handle_t device_group);
 xe_device_compute_properties_t
 get_compute_properties(xe_device_group_handle_t device_group);
