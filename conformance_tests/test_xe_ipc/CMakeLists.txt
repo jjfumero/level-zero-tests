@@ -22,34 +22,24 @@
 # must be express and approved by Intel in writing.
 #
 
-add_test_suite(test_xe_ipc
-    SOURCE
-    "src/test_xe_ipc.cpp"
-    "src/main.cpp"
-)
-
-add_executable(test_xe_ipc_helper
-    "src/test_xe_ipc_helper.cpp")
-target_include_directories(test_xe_ipc_helper
-	PUBLIC
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-	$<INSTALL_INTERFACE:include>
-	${LevelZero_INCLUDE_DIRS})
-install(TARGETS test_xe_ipc_helper DESTINATION ".")
-
-target_link_libraries(test_xe_ipc
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_ipc
+  SOURCES
+    src/test_xe_ipc.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
     compute_samples::utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
 )
-target_link_libraries(test_xe_ipc_helper
-    PUBLIC
+
+# TODO: should this use the add_conformance_test function at all?
+add_conformance_test(
+  NAME test_xe_ipc_helper
+  SOURCES
+    src/test_xe_ipc_helper.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
     compute_samples::utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
 )

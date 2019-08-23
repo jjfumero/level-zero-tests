@@ -21,6 +21,62 @@
 # must be express and approved by Intel in writing.
 #
 
+function(add_conformance_test)
+    set(options "")
+    set(oneValueArgs NAME)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS)
+    cmake_parse_arguments(ADD_CONFORMANCE_TEST
+      "${options}" "${oneValueArgs}" "${multiValueArgs}"
+      ${ARGN}
+    )
+
+    add_executable(${ADD_CONFORMANCE_TEST_NAME} ${ADD_CONFORMANCE_TEST_SOURCES})
+
+    if(CLANG_TIDY_EXE)
+        set_target_properties(${ADD_CONFORMANCE_TEST_NAME}
+          PROPERTIES
+            CXX_CLANG_TIDY ${CLANG_TIDY_EXE}
+        )
+    endif()
+
+    target_link_libraries(${ADD_CONFORMANCE_TEST_NAME}
+      PRIVATE
+        ${LevelZero_LIBRARIES}
+        compute_samples::xe_test_harness
+        GMock::GMock
+        GTest::GTest
+        ${ADD_CONFORMANCE_TEST_LINK_LIBRARIES}
+    )
+
+    target_include_directories(${ADD_CONFORMANCE_TEST_NAME}
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${LevelZero_INCLUDE_DIRS}
+        ${ADD_CONFORMANCE_TEST_INCLUDE_DIRECTORIES}
+    )
+
+    foreach(kernel ${ADD_CONFORMANCE_TEST_KERNELS})
+        install(
+          FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/${kernel}.spv"
+          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+        )
+    endforeach()
+
+    install(
+      TARGETS ${ADD_CONFORMANCE_TEST_NAME}
+      DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+      COMPONENT perf-tests
+    )
+
+    if(MSVC)
+        set_target_properties(${ADD_CONFORMANCE_TEST_NAME}
+          PROPERTIES
+            VS_DEBUGGER_COMMAND_ARGUMENTS ""
+            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+        )
+    endif()
+endfunction()
+
 add_subdirectory(test_xe_barrier)
 add_subdirectory(test_xe_cl_interop)
 add_subdirectory(test_xe_cmdlist)

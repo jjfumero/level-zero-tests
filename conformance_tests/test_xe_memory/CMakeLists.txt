@@ -21,35 +21,24 @@
 # estoppel or otherwise. Any license under such intellectual property rights
 # must be express and approved by Intel in writing.
 #
-add_test_suite(test_xe_memory
-    SOURCE
-    "src/test_xe_memory.cpp"
-    "src/test_xe_unified_memory.cpp"
-    "src/main.cpp"
-)
 
 if(UNIX)
-target_link_libraries(test_xe_memory
-    PUBLIC
-    rt
-    compute_samples::logging
-    compute_samples::xe_utils
-    compute_samples::utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
-)
+    set(OS_SPECIFIC_LIBS rt)
 else()
-target_link_libraries(test_xe_memory
-    PUBLIC
+    set(OS_SPECIFIC_LIBS "")
+endif()
+
+add_conformance_test(
+  NAME test_xe_memory
+  SOURCES
+    src/test_xe_memory.cpp
+    src/test_xe_unified_memory.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
     compute_samples::utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
-)
-endif(UNIX)
-
-install_resources(test_xe_memory
-    FILES
-    "xe_unified_mem_test.spv"
+    ${OS_SPECIFIC_LIBS}
+  KERNELS
+    xe_unified_mem_test
 )

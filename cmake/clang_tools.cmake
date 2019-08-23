@@ -1,6 +1,6 @@
 find_program(CLANG_FORMAT NAMES clang-format-7)
-if (CLANG_FORMAT)
-    MESSAGE(STATUS "clang format" ${CLANG_FORMAT})
+if(CLANG_FORMAT)
+    message(STATUS "Found clang-format-7: ${CLANG_FORMAT}")
     add_custom_target(clang-format
       COMMENT "Checking code formatting and fixing issues"
       COMMAND
@@ -14,7 +14,9 @@ if (CLANG_FORMAT)
         | tee ${CMAKE_BINARY_DIR}/clang_format_results.patch
       COMMAND ! [ -s ${CMAKE_BINARY_DIR}/clang_format_results.patch ]
     )
-endif ()
+else()
+    message(WARNING "clang-format-7 not found. clang-format and clang-format-check targets will be disabled.")
+endif()
 
 option(CLANG_TIDY_CHECK "Include clang-tidy code checking as part of the build")
 if(CLANG_TIDY_CHECK)
@@ -25,7 +27,7 @@ if(CLANG_TIDY_CHECK)
     if(NOT CLANG_TIDY_EXE)
         message(STATUS "clang-tidy not found.")
     else()
-        message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+        message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXE}")
         set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}")
     endif()
 endif()

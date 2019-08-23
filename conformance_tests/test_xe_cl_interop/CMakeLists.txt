@@ -22,18 +22,15 @@
 # must be express and approved by Intel in writing.
 #
 
-add_test_suite(test_xe_cl_interop
-    SOURCE
-    "src/test_xe_cl_interop.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_cl_interop
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_cl_interop
+  SOURCES
+    src/test_xe_cl_interop.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
-    compute_samples::xe_test_harness
+    compute_samples::ocl_utils
     OpenCL::OpenCL
     Boost::boost
-    ${LevelZero_LIBRARIES}
-    compute_samples::ocl_utils
 )

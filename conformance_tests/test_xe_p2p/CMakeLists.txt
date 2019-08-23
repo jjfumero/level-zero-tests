@@ -20,28 +20,18 @@
 # SOFTWARE.
 #
 
-add_test_suite(test_xe_p2p
-    SOURCE
-    "src/test_xe_p2p.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_p2p
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_p2p
+  SOURCES
+    src/test_xe_p2p.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
     compute_samples::utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
-)
-# add_kernels(test_xe_p2p "xe_atomic_access.cl")
-# add_kernels(test_xe_p2p "xe_concurrent_access.cl")
-# add_kernels(test_xe_p2p "xe_atomic_and_concurrent_access.cl")
-# add_kernels(test_xe_p2p "xe_p2p_test.cl")
-
-install_resources_conformance(test_xe_p2p
-  FILES
-    "xe_atomic_access.spv"
-    "xe_concurrent_access.spv"
-    "xe_atomic_and_concurrent_access.spv"
-    "xe_p2p_test.spv"
+  KERNELS
+    xe_atomic_access
+    xe_concurrent_access
+    xe_atomic_and_concurrent_access
+    xe_p2p_test
 )

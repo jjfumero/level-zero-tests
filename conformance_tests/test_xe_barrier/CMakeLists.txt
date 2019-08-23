@@ -22,15 +22,12 @@
 # must be express and approved by Intel in writing.
 #
 
-add_test_suite(test_xe_barrier
-    SOURCE
-    "src/test_xe_barrier.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_barrier
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_barrier
+  SOURCES
+    src/test_xe_barrier.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
 )

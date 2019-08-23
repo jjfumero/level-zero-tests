@@ -20,23 +20,15 @@
 # SOFTWARE.
 #
 
-add_test_suite(test_xe_memory_overcommit
-    SOURCE
-    "src/test_xe_compute_group_memory_overcommit.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_memory_overcommit
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_memory_overcommit
+  SOURCES
+    src/test_xe_memory_overcommit.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
-    compute_samples::utils
     compute_samples::xe_utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
-)
-# add_kernels(test_xe_memory_overcommit
-# 	"test_xe_fill_device_memory.cl"
-# )
-install_resources_conformance(test_xe_memory_overcommit
-  FILES
-    "test_xe_fill_device_memory.spv"
+    compute_samples::utils
+  KERNELS
+    test_xe_fill_device_memory
 )

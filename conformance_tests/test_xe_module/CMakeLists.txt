@@ -22,29 +22,18 @@
 # must be express and approved by Intel in writing.
 #
 
-add_test_suite(test_xe_module
-    SOURCE
-    "src/test_xe_module.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_module
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_module
+  SOURCES
+    src/test_xe_module.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
-    compute_samples::utils
     compute_samples::xe_utils
-    compute_samples::xe_test_harness
-    ${LevelZero_LIBRARIES}
-)
-# add_kernels(test_xe_module
-#     "single_global_variable.cl"
-#     "multiple_global_variables.cl"
-#     "update_variable_on_device.cl"
-#     "xe_module_add.cl"
-# )
-install_resources_conformance(test_xe_module
-  FILES
-    "single_global_variable.spv"
-    "multiple_global_variables.spv"
-    "update_variable_on_device.spv"
-    "xe_module_add.spv"
+    compute_samples::utils
+  KERNELS
+    single_global_variable
+    multiple_global_variables
+    update_variable_on_device
+    xe_module_add
 )

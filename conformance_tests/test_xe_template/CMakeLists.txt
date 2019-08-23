@@ -22,14 +22,12 @@
 # must be express and approved by Intel in writing.
 #
 
-add_test_suite(test_xe_template
-    SOURCE
-    "src/test_xe_template.cpp"
-    "src/main.cpp"
-)
-target_link_libraries(test_xe_template
-    PUBLIC
+add_conformance_test(
+  NAME test_xe_template
+  SOURCES
+    src/test_xe_template.cpp
+    src/main.cpp
+  LINK_LIBRARIES
     compute_samples::logging
     compute_samples::xe_utils
-    ${LevelZero_LIBRARIES}
 )

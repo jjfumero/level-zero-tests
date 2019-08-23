@@ -17,6 +17,60 @@
 # otherwise. Any license under such intellectual property rights must be
 # express and approved by Intel in writing.
 
+function(add_perf_test)
+    set(options "")
+    set(oneValueArgs NAME)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS)
+    cmake_parse_arguments(ADD_PERF_TEST
+      "${options}" "${oneValueArgs}" "${multiValueArgs}"
+      ${ARGN}
+    )
+
+    add_executable(${ADD_PERF_TEST_NAME} ${ADD_PERF_TEST_SOURCES})
+
+    if(CLANG_TIDY_EXE)
+        set_target_properties(${ADD_PERF_TEST_NAME}
+        PROPERTIES
+            CXX_CLANG_TIDY ${CLANG_TIDY_EXE}
+        )
+    endif()
+
+    target_link_libraries(${ADD_PERF_TEST_NAME}
+      PRIVATE
+        ${LevelZero_LIBRARIES}
+        ${ADD_PERF_TEST_LINK_LIBRARIES}
+    )
+
+    target_include_directories(${ADD_PERF_TEST_NAME}
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/perf_tests/common/include
+        ${LevelZero_INCLUDE_DIRS}
+        ${ADD_PERF_TEST_INCLUDE_DIRECTORIES}
+    )
+
+    foreach(kernel ${ADD_PERF_TEST_KERNELS})
+        install(
+          FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/${kernel}.spv"
+          DESTINATION "${CMAKE_BINARY_DIR}/out/perf_tests"
+        )
+    endforeach()
+
+    install(
+      TARGETS ${ADD_PERF_TEST_NAME}
+      DESTINATION "${CMAKE_BINARY_DIR}/out/perf_tests"
+      COMPONENT perf-tests
+    )
+
+    if(MSVC)
+        set_target_properties(${ADD_PERF_TEST_NAME}
+          PROPERTIES
+            VS_DEBUGGER_COMMAND_ARGUMENTS ""
+            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+        )
+    endif()
+endfunction()
+
 add_subdirectory(xe_nano)
 add_subdirectory(xe_peak)
 add_subdirectory(xe_peer)

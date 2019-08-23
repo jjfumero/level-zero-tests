@@ -8,25 +8,25 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(clang_tools)
 include(custom_functions)
 
-set(THIRD_PARTY_DIRECTORY "${CMAKE_SOURCE_DIR}/third_party")
-
-set(MEDIA_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/mediadata")
-set(MEDIA_DIRECTORY "${MEDIA_ROOT_DIRECTORY}/merged")
-if(NOT DEFINED MEDIADATA_ROOT)
-    set(MEDIADATA_ROOT "${MEDIA_ROOT_DIRECTORY}/external")
+# FindPNG doesn't listen to PNG_ROOT, so use CMAKE_PREFIX_PATH for it
+if(PNG_ROOT)
+    list(APPEND CMAKE_PREFIX_PATH "${PNG_ROOT}")
 endif()
-file(COPY "${MEDIADATA_ROOT}/yuv" DESTINATION "${MEDIA_DIRECTORY}")
-file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/yuv" DESTINATION "${MEDIA_DIRECTORY}")
-file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/bmp" DESTINATION "${MEDIA_DIRECTORY}")
-file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/png" DESTINATION "${MEDIA_DIRECTORY}")
+# Older versions of the FindPNG module don't search for the static libraries, so
+# help it out
+find_library(PNG_LIBRARY
+  NAMES libpng.a libpng16_static libpng16_staticd
+  PATHS "${PNG_ROOT}"
+  PATH_SUFFIXES lib
+  NO_DEFAULT_PATH
+)
+find_package(PNG REQUIRED)
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "Default installation directory" FORCE)
-endif()
+find_package(LevelZero REQUIRED)
 
 if(NOT TARGET GTest::GTest AND NOT TARGET GMock::GMock)
     if(NOT DEFINED GTEST_ROOT)
-        set(GTEST_ROOT "${THIRD_PARTY_DIRECTORY}/googletest")
+        set(GTEST_ROOT "${CMAKE_SOURCE_DIR}/third_party/googletest")
     endif()
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     add_subdirectory("${GTEST_ROOT}" "${GTEST_ROOT}/build" EXCLUDE_FROM_ALL)
@@ -35,7 +35,6 @@ if(NOT TARGET GTest::GTest AND NOT TARGET GMock::GMock)
 endif()
 enable_testing()
 
-# allow BOOST_LIB_TOOLSET to be overridden from the command-line
 if(BOOST_LIB_TOOLSET)
     add_definitions(-DBOOST_LIB_TOOLSET="${BOOST_LIB_TOOLSET}")
 endif()
@@ -44,50 +43,21 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.65 REQUIRED COMPONENTS log program_options timer chrono system)
 
-if(NOT TARGET PNG::PNG)
-    # Find static zlib
-    find_library(ZLIB_LIBRARY
-      NAMES libz.a zlibstatic zlibstaticd
-      PATHS "${ZLIB_ROOT}"
-      PATH_SUFFIXES lib
-      NO_DEFAULT_PATH
-    )
-    find_path(ZLIB_INCLUDE_DIR
-      NAMES zlib.h
-      PATHS "${ZLIB_ROOT}"
-      PATH_SUFFIXES include
-      NO_DEFAULT_PATH
-    )
-
-    # Find static libpng
-    find_library(PNG_LIBRARY
-      NAMES libpng.a libpng16_static libpng16_staticd
-      PATHS "${PNG_ROOT}"
-      PATH_SUFFIXES lib
-      NO_DEFAULT_PATH
-    )
-    find_path(PNG_INCLUDE_DIR
-      NAMES png.h
-      PATHS "${PNG_ROOT}"
-      PATH_SUFFIXES include
-      NO_DEFAULT_PATH
-    )
-
-    set(CMAKE_PREFIX_PATH "${PNG_ROOT}")
-    find_package(PNG REQUIRED)
-endif()
-
 # test_xe_cl_interop requires OpenCL
-if(NOT TARGET OpenCL::OpenCL)
-    set(CMAKE_PREFIX_PATH "${OPENCL_ROOT}")
-    find_package(OpenCL REQUIRED)
-    set_target_properties(OpenCL::OpenCL
-      PROPERTIES INTERFACE_COMPILE_DEFINITIONS CL_TARGET_OPENCL_VERSION=210
-    )
-endif()
+# FindOpenCL doesn't listen to OPENCL_ROOT, so use CMAKE_PREFIX_PATH for it
+set(CMAKE_PREFIX_PATH "${OPENCL_ROOT}")
+find_package(OpenCL REQUIRED)
+set_target_properties(OpenCL::OpenCL
+  PROPERTIES INTERFACE_COMPILE_DEFINITIONS CL_TARGET_OPENCL_VERSION=210
+)
 
-include(FindLevelZero)
-find_package(LevelZero REQUIRED)
+set(MEDIA_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/mediadata")
+set(MEDIA_DIRECTORY "${MEDIA_ROOT_DIRECTORY}/merged")
+set(MEDIADATA_ROOT "${MEDIA_ROOT_DIRECTORY}/external")
+file(COPY "${MEDIADATA_ROOT}/yuv" DESTINATION "${MEDIA_DIRECTORY}")
+file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/yuv" DESTINATION "${MEDIA_DIRECTORY}")
+file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/bmp" DESTINATION "${MEDIA_DIRECTORY}")
+file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/png" DESTINATION "${MEDIA_DIRECTORY}")
 
 add_subdirectory(utils)
 add_subdirectory(perf_tests)

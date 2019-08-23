@@ -36,7 +36,8 @@ add_core_library_test(utils
     "test/utils_unit_tests.cpp"
     "test/utils_integration_tests.cpp"
 )
-install_resources(utils_tests
-    FILES
+
+add_check_resources(utils_tests
+  FILES
     "test/binary_file.bin"
 )
