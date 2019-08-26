@@ -39,10 +39,12 @@ target_link_libraries(test_xe_module
 #     "single_global_variable.cl"
 #     "multiple_global_variables.cl"
 #     "update_variable_on_device.cl"
+#     "xe_module_add.cl"
 # )
 install_resources_conformance(test_xe_module
   FILES
     "single_global_variable.spv"
     "multiple_global_variables.spv"
     "update_variable_on_device.spv"
+    "xe_module_add.spv"
 )

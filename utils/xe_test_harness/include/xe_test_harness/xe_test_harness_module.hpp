@@ -30,9 +30,23 @@ namespace compute_samples {
 
 xe_module_handle_t create_module(xe_device_handle_t device,
                                  const std::string filename);
+xe_module_handle_t create_module(xe_device_handle_t device,
+                                 const std::string filename,
+                                 const xe_module_format_t format,
+                                 const char *build_flags,
+                                 xe_module_build_log_handle_t *phBuildLog);
 void destroy_module(xe_module_handle_t module);
+size_t get_build_log_size(const xe_module_build_log_handle_t build_log);
+std::string get_build_log_string(const xe_module_build_log_handle_t build_log);
+size_t get_native_binary_size(const xe_module_handle_t module);
+void save_native_binary_file(const xe_module_handle_t module,
+                             const std::string filename);
+void destroy_build_log(const xe_module_build_log_handle_t build_log);
 
 xe_function_handle_t create_function(xe_module_handle_t module,
+                                     std::string func_name);
+xe_function_handle_t create_function(xe_module_handle_t module,
+                                     xe_function_flag_t flag,
                                      std::string func_name);
 void destroy_function(xe_function_handle_t function);
 

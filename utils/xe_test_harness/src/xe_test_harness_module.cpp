@@ -33,21 +33,81 @@ namespace compute_samples {
 xe_module_handle_t create_module(xe_device_handle_t device,
                                  const std::string filename) {
 
+  return (create_module(device, filename, XE_MODULE_FORMAT_IL_SPIRV, nullptr,
+                        nullptr));
+}
+
+xe_module_handle_t create_module(xe_device_handle_t device,
+                                 const std::string filename,
+                                 const xe_module_format_t format,
+                                 const char *build_flags,
+                                 xe_module_build_log_handle_t *p_build_log) {
+
   xe_module_desc_t module_description;
   xe_module_handle_t module;
   const std::vector<uint8_t> binary_file =
       compute_samples::load_binary_file(filename);
 
+  EXPECT_TRUE((format == XE_MODULE_FORMAT_IL_SPIRV) ||
+              (format == XE_MODULE_FORMAT_NATIVE));
   module_description.version = XE_MODULE_DESC_VERSION_CURRENT;
-  module_description.format = XE_MODULE_FORMAT_IL_SPIRV;
+  module_description.format = format;
   module_description.inputSize = static_cast<uint32_t>(binary_file.size());
   module_description.pInputModule = binary_file.data();
-  module_description.pBuildFlags = nullptr;
+  module_description.pBuildFlags = build_flags;
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeModuleCreate(device, &module_description, &module, nullptr));
+            xeModuleCreate(device, &module_description, &module, p_build_log));
 
   return module;
+}
+
+size_t get_build_log_size(const xe_module_build_log_handle_t build_log) {
+  size_t build_log_size = 0;
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleBuildLogGetString(build_log, &build_log_size, nullptr));
+  EXPECT_GT(build_log_size, 0);
+  return build_log_size;
+}
+
+std::string get_build_log_string(const xe_module_build_log_handle_t build_log) {
+  size_t build_log_size = 0;
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleBuildLogGetString(build_log, &build_log_size, nullptr));
+
+  EXPECT_GT(build_log_size, 0);
+
+  std::vector<char> build_log_c_string(build_log_size);
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleBuildLogGetString(build_log, &build_log_size,
+                                      build_log_c_string.data()));
+  return std::string(build_log_c_string.begin(), build_log_c_string.end());
+}
+
+size_t get_native_binary_size(const xe_module_handle_t module) {
+  size_t native_binary_size = 0;
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleGetNativeBinary(module, &native_binary_size, nullptr));
+  EXPECT_GT(native_binary_size, 0);
+  return native_binary_size;
+}
+
+void save_native_binary_file(const xe_module_handle_t module,
+                             const std::string filename) {
+  size_t native_binary_size = 0;
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleGetNativeBinary(module, &native_binary_size, nullptr));
+  EXPECT_GT(native_binary_size, 0);
+
+  std::vector<uint8_t> native_binary(native_binary_size);
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeModuleGetNativeBinary(module, &native_binary_size,
+                                    native_binary.data()));
+  compute_samples::save_binary_file(native_binary, filename);
+}
+
+void destroy_build_log(const xe_module_build_log_handle_t build_log) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleBuildLogDestroy(build_log));
 }
 
 void destroy_module(xe_module_handle_t module) {
@@ -56,11 +116,18 @@ void destroy_module(xe_module_handle_t module) {
 
 xe_function_handle_t create_function(xe_module_handle_t module,
                                      std::string func_name) {
+  return create_function(module, XE_FUNCTION_FLAG_NONE, func_name);
+}
+
+xe_function_handle_t create_function(xe_module_handle_t module,
+                                     xe_function_flag_t flag,
+                                     std::string func_name) {
   xe_function_handle_t function;
   xe_function_desc_t function_description;
-
+  EXPECT_TRUE((flag == XE_FUNCTION_FLAG_NONE) ||
+              (flag == XE_FUNCTION_FLAG_FORCE_RESIDENCY));
   function_description.version = XE_FUNCTION_DESC_VERSION_CURRENT;
-  function_description.flags = XE_FUNCTION_FLAG_NONE;
+  function_description.flags = flag;
   function_description.pFunctionName = func_name.c_str();
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
