@@ -24,7 +24,7 @@
 #include "utils/utils.hpp"
 #include "logging/logging.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 void try_build(compute::program &program, const std::string &options) {
   LOG_ENTER_FUNCTION
   LOG_DEBUG << "Build options: " << options;
@@ -120,96 +120,96 @@ template <> std::string to_cl_c_string<cl_double2>() { return "double2"; }
 template <> std::string to_cl_c_string<cl_double4>() { return "double4"; }
 template <> std::string to_cl_c_string<cl_double8>() { return "double8"; }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 bool operator==(const cl_int2 &lhs, const cl_int2 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_int4 &lhs, const cl_int4 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_int8 &lhs, const cl_int8 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_short2 &lhs, const cl_short2 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_short4 &lhs, const cl_short4 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_short8 &lhs, const cl_short8 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_ushort2 &lhs, const cl_ushort2 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_ushort4 &lhs, const cl_ushort4 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_ushort8 &lhs, const cl_ushort8 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_char2 &lhs, const cl_char2 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_char4 &lhs, const cl_char4 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_char8 &lhs, const cl_char8 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_uchar2 &lhs, const cl_uchar2 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_uchar4 &lhs, const cl_uchar4 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 bool operator==(const cl_uchar8 &lhs, const cl_uchar8 &rhs) {
-  return compute_samples::compare_cl_vectors(lhs, rhs);
+  return level_zero_tests::compare_cl_vectors(lhs, rhs);
 }
 
 std::ostream &operator<<(std::ostream &os, const cl_int2 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_int4 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_int8 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_short2 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_short4 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_short8 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_ushort2 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_ushort4 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_ushort8 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_char2 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_char4 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_char8 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_uchar2 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_uchar4 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }
 std::ostream &operator<<(std::ostream &os, const cl_uchar8 &x) {
-  return os << compute_samples::cl_vector_to_string(x);
+  return os << level_zero_tests::cl_vector_to_string(x);
 }

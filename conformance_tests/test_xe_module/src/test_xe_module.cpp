@@ -28,7 +28,7 @@
 #include "xe_utils/xe_utils.hpp"
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_module.h"
@@ -56,9 +56,9 @@ class xeModuleCreateTests : public ::testing::Test {};
 TEST_F(
     xeModuleCreateTests,
     DISABLED_GivenModuleWithGlobalVariableWhenRetrivingGlobalPointerThenPointerPointsToValidGlobalVariable) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   xe_module_handle_t module =
-      cs::create_module(device, "single_global_variable.spv");
+      lzt::create_module(device, "single_global_variable.spv");
   const std::string global_name = "global_variable";
   void *global_pointer = nullptr;
 
@@ -70,15 +70,15 @@ TEST_F(
   int *typed_global_pointer = static_cast<int *>(global_pointer);
   const int expected_value = 123;
   EXPECT_EQ(expected_value, *typed_global_pointer);
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     DISABLED_WhenRetrivingMultipleGlobalPointersFromTheSameVariableThenAllPointersAreTheSame) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   xe_module_handle_t module =
-      cs::create_module(device, "single_global_variable.spv");
+      lzt::create_module(device, "single_global_variable.spv");
 
   const std::string global_name = "global_variable";
 
@@ -96,15 +96,15 @@ TEST_F(
 
     previous_pointer = current_pointer;
   }
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     DISABLED_GivenModuleWithMultipleGlobalVariablesWhenRetrivingGlobalPointersThenAllPointersPointToValidGlobalVariable) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   xe_module_handle_t module =
-      cs::create_module(device, "multiple_global_variables.spv");
+      lzt::create_module(device, "multiple_global_variables.spv");
 
   const int global_count = 5;
   for (int i = 0; i < global_count; ++i) {
@@ -119,15 +119,15 @@ TEST_F(
     const int expected_value = i;
     EXPECT_EQ(expected_value, *typed_global_pointer);
   }
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     DISABLED_GivenGlobalPointerWhenUpdatingGlobalVariableOnDeviceThenGlobalPointerPointsToUpdatedVariable) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   xe_module_handle_t module =
-      cs::create_module(device, "update_variable_on_device.spv");
+      lzt::create_module(device, "update_variable_on_device.spv");
 
   const std::string global_name = "global_variable";
   void *global_pointer = nullptr;
@@ -141,18 +141,18 @@ TEST_F(
   const int expected_initial_value = 1;
   EXPECT_EQ(expected_initial_value, *typed_global_pointer);
 
-  cs::create_and_execute_function(device, module, "test", 1, nullptr);
+  lzt::create_and_execute_function(device, module, "test", 1, nullptr);
 
   const int expected_updated_value = 2;
   EXPECT_EQ(expected_updated_value, *typed_global_pointer);
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     GivenModuleWithFunctionWhenRetrivingFunctionPointerThenPointerPointsToValidFunction) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
-  xe_module_handle_t module = cs::create_module(device, "xe_module_add.spv");
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  xe_module_handle_t module = lzt::create_module(device, "xe_module_add.spv");
   const std::string function_name = "xe_module_add_constant";
   void *function_pointer = nullptr;
 
@@ -161,56 +161,57 @@ TEST_F(
                                        &function_pointer));
   EXPECT_NE(nullptr, function_pointer);
 
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     GivenValidDeviceAndBinaryFileWhenCreatingModuleThenReturnSuccessfulAndDestroyModule) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
-  xe_module_handle_t module = cs::create_module(device, "xe_atomic_access.spv");
-  cs::destroy_module(module);
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  xe_module_handle_t module =
+      lzt::create_module(device, "xe_atomic_access.spv");
+  lzt::destroy_module(module);
 }
 
 TEST_F(
     xeModuleCreateTests,
     GivenValidDeviceAndBinaryFileWhenCreatingModuleThenOutputBuildLogAndReturnSuccessful) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   xe_module_build_log_handle_t build_log;
   xe_module_handle_t module =
-      cs::create_module(device, "xe_module_add.spv", XE_MODULE_FORMAT_IL_SPIRV,
-                        nullptr, &build_log);
-  cs::destroy_module(module);
-  size_t build_log_size = cs::get_build_log_size(build_log);
-  std::string build_log_str = cs::get_build_log_string(build_log);
+      lzt::create_module(device, "xe_module_add.spv", XE_MODULE_FORMAT_IL_SPIRV,
+                         nullptr, &build_log);
+  lzt::destroy_module(module);
+  size_t build_log_size = lzt::get_build_log_size(build_log);
+  std::string build_log_str = lzt::get_build_log_string(build_log);
   LOG_INFO << "Build Log Size = " << build_log_size;
   LOG_INFO << "Build Log String = " << build_log_str;
-  cs::destroy_build_log(build_log);
+  lzt::destroy_build_log(build_log);
 }
 
 TEST_F(
     xeModuleCreateTests,
     GivenValidModuleWhenGettingNativeBinaryFileThenRetrieveFileAndReturnSuccessful) {
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
   size_t size = 0;
 
-  xe_module_handle_t module = cs::create_module(
+  xe_module_handle_t module = lzt::create_module(
       device, "xe_module_add.spv", XE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
-  size = cs::get_native_binary_size(module);
+  size = lzt::get_native_binary_size(module);
   LOG_INFO << "Native binary size: " << size;
-  cs::save_native_binary_file(module, "xe_module_add.native");
-  cs::destroy_module(module);
-  module = cs::create_module(device, "xe_module_add.native",
-                             XE_MODULE_FORMAT_NATIVE, nullptr, nullptr);
-  cs::destroy_module(module);
+  lzt::save_native_binary_file(module, "xe_module_add.native");
+  lzt::destroy_module(module);
+  module = lzt::create_module(device, "xe_module_add.native",
+                              XE_MODULE_FORMAT_NATIVE, nullptr, nullptr);
+  lzt::destroy_module(module);
 }
 
-class xeFunctionCreateTests : public cs::xeEventPoolTests {
+class xeFunctionCreateTests : public lzt::xeEventPoolTests {
 protected:
   void SetUp() override {
-    device_ = cs::xeDevice::get_instance()->get_device();
-    module_ = cs::create_module(device_, "xe_module_add.spv",
-                                XE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
+    device_ = lzt::xeDevice::get_instance()->get_device();
+    module_ = lzt::create_module(device_, "xe_module_add.spv",
+                                 XE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
   }
 
   void run_test(xe_thread_group_dimensions_t th_group_dim,
@@ -224,23 +225,23 @@ protected:
                              8, 9, 10, 11, 12, 13, 14, 15};
     std::vector<int> inpb = {1, 2,  3,  4,  5,  6,  7,  8,
                              9, 10, 11, 12, 13, 14, 15, 16};
-    void *args_buff = cs::allocate_shared_memory(
+    void *args_buff = lzt::allocate_shared_memory(
         2 * sizeof(xe_thread_group_dimensions_t), sizeof(int),
         XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, XE_HOST_MEM_ALLOC_FLAG_DEFAULT,
         device_);
-    void *actual_launch = cs::allocate_shared_memory(
+    void *actual_launch = lzt::allocate_shared_memory(
         sizeof(uint32_t), sizeof(uint32_t), XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
-    void *input_a = cs::allocate_shared_memory(
+    void *input_a = lzt::allocate_shared_memory(
         16 * sizeof(int), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
-    void *mult_out = cs::allocate_shared_memory(
+    void *mult_out = lzt::allocate_shared_memory(
         16 * sizeof(int), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
-    void *mult_in = cs::allocate_shared_memory(
+    void *mult_in = lzt::allocate_shared_memory(
         16 * sizeof(int), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
-    void *host_buff = cs::allocate_host_memory(sizeof(int));
+    void *host_buff = lzt::allocate_host_memory(sizeof(int));
     int *host_addval_offset = static_cast<int *>(host_buff);
 
     int addval = 10;
@@ -257,9 +258,9 @@ protected:
     }
 
     xe_function_handle_t function =
-        cs::create_function(module_, "xe_module_add_constant");
-    xe_command_list_handle_t cmd_list = cs::create_command_list(device_);
-    xe_command_queue_handle_t cmd_q = cs::create_command_queue(device_);
+        lzt::create_function(module_, "xe_module_add_constant");
+    xe_command_list_handle_t cmd_list = lzt::create_command_list(device_);
+    xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device_);
     memset(input_a, 0, 16);
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -307,7 +308,7 @@ protected:
       std::vector<uint32_t> num_launch_arg_list;
       function_list.push_back(function);
       xe_function_handle_t mult_function =
-          cs::create_function(module_, "xe_module_add_two_arrays");
+          lzt::create_function(module_, "xe_module_add_two_arrays");
       function_list.push_back(mult_function);
 
       EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -392,13 +393,13 @@ protected:
     }
     EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(cmd_q));
     EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(cmd_list));
-    cs::destroy_function(function);
-    cs::free_memory(host_buff);
-    cs::free_memory(mult_in);
-    cs::free_memory(mult_out);
-    cs::free_memory(input_a);
-    cs::free_memory(actual_launch);
-    cs::free_memory(args_buff);
+    lzt::destroy_function(function);
+    lzt::free_memory(host_buff);
+    lzt::free_memory(mult_in);
+    lzt::free_memory(mult_out);
+    lzt::free_memory(input_a);
+    lzt::free_memory(actual_launch);
+    lzt::free_memory(args_buff);
     if (signal_to_host) {
       ep.destroy_event(event_kernel_to_host);
     }
@@ -407,7 +408,7 @@ protected:
     }
   }
 
-  void TearDown() override { cs::destroy_module(module_); }
+  void TearDown() override { lzt::destroy_module(module_); }
 
   xe_device_handle_t device_ = nullptr;
   xe_module_handle_t module_ = nullptr;
@@ -415,17 +416,17 @@ protected:
 
 TEST_F(xeFunctionCreateTests,
        GivenValidModuleWhenCreatingFunctionThenReturnSuccessful) {
-  xe_function_handle_t function = cs::create_function(
+  xe_function_handle_t function = lzt::create_function(
       module_, XE_FUNCTION_FLAG_NONE, "xe_module_add_constant");
-  cs::destroy_function(function);
-  function = cs::create_function(module_, XE_FUNCTION_FLAG_FORCE_RESIDENCY,
-                                 "xe_module_add_two_arrays");
-  cs::destroy_function(function);
+  lzt::destroy_function(function);
+  function = lzt::create_function(module_, XE_FUNCTION_FLAG_FORCE_RESIDENCY,
+                                  "xe_module_add_two_arrays");
+  lzt::destroy_function(function);
 }
 
 TEST_F(xeFunctionCreateTests,
        GivenValidFunctionWhenSettingGroupSizeThenReturnSuccessful) {
-  xe_function_handle_t function = cs::create_function(
+  xe_function_handle_t function = lzt::create_function(
       module_, XE_FUNCTION_FLAG_NONE, "xe_module_add_constant");
   xe_device_compute_properties_t dev_compute_properties;
   dev_compute_properties.version = XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
@@ -460,12 +461,12 @@ TEST_F(xeFunctionCreateTests,
               xeFunctionSetGroupSize(function, x++, y++, z++));
   }
 
-  cs::destroy_function(function);
+  lzt::destroy_function(function);
 }
 
 TEST_F(xeFunctionCreateTests,
        GivenValidFunctionWhenSuggestingGroupSizeThenReturnSuccessful) {
-  xe_function_handle_t function = cs::create_function(
+  xe_function_handle_t function = lzt::create_function(
       module_, XE_FUNCTION_FLAG_NONE, "xe_module_add_constant");
 
   xe_device_compute_properties_t dev_compute_properties;
@@ -502,47 +503,47 @@ TEST_F(xeFunctionCreateTests,
     EXPECT_LE(group_size_z, dev_compute_properties.maxGroupSizeZ);
   }
 
-  cs::destroy_function(function);
+  lzt::destroy_function(function);
 }
 
 TEST_F(xeFunctionCreateTests,
        GivenValidFunctionWhenSettingArgumentsThenReturnSuccessful) {
 
   void *input_a =
-      cs::allocate_shared_memory(16, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                                 XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
+      lzt::allocate_shared_memory(16, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+                                  XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
   void *input_b =
-      cs::allocate_shared_memory(16, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                                 XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
+      lzt::allocate_shared_memory(16, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+                                  XE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
   int addval = 10;
   int *input_a_int = static_cast<int *>(input_a);
   int *input_b_int = static_cast<int *>(input_b);
   xe_function_handle_t function =
-      cs::create_function(module_, "xe_module_add_constant");
+      lzt::create_function(module_, "xe_module_add_constant");
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetArgumentValue(function, 0, sizeof(input_a_int),
                                        &input_a_int));
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetArgumentValue(function, 1, sizeof(addval), &addval));
 
-  cs::destroy_function(function);
-  function = cs::create_function(module_, "xe_module_add_two_arrays");
+  lzt::destroy_function(function);
+  function = lzt::create_function(module_, "xe_module_add_two_arrays");
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetArgumentValue(function, 0, sizeof(input_a_int),
                                        &input_a_int));
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetArgumentValue(function, 1, sizeof(input_b_int),
                                        &input_b_int));
-  cs::destroy_function(function);
-  cs::free_memory(input_a);
-  cs::free_memory(input_b);
+  lzt::destroy_function(function);
+  lzt::free_memory(input_a);
+  lzt::free_memory(input_b);
 }
 
 TEST_F(xeFunctionCreateTests,
        GivenValidFunctionWhenGettingAttributesThenReturnSuccessful) {
 
   xe_function_handle_t function =
-      cs::create_function(module_, "xe_module_add_constant");
+      lzt::create_function(module_, "xe_module_add_constant");
 
   uint32_t attribute_val = 0;
   EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -571,14 +572,14 @@ TEST_F(xeFunctionCreateTests,
             xeFunctionGetAttribute(function, XE_FUNCTION_GET_ATTR_HAS_DPAS,
                                    &attribute_val));
   LOG_INFO << "DPAs = " << attribute_val;
-  cs::destroy_function(function);
+  lzt::destroy_function(function);
 }
 
 TEST_F(xeFunctionCreateTests,
        GivenValidFunctionWhenSettingAttributesThenReturnSuccessful) {
 
   xe_function_handle_t function =
-      cs::create_function(module_, "xe_module_add_constant");
+      lzt::create_function(module_, "xe_module_add_constant");
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetAttribute(
                 function, XE_FUNCTION_SET_ATTR_INDIRECT_HOST_ACCESS, true));
@@ -597,7 +598,7 @@ TEST_F(xeFunctionCreateTests,
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeFunctionSetAttribute(
                 function, XE_FUNCTION_SET_ATTR_INDIRECT_SHARED_ACCESS, false));
-  cs::destroy_function(function);
+  lzt::destroy_function(function);
 }
 
 class xeFunctionLaunchTests

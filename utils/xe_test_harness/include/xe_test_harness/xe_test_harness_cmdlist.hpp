@@ -22,14 +22,14 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_CMDLIST_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_CMDLIST_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_CMDLIST_HPP
+#define level_zero_tests_XE_TEST_HARNESS_CMDLIST_HPP
 
 #include "xe_test_harness_device.hpp"
 #include "xe_cmdlist.h"
 #include "gtest/gtest.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 class xeCommandList {
 public:
@@ -72,5 +72,5 @@ void append_barrier(xe_command_list_handle_t cl, xe_event_handle_t hSignalEvent,
 void close_command_list(xe_command_list_handle_t cl);
 void destroy_command_list(xe_command_list_handle_t cl);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 #endif

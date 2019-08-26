@@ -47,10 +47,10 @@ add_core_library(xe_test_harness
 target_link_libraries(xe_test_harness
     PUBLIC
     GTest::GTest
-    compute_samples::image
-    compute_samples::logging
-    compute_samples::xe_utils
-    compute_samples::utils
+    level_zero_tests::image
+    level_zero_tests::logging
+    level_zero_tests::xe_utils
+    level_zero_tests::utils
     ${LevelZero_LIBRARIES}
 )
 target_include_directories(xe_test_harness

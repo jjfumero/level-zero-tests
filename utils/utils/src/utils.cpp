@@ -26,7 +26,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace compute_samples {
+namespace level_zero_tests {
 std::vector<uint8_t> load_binary_file(const std::string &file_path) {
   LOG_ENTER_FUNCTION
   LOG_DEBUG << "File path: " << file_path;
@@ -65,4 +65,4 @@ void save_binary_file(const std::vector<uint8_t> &data,
   LOG_EXIT_FUNCTION
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

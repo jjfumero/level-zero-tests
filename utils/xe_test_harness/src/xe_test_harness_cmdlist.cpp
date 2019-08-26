@@ -27,9 +27,9 @@
 #include "xe_copy.h"
 #include "xe_barrier.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_command_list_handle_t create_command_list() {
   return create_command_list(xeDevice::get_instance()->get_device());
@@ -108,4 +108,4 @@ void close_command_list(xe_command_list_handle_t cl) {
 void destroy_command_list(xe_command_list_handle_t cl) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(cl));
 }
-}; // namespace compute_samples
+}; // namespace level_zero_tests

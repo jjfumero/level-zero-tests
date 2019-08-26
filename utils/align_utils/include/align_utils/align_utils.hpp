@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_ALIGN_UTILS_HPP
-#define COMPUTE_SAMPLES_ALIGN_UTILS_HPP
+#ifndef level_zero_tests_ALIGN_UTILS_HPP
+#define level_zero_tests_ALIGN_UTILS_HPP
 
 #include <boost/align/aligned_allocator.hpp>
 #include <cstdint>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 namespace align_utils {
 template <typename T>
@@ -50,6 +50,6 @@ inline uint32_t align_units(uint32_t value, uint32_t alignment) {
   return align(value, alignment) / alignment;
 }
 }; // namespace align_utils
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

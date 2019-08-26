@@ -30,20 +30,20 @@ namespace po = boost::program_options;
 
 #include <regex>
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 class LoggingTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    cs::LoggingSettings settings;
-    settings.level = cs::logging_level::trace;
-    settings.format = cs::logging_format::simple;
-    cs::init_logging(settings);
+    lzt::LoggingSettings settings;
+    settings.level = lzt::logging_level::trace;
+    settings.format = lzt::logging_format::simple;
+    lzt::init_logging(settings);
     logs = boost::make_shared<std::stringstream>();
-    cs::add_stream(logs);
+    lzt::add_stream(logs);
   }
 
-  void TearDown() override { cs::stop_logging(); }
+  void TearDown() override { lzt::stop_logging(); }
 
   boost::shared_ptr<std::stringstream> logs;
 };
@@ -80,104 +80,104 @@ TEST_F(LoggingTest, PrintFatal) {
 
 TEST(LoggingCommandLineParser, ChooseSimpleFormatFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-format=simple"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_format::simple, settings.format);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_format::simple, settings.format);
 }
 
 TEST(LoggingCommandLineParser, ChoosePreciseFormatFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-format=precise"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_format::precise, settings.format);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_format::precise, settings.format);
 }
 
 TEST(LoggingCommandLineParser, PreciseFormatIsDefault) {
   std::vector<std::string> cmd;
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_format::precise, settings.format);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_format::precise, settings.format);
 }
 
 TEST(LoggingCommandLineParser, ChooseUnknownFormatFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-format=unknown"};
-  EXPECT_THROW(cs::parse_command_line(cmd), po::validation_error);
+  EXPECT_THROW(lzt::parse_command_line(cmd), po::validation_error);
 }
 
 TEST(LoggingCommandLineParser, ConsumeOnlyKnownOptionsFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-format=precise",
                                   "positional_option", "--option"};
-  cs::parse_command_line(cmd);
+  lzt::parse_command_line(cmd);
   EXPECT_EQ(2, cmd.size());
 }
 
 TEST(LoggingCommandLineParser, ChooseTraceLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=trace"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::trace, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::trace, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseDebugLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=debug"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::debug, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::debug, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseInfoLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=info"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::info, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::info, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseWarningLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=warning"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::warning, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::warning, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseErrorLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=error"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::error, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::error, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseFatalLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=fatal"};
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::fatal, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::fatal, settings.level);
 }
 
 TEST(LoggingCommandLineParser, InfoLevelIsDefault) {
   std::vector<std::string> cmd;
-  const cs::LoggingSettings settings = cs::parse_command_line(cmd);
-  EXPECT_EQ(cs::logging_level::info, settings.level);
+  const lzt::LoggingSettings settings = lzt::parse_command_line(cmd);
+  EXPECT_EQ(lzt::logging_level::info, settings.level);
 }
 
 TEST(LoggingCommandLineParser, ChooseUnknownLevelFromCommandLine) {
   std::vector<std::string> cmd = {"--logging-level=unknown"};
-  EXPECT_THROW(cs::parse_command_line(cmd), po::validation_error);
+  EXPECT_THROW(lzt::parse_command_line(cmd), po::validation_error);
 }
 
 class LoggingInitTest : public ::testing::Test {
 protected:
   void SetUp() override { logs = boost::make_shared<std::stringstream>(); }
 
-  void TearDown() override { cs::stop_logging(); }
+  void TearDown() override { lzt::stop_logging(); }
 
   boost::shared_ptr<std::stringstream> logs;
 };
 
 TEST_F(LoggingInitTest, SimpleFormatFromSettings) {
-  cs::LoggingSettings settings;
-  settings.format = cs::logging_format::simple;
-  cs::init_logging(settings);
-  cs::add_stream(logs);
+  lzt::LoggingSettings settings;
+  settings.format = lzt::logging_format::simple;
+  lzt::init_logging(settings);
+  lzt::add_stream(logs);
   LOG_INFO << "Message";
   EXPECT_EQ("[info] Message\n", logs->str());
 }
 
 TEST_F(LoggingInitTest, PreciseFormatFromSettings) {
-  cs::LoggingSettings settings;
-  settings.format = cs::logging_format::precise;
-  cs::init_logging(settings);
-  cs::add_stream(logs);
+  lzt::LoggingSettings settings;
+  settings.format = lzt::logging_format::precise;
+  lzt::init_logging(settings);
+  lzt::add_stream(logs);
 
   LOG_INFO << "Message";
 
@@ -189,11 +189,11 @@ TEST_F(LoggingInitTest, PreciseFormatFromSettings) {
 }
 
 TEST_F(LoggingInitTest, WarningLevelFromSettings) {
-  cs::LoggingSettings settings;
-  settings.level = cs::logging_level::warning;
-  settings.format = cs::logging_format::simple;
-  cs::init_logging(settings);
-  cs::add_stream(logs);
+  lzt::LoggingSettings settings;
+  settings.level = lzt::logging_level::warning;
+  settings.format = lzt::logging_format::simple;
+  lzt::init_logging(settings);
+  lzt::add_stream(logs);
 
   LOG_INFO << "Message";
   EXPECT_EQ("", logs->str());
@@ -203,26 +203,26 @@ TEST_F(LoggingInitTest, WarningLevelFromSettings) {
 
 TEST(VectorToString, Empty) {
   const std::vector<int> x;
-  EXPECT_EQ("[]", cs::to_string(x));
+  EXPECT_EQ("[]", lzt::to_string(x));
 }
 
 TEST(VectorToString, SingleElement) {
   const std::vector<int> x = {1};
-  EXPECT_EQ("[1]", cs::to_string(x));
+  EXPECT_EQ("[1]", lzt::to_string(x));
 }
 
 TEST(VectorToString, MultipleElements) {
   const std::vector<int> x = {1, 2, 3};
-  EXPECT_EQ("[1, 2, 3]", cs::to_string(x));
+  EXPECT_EQ("[1, 2, 3]", lzt::to_string(x));
 }
 
 TEST(VectorToString, StringType) {
   const std::vector<std::string> x = {"ab", "cd", "ef"};
-  EXPECT_EQ("[ab, cd, ef]", cs::to_string(x));
+  EXPECT_EQ("[ab, cd, ef]", lzt::to_string(x));
 }
 
 TEST(VectorToString, LoggingFormatType) {
-  const std::vector<cs::logging_format> x = {cs::logging_format::simple,
-                                             cs::logging_format::precise};
-  EXPECT_EQ("[simple, precise]", cs::to_string(x));
+  const std::vector<lzt::logging_format> x = {lzt::logging_format::simple,
+                                              lzt::logging_format::precise};
+  EXPECT_EQ("[simple, precise]", lzt::to_string(x));
 }

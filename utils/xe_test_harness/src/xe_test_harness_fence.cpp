@@ -23,7 +23,7 @@
 #include "gtest/gtest.h"
 #include "xe_test_harness/xe_test_harness_fence.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_fence_handle_t create_fence(xe_command_queue_handle_t cmd_queue) {
   xe_fence_handle_t fence;
@@ -57,4 +57,4 @@ xe_result_t sync_fence(xe_fence_handle_t fence, uint32_t timeout) {
   return result;
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

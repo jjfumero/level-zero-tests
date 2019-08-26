@@ -28,7 +28,7 @@
 #include <thread>
 #include <chrono>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_module_handle_t create_module(xe_device_handle_t device,
                                  const std::string filename) {
@@ -46,7 +46,7 @@ xe_module_handle_t create_module(xe_device_handle_t device,
   xe_module_desc_t module_description;
   xe_module_handle_t module;
   const std::vector<uint8_t> binary_file =
-      compute_samples::load_binary_file(filename);
+      level_zero_tests::load_binary_file(filename);
 
   EXPECT_TRUE((format == XE_MODULE_FORMAT_IL_SPIRV) ||
               (format == XE_MODULE_FORMAT_NATIVE));
@@ -103,7 +103,7 @@ void save_native_binary_file(const xe_module_handle_t module,
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeModuleGetNativeBinary(module, &native_binary_size,
                                     native_binary.data()));
-  compute_samples::save_binary_file(native_binary, filename);
+  level_zero_tests::save_binary_file(native_binary, filename);
 }
 
 void destroy_build_log(const xe_module_build_log_handle_t build_log) {
@@ -201,4 +201,4 @@ void create_and_execute_function(xe_device_handle_t device,
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListDestroy(cmdlist));
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

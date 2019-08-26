@@ -27,7 +27,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_memory.h"
@@ -40,9 +40,9 @@ class xeP2PTests : public ::testing::Test {
 protected:
   void SetUp() override {
     xe_bool_t can_access;
-    auto device_groups = cs::get_xe_device_groups();
+    auto device_groups = lzt::get_xe_device_groups();
     ASSERT_GT(device_groups.size(), 0);
-    auto devices = cs::get_xe_devices(device_groups[0]);
+    auto devices = lzt::get_xe_devices(device_groups[0]);
     ASSERT_GE(devices.size(), 2);
 
     // TODO: Current test enforces all devices found are P2P cabable. This is an
@@ -61,14 +61,14 @@ protected:
       DevInstance instance;
       instance.dev = device;
       instance.dev_grp = device_groups[0];
-      instance.src_region = cs::allocate_device_memory(
+      instance.src_region = lzt::allocate_device_memory(
           mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device,
           device_groups[0]);
-      instance.dst_region = cs::allocate_device_memory(
+      instance.dst_region = lzt::allocate_device_memory(
           mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device,
           device_groups[0]);
-      instance.cmd_list = cs::create_command_list(device);
-      instance.cmd_q = cs::create_command_queue(device);
+      instance.cmd_list = lzt::create_command_list(device);
+      instance.cmd_q = lzt::create_command_queue(device);
 
       dev_instance_.push_back(instance);
     }
@@ -80,11 +80,11 @@ protected:
   void TearDown() override {
     for (auto instance : dev_instance_) {
 
-      cs::destroy_command_queue(instance.cmd_q);
-      cs::destroy_command_list(instance.cmd_list);
+      lzt::destroy_command_queue(instance.cmd_q);
+      lzt::destroy_command_list(instance.cmd_list);
 
-      cs::free_memory(instance.src_region);
-      cs::free_memory(instance.dst_region);
+      lzt::free_memory(instance.src_region);
+      lzt::free_memory(instance.dst_region);
     }
   }
 
@@ -161,13 +161,13 @@ TEST_F(
     GivenP2PDevicesWhenSettingAndCopyingMemoryToRemoteDeviceThenRemoteDeviceGetsCorrectMemory) {
 
   const uint8_t value = 0xAB;
-  uint8_t *shr_mem = static_cast<uint8_t *>(
-      cs::allocate_shared_memory(mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                                 XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
+  uint8_t *shr_mem = static_cast<uint8_t *>(lzt::allocate_shared_memory(
+      mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+      XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
 
   // Set memory region on device 0 and copy to device 1
-  cs::append_memory_set(dev0_.cmd_list, dev0_.src_region,
-                        static_cast<int>(value), mem_size_);
+  lzt::append_memory_set(dev0_.cmd_list, dev0_.src_region,
+                         static_cast<int>(value), mem_size_);
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendBarrier(dev0_.cmd_list, nullptr, 0, nullptr));
   EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -201,14 +201,14 @@ TEST_F(xeP2PTests,
        GivenP2PDevicesWhenKernelReadsRemoteDeviceMemoryThenCorrectDataIsRead) {
 
   std::string module_name = "xe_p2p_test.spv";
-  xe_module_handle_t module = cs::create_module(dev0_.dev, module_name);
-  uint8_t *shr_mem = static_cast<uint8_t *>(
-      cs::allocate_shared_memory(mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                                 XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
+  xe_module_handle_t module = lzt::create_module(dev0_.dev, module_name);
+  uint8_t *shr_mem = static_cast<uint8_t *>(lzt::allocate_shared_memory(
+      mem_size_, 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+      XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
   std::string func_name = "xe_multi_device_function";
 
   // zero memory region on device 1
-  cs::append_memory_set(dev1_.cmd_list, dev1_.src_region, 0, mem_size_);
+  lzt::append_memory_set(dev1_.cmd_list, dev1_.src_region, 0, mem_size_);
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendBarrier(dev1_.cmd_list, nullptr, 0, nullptr));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
@@ -220,8 +220,8 @@ TEST_F(xeP2PTests,
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListReset(dev1_.cmd_list));
 
   // device 0 will modify memory allocated for device1
-  cs::create_and_execute_function(dev0_.dev, module, func_name, 1,
-                                  dev1_.src_region);
+  lzt::create_and_execute_function(dev0_.dev, module, func_name, 1,
+                                   dev1_.src_region);
 
   // copy memory to shared region and verify it is correct
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemoryCopy(
@@ -235,24 +235,24 @@ TEST_F(xeP2PTests,
             xeCommandQueueSynchronize(dev1_.cmd_q, UINT32_MAX));
   ASSERT_EQ(*(int *)shr_mem, 0x1) << "Memory Copied from Device did not match.";
 
-  cs::destroy_module(module);
+  lzt::destroy_module(module);
 }
 
-class xeP2PKernelTests : public cs::xeEventPoolTests,
+class xeP2PKernelTests : public lzt::xeEventPoolTests,
                          public ::testing::WithParamInterface<std::string> {
 protected:
   void SetUp() override {
 
     xe_bool_t can_access;
 
-    auto device_groups = cs::get_all_device_groups();
+    auto device_groups = lzt::get_all_device_groups();
     ASSERT_GE(device_groups.size(), 1);
 
     std::vector<xe_device_handle_t> devices;
     xe_device_group_handle_t device_group;
     for (auto dg : device_groups) {
       device_group = dg;
-      devices = cs::get_devices(device_group);
+      devices = lzt::get_devices(device_group);
 
       if (devices.size() >= 2)
         break;
@@ -336,7 +336,7 @@ protected:
 
     void *p_init_val = &dev_access_[i].init_val;
 
-    dev_access_[i].cmd_list = cs::create_command_list(dev_access_[i].dev);
+    dev_access_[i].cmd_list = lzt::create_command_list(dev_access_[i].dev);
 
     if (sync) {
       if (i == 0) {
@@ -421,28 +421,28 @@ protected:
 
     dev_access_[0].init_val = 1;
     dev_access_[0].kernel_add_val = 10;
-    dev_access_[0].device_mem_remote = cs::allocate_device_memory(
+    dev_access_[0].device_mem_remote = lzt::allocate_device_memory(
         (num * sizeof(int)), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev,
         dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev_grp);
-    dev_access_[0].shared_mem = cs::allocate_shared_memory(
+    dev_access_[0].shared_mem = lzt::allocate_shared_memory(
         (num * sizeof(int)), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         XE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev_access_[0].dev);
     memset(dev_access_[0].shared_mem, 0, num * sizeof(int));
-    dev_access_[0].module = cs::create_module(dev_access_[0].dev, module_path);
+    dev_access_[0].module = lzt::create_module(dev_access_[0].dev, module_path);
     dev_access_[0].function = create_function(
         dev_access_[0].module, kernel_name_, dev_access_[0].group_size_x,
         (int *)dev_access_[0].device_mem_remote, dev_access_[0].kernel_add_val);
     setup_cmd_list(0, num, sync, event_sync_start, events_sync_end);
-    dev_access_[0].cmd_q =
-        cs::create_command_queue(dev_access_[0].dev, XE_COMMAND_QUEUE_FLAG_NONE,
-                                 XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
-                                 XE_COMMAND_QUEUE_PRIORITY_NORMAL, 0);
+    dev_access_[0].cmd_q = lzt::create_command_queue(
+        dev_access_[0].dev, XE_COMMAND_QUEUE_FLAG_NONE,
+        XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS, XE_COMMAND_QUEUE_PRIORITY_NORMAL,
+        0);
     for (uint32_t i = 1; i < num; i++) {
       dev_access_[i].init_val = (1 + i) * dev_access_[0].init_val;
       dev_access_[i].kernel_add_val = (1 + i) * dev_access_[0].kernel_add_val;
       dev_access_[i].module =
-          cs::create_module(dev_access_[i].dev, module_path);
+          lzt::create_module(dev_access_[i].dev, module_path);
       uint8_t *char_src =
           static_cast<uint8_t *>(dev_access_[0].device_mem_remote);
       char_src += (i * sizeof(int));
@@ -463,7 +463,7 @@ protected:
       }
 
       setup_cmd_list(i, num, sync, event_sync_start, events_sync_end);
-      dev_access_[i].cmd_q = cs::create_command_queue(
+      dev_access_[i].cmd_q = lzt::create_command_queue(
           dev_access_[i].dev, XE_COMMAND_QUEUE_FLAG_NONE,
           XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS, XE_COMMAND_QUEUE_PRIORITY_NORMAL,
           0);
@@ -483,11 +483,11 @@ protected:
       ep.destroy_event(event_sync_start);
       ep.destroy_events(events_sync_end);
     }
-    cs::free_memory(dev_access_[0].device_mem_remote);
-    cs::free_memory(dev_access_[0].shared_mem);
+    lzt::free_memory(dev_access_[0].device_mem_remote);
+    lzt::free_memory(dev_access_[0].shared_mem);
 
     for (uint32_t i = 0; i < num; i++) {
-      cs::destroy_command_queue(dev_access_[i].cmd_q);
+      lzt::destroy_command_queue(dev_access_[i].cmd_q);
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListDestroy(dev_access_[i].cmd_list));
       EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(dev_access_[i].module));

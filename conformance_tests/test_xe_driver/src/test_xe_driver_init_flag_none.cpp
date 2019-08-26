@@ -28,12 +28,12 @@
 #include "xe_driver.h"
 #include "xe_test_harness/xe_test_harness.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 namespace {
 
 TEST(xeInitTests, GivenNoneFlagWhenInitializingDriverThenSuccessIsReturned) {
-  cs::xe_init(XE_INIT_FLAG_NONE);
+  lzt::xe_init(XE_INIT_FLAG_NONE);
 }
 
 } // namespace

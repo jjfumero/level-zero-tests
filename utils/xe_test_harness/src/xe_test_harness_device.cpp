@@ -26,9 +26,9 @@
 #include "xe_driver.h"
 #include "xe_utils/xe_utils.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xeDevice *xeDevice::instance_ = nullptr;
 
@@ -37,7 +37,7 @@ xeDevice *xeDevice::get_instance() {
     return instance_;
   instance_ = new xeDevice;
   EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(XE_INIT_FLAG_NONE));
-  instance_->device_ = compute_samples::get_default_device();
+  instance_->device_ = level_zero_tests::get_default_device();
   return instance_;
 }
 
@@ -124,7 +124,7 @@ xe_api_version_t get_api_version(xe_device_group_handle_t device_group) {
 std::vector<xe_device_properties_t>
 get_device_properties(xe_device_group_handle_t device_group) {
   std::vector<xe_device_properties_t> properties(
-      cs::get_xe_device_count(device_group));
+      lzt::get_xe_device_count(device_group));
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceGroupGetDeviceProperties(device_group, properties.data()));
@@ -242,4 +242,4 @@ void set_last_level_cache_config(xe_device_handle_t device,
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceSetLastLevelCacheConfig(device, config));
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

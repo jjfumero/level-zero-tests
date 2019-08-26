@@ -22,8 +22,8 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_HPP
+#define level_zero_tests_XE_TEST_HARNESS_HPP
 #include "gtest/gtest.h"
 
 #include "xe_test_harness_driver.hpp"
@@ -37,8 +37,8 @@
 
 class xeEventPoolCommandListTests : public ::testing::Test {
 protected:
-  compute_samples::xeEventPool ep;
-  compute_samples::xeCommandList cl;
+  level_zero_tests::xeEventPool ep;
+  level_zero_tests::xeCommandList cl;
 };
 
 #endif

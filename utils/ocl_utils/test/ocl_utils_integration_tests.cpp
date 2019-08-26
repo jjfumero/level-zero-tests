@@ -28,7 +28,7 @@
 
 #include <boost/compute/utility/source.hpp>
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 class BuildProgram : public testing::Test {
 protected:
@@ -56,14 +56,14 @@ TEST_F(BuildProgram, ValidProgram) {
   const char source[] =
       BOOST_COMPUTE_STRINGIZE_SOURCE(kernel void my_kernel(){});
   write_source_to_file(source, cl_file);
-  EXPECT_NE(compute::program(), cs::build_program(context, cl_file));
+  EXPECT_NE(compute::program(), lzt::build_program(context, cl_file));
 }
 
 TEST_F(BuildProgram, InvalidProgram) {
   const char source[] =
       BOOST_COMPUTE_STRINGIZE_SOURCE(kernel invalid_type my_kernel(){});
   write_source_to_file(source, cl_file);
-  EXPECT_THROW(cs::build_program(context, cl_file), compute::opencl_error);
+  EXPECT_THROW(lzt::build_program(context, cl_file), compute::opencl_error);
 }
 
 TEST_F(BuildProgram, BuildOptions) {
@@ -71,7 +71,7 @@ TEST_F(BuildProgram, BuildOptions) {
       BOOST_COMPUTE_STRINGIZE_SOURCE(kernel MY_TYPE my_kernel(){});
   write_source_to_file(source, cl_file);
   EXPECT_NE(compute::program(),
-            cs::build_program(context, cl_file, "-DMY_TYPE=void"));
+            lzt::build_program(context, cl_file, "-DMY_TYPE=void"));
 }
 
 TEST_F(BuildProgram, ValidProgramSpirV) {
@@ -83,9 +83,9 @@ TEST_F(BuildProgram, ValidProgramSpirV) {
       0x43, 0x4c, 0x2e, 0x73, 0x74, 0x64, 0x00, 0x00, 0x0e, 0x00, 0x03, 0x00,
       0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x03, 0x00,
       0x03, 0x00, 0x00, 0x00, 0x70, 0x8e, 0x01, 0x00};
-  compute_samples::save_binary_file(spriv_file_source, spv_file);
+  level_zero_tests::save_binary_file(spriv_file_source, spv_file);
   EXPECT_NE(compute::program(),
-            cs::build_program_il(context, spv_file, "-cl-std=CL2.0"));
+            lzt::build_program_il(context, spv_file, "-cl-std=CL2.0"));
 }
 
 TEST_F(BuildProgram, InvalidProgramSpirV) {
@@ -97,7 +97,7 @@ TEST_F(BuildProgram, InvalidProgramSpirV) {
       0x43, 0x4c, 0x2e, 0x73, 0x74, 0x64, 0x00, 0x00, 0x0e, 0x00, 0x03, 0x00,
       0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x03, 0x00,
       0x03, 0x00, 0x00, 0x00, 0x70, 0x8e, 0x01, 0x00};
-  compute_samples::save_binary_file(spriv_file_source, spv_file);
-  EXPECT_THROW(cs::build_program_il(context, spv_file, "-cl-std=CL2.0"),
+  level_zero_tests::save_binary_file(spriv_file_source, spv_file);
+  EXPECT_THROW(lzt::build_program_il(context, spv_file, "-cl-std=CL2.0"),
                compute::opencl_error);
 }

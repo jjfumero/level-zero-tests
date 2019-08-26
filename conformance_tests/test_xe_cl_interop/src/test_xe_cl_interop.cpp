@@ -31,7 +31,7 @@
 #include "boost/compute/intel/context.hpp"
 #include "boost/compute/intel/device.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_cl_interop.h"
@@ -89,7 +89,7 @@ TEST_F(
   xe_command_queue_handle_t command_queue = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceRegisterCLCommandQueue(
-                cs::xeDevice::get_instance()->get_device(), cl_context_.get(),
+                lzt::xeDevice::get_instance()->get_device(), cl_context_.get(),
                 cl_command_queue_.get(), &command_queue));
   EXPECT_NE(nullptr, command_queue);
 }
@@ -101,7 +101,7 @@ TEST_F(
     GivenOpenCLContextAndOpenCLProgramWhenRegisteringOpenCLProgramThenNotNullModuleHandleIsReturned) {
   xe_module_handle_t module_handle = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceRegisterCLProgram(
-                                   cs::xeDevice::get_instance()->get_device(),
+                                   lzt::xeDevice::get_instance()->get_device(),
                                    cl_context_, cl_program_, &module_handle));
   EXPECT_NE(nullptr, module_handle);
 }
@@ -112,9 +112,9 @@ TEST_F(
     xeDeviceRegisterCLMemoryTests,
     GivenOpenCLContextAndCLDeviceMemoryWhenRegisteringCLMemoryThenNotNullMemoryIsReturned) {
   void *ptr = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceRegisterCLMemory(cs::xeDevice::get_instance()->get_device(),
-                                     cl_context_.get(), cl_memory_, &ptr));
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceRegisterCLMemory(
+                                   lzt::xeDevice::get_instance()->get_device(),
+                                   cl_context_.get(), cl_memory_, &ptr));
   EXPECT_NE(nullptr, ptr);
 }
 

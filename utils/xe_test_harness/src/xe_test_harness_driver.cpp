@@ -27,7 +27,7 @@
 
 #include "gtest/gtest.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 void xe_init() { xe_init(XE_INIT_FLAG_NONE); }
 
@@ -45,4 +45,4 @@ uint32_t get_driver_version(xe_device_group_handle_t device_group) {
   return version;
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

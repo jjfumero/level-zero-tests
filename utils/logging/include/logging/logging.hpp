@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_LOGGING_HPP
-#define COMPUTE_SAMPLES_LOGGING_HPP
+#ifndef level_zero_tests_LOGGING_HPP
+#define level_zero_tests_LOGGING_HPP
 
 #include <string>
 #include <sstream>
@@ -31,7 +31,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 #define LOG_TRACE BOOST_LOG_TRIVIAL(trace)
 #define LOG_DEBUG BOOST_LOG_TRIVIAL(debug)
@@ -72,6 +72,6 @@ template <typename T> std::string to_string(const std::vector<T> &x) {
   return ss.str();
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

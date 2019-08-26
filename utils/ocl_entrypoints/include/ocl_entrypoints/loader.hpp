@@ -20,15 +20,15 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_OCL_ENTRYPOINTS_LOADER_HPP
-#define COMPUTE_SAMPLES_OCL_ENTRYPOINTS_LOADER_HPP
+#ifndef level_zero_tests_OCL_ENTRYPOINTS_LOADER_HPP
+#define level_zero_tests_OCL_ENTRYPOINTS_LOADER_HPP
 
 #include <CL/cl.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-namespace compute_samples {
+namespace level_zero_tests {
 template <typename T>
 T load_entrypoint(const cl_platform_id platform, const std::string name) {
   T p = reinterpret_cast<T>(
@@ -97,6 +97,6 @@ T load_entrypoint(const cl_command_queue queue, const std::string name) {
   }
   return load_entrypoint<T>(context, name);
 }
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

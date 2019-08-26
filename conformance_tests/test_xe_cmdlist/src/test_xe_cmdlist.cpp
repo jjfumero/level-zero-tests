@@ -28,7 +28,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 
@@ -47,11 +47,11 @@ TEST_P(
 
   xe_command_list_handle_t command_list = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListCreate(cs::xeDevice::get_instance()->get_device(),
+            xeCommandListCreate(lzt::xeDevice::get_instance()->get_device(),
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
-  cs::destroy_command_list(command_list);
+  lzt::destroy_command_list(command_list);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -69,11 +69,11 @@ TEST_F(
 
   xe_command_list_handle_t command_list = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListCreate(cs::xeDevice::get_instance()->get_device(),
+            xeCommandListCreate(lzt::xeDevice::get_instance()->get_device(),
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
-  cs::destroy_command_list(command_list);
+  lzt::destroy_command_list(command_list);
 }
 
 // xeCommandListCreateImmediateTests currently fail with
@@ -97,10 +97,10 @@ TEST_P(xeCommandListCreateImmediateTests,
 
   xe_command_list_handle_t command_list = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListCreateImmediate(
-                                   cs::xeDevice::get_instance()->get_device(),
+                                   lzt::xeDevice::get_instance()->get_device(),
                                    &descriptor, &command_list));
 
-  cs::destroy_command_list(command_list);
+  lzt::destroy_command_list(command_list);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -117,21 +117,21 @@ INSTANTIATE_TEST_CASE_P(
                           XE_COMMAND_QUEUE_PRIORITY_LOW,
                           XE_COMMAND_QUEUE_PRIORITY_HIGH)));
 
-class xeCommandListCloseTests : public cs::xeCommandListTests {};
+class xeCommandListCloseTests : public lzt::xeCommandListTests {};
 
 TEST_F(xeCommandListCloseTests,
        GivenEmptyCommandListWhenClosingCommandListThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
 }
 
-class xeCommandListResetTests : public cs::xeCommandListTests {};
+class xeCommandListResetTests : public lzt::xeCommandListTests {};
 
 TEST_F(xeCommandListResetTests,
        GivenEmptyCommandListWhenResettingCommandListThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListReset(cl.command_list_));
 }
 
-class xeCommandListParameterTests : public cs::xeCommandListTests {};
+class xeCommandListParameterTests : public lzt::xeCommandListTests {};
 
 TEST_F(xeCommandListParameterTests,
        GivenEmptyCommandListWhenGettingTbdParameterThenSuccessIsReturned) {

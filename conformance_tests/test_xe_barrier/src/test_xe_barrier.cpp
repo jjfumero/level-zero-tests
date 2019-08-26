@@ -29,11 +29,11 @@
 #include "logging/logging.hpp"
 #include "xe_barrier.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 namespace {
 
-class xeCommandListAppendBarrierTests : public cs::xeCommandListTests {};
+class xeCommandListAppendBarrierTests : public lzt::xeCommandListTests {};
 
 TEST_F(xeCommandListAppendBarrierTests,
        GivenEmptyCommandListWhenAppendingBarrierThenSuccessIsReturned) {
@@ -90,8 +90,8 @@ void AppendMemoryRangesBarrierTest(
     std::vector<xe_event_handle_t> &waiting_events) {
   const std::vector<size_t> range_sizes{4096, 8192};
   std::vector<const void *> ranges{
-      cs::allocate_device_memory(range_sizes[0] * 2),
-      cs::allocate_device_memory(range_sizes[1] * 2)};
+      lzt::allocate_device_memory(range_sizes[0] * 2),
+      lzt::allocate_device_memory(range_sizes[1] * 2)};
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendMemoryRangesBarrier(
@@ -99,14 +99,14 @@ void AppendMemoryRangesBarrierTest(
                 signaling_event, waiting_events.size(), waiting_events.data()));
 
   for (auto &range : ranges)
-    cs::free_memory(range);
+    lzt::free_memory(range);
 }
 
 // The following test fails and the failure is recorded in:
 // LOKI-303 xeCommandListAppendMemoryRangesBarrier() returns:
 // XE_RESULT_ERROR_UNSUPPORTED
 class xeCommandListAppendMemoryRangesBarrierTests
-    : public cs::xeCommandListTests {};
+    : public lzt::xeCommandListTests {};
 
 TEST_F(
     xeCommandListAppendMemoryRangesBarrierTests,
@@ -166,7 +166,7 @@ TEST_F(xeDeviceSystemBarrierTests,
        GivenDeviceWhenAddingSystemBarrierThenSuccessIsReturned) {
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceSystemBarrier(cs::xeDevice::get_instance()->get_device()));
+            xeDeviceSystemBarrier(lzt::xeDevice::get_instance()->get_device()));
 }
 
 } // namespace

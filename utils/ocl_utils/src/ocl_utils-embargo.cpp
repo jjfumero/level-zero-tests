@@ -28,7 +28,7 @@
 #include <boost/compute/intel/device.hpp>
 #include <boost/compute/intel/platform.hpp>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 compute::context create_multi_tile_context(compute::device &device) {
   std::vector<cl_context_properties> properties;
@@ -103,4 +103,4 @@ void add_comment(const compute::platform &platform, const std::string comment) {
   p.add_comment(comment);
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

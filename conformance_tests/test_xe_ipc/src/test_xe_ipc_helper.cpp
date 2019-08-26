@@ -35,7 +35,7 @@ int main() {
   xe_result_t result = xeInit(XE_INIT_FLAG_NONE);
   if (result) {
     throw std::runtime_error("xeInit failed: " +
-                             compute_samples::to_string(result));
+                             level_zero_tests::to_string(result));
   }
   boost::asio::io_service io_service;
   boost::asio::ip::tcp::socket sock{io_service};
@@ -43,8 +43,8 @@ int main() {
   xe_ipc_mem_handle_t ipc_mem_handle;
 
   void *memory_ = nullptr;
-  cs::allocate_mem_and_get_ipc_handle(&ipc_mem_handle, &memory_,
-                                      XE_MEMORY_TYPE_DEVICE);
+  lzt::allocate_mem_and_get_ipc_handle(&ipc_mem_handle, &memory_,
+                                       XE_MEMORY_TYPE_DEVICE);
 
   sock.connect(boost::asio::ip::tcp::endpoint(
       boost::asio::ip::address::from_string("127.0.0.1"), 65432));

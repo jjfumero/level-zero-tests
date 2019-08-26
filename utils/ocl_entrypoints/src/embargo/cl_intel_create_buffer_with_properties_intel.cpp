@@ -23,12 +23,12 @@
 #include "ocl_entrypoints/embargo/cl_intel_create_buffer_with_properties_intel.h"
 #include "ocl_entrypoints/loader.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 CL_API_ENTRY cl_mem CL_API_CALL clCreateBufferWithPropertiesINTEL(
     cl_context context, const cl_mem_properties_intel *properties, size_t size,
     void *hostPtr, cl_int *errcodeRet) CL_API_SUFFIX__VERSION_1_2 {
-  const auto e = cs::load_entrypoint<clCreateBufferWithPropertiesINTEL_fn>(
+  const auto e = lzt::load_entrypoint<clCreateBufferWithPropertiesINTEL_fn>(
       context, "clCreateBufferWithPropertiesINTEL");
   return e(context, properties, size, hostPtr, errcodeRet);
 }

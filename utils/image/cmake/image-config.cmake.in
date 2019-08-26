@@ -28,7 +28,7 @@ include(CMakeFindDependencyMacro)
 find_dependency(Boost 1.64 REQUIRED COMPONENTS boost)
 find_dependency(PNG REQUIRED)
 
-if(NOT TARGET compute_samples::image)
+if(NOT TARGET level_zero_tests::image)
     include("${image_CMAKE_DIR}/image-targets.cmake")
 endif()
 

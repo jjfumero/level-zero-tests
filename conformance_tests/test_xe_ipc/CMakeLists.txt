@@ -28,9 +28,9 @@ add_conformance_test(
     src/test_xe_ipc.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
-    compute_samples::xe_utils
-    compute_samples::utils
+    level_zero_tests::logging
+    level_zero_tests::xe_utils
+    level_zero_tests::utils
 )
 
 # TODO: should this use the add_conformance_test function at all?
@@ -39,7 +39,7 @@ add_conformance_test(
   SOURCES
     src/test_xe_ipc_helper.cpp
   LINK_LIBRARIES
-    compute_samples::logging
-    compute_samples::xe_utils
-    compute_samples::utils
+    level_zero_tests::logging
+    level_zero_tests::xe_utils
+    level_zero_tests::utils
 )

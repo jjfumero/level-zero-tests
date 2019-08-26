@@ -28,6 +28,6 @@ add_conformance_test(
     src/test_xe_residency.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
-    compute_samples::xe_utils
+    level_zero_tests::logging
+    level_zero_tests::xe_utils
 )

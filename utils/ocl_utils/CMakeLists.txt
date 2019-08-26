@@ -31,10 +31,10 @@ add_core_library(ocl_utils
 )
 target_link_libraries(ocl_utils
     PUBLIC
-    compute_samples::logging
-    compute_samples::utils
-    compute_samples::ocl_entrypoints
-    compute_samples::boost_intel
+    level_zero_tests::logging
+    level_zero_tests::utils
+    level_zero_tests::ocl_entrypoints
+    level_zero_tests::boost_intel
     OpenCL::OpenCL
 )
 

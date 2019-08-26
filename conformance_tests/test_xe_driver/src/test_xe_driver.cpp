@@ -28,7 +28,7 @@
 #include "xe_driver.h"
 #include "xe_test_harness/xe_test_harness.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 namespace {
 
@@ -36,18 +36,18 @@ TEST(
     xeInitTests,
     GivenDriverWasAlreadyInitializedWhenInitializingDriverThenSuccessIsReturned) {
   for (int i = 0; i < 5; ++i) {
-    cs::xe_init();
+    lzt::xe_init();
   }
 }
 
 TEST(xeDeviceGroupGetDriverVersionTests,
      GivenZeroVersionWhenGettingDriverVersionThenNonZeroVersionIsReturned) {
 
-  cs::xe_init();
+  lzt::xe_init();
 
-  auto device_groups = cs::get_xe_device_groups();
+  auto device_groups = lzt::get_xe_device_groups();
   for (auto device_group : device_groups) {
-    uint32_t version = cs::get_driver_version(device_group);
+    uint32_t version = lzt::get_driver_version(device_group);
     LOG_INFO << "Driver version: " << version;
   }
 }

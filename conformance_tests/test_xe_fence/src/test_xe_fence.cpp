@@ -31,7 +31,7 @@
 #include <chrono>
 #include <thread>
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_fence.h"
@@ -40,7 +40,7 @@ namespace cs = compute_samples;
 
 namespace {
 
-class xeCommandQueueCreateFenceTests : public cs::xeCommandQueueTests {};
+class xeCommandQueueCreateFenceTests : public lzt::xeCommandQueueTests {};
 
 TEST_F(
     xeCommandQueueCreateFenceTests,
@@ -70,8 +70,8 @@ public:
 
 protected:
   xe_fence_handle_t fence_ = nullptr;
-  cs::xeCommandQueue cq;
-  cs::xeCommandList cl;
+  lzt::xeCommandQueue cq;
+  lzt::xeCommandList cl;
 };
 
 class xeFenceSynchronizeTests : public xeFenceTests,
@@ -84,7 +84,7 @@ TEST_P(xeFenceSynchronizeTests,
   const std::vector<int8_t> input = {72, 101, 108, 108, 111, 32,
                                      87, 111, 114, 108, 100, 33};
 
-  void *output_buffer = cs::allocate_device_memory(input.size());
+  void *output_buffer = lzt::allocate_device_memory(input.size());
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
@@ -103,7 +103,7 @@ TEST_P(xeFenceSynchronizeTests,
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceHostSynchronize(fence_, GetParam()));
 
-  cs::free_memory(output_buffer);
+  lzt::free_memory(output_buffer);
 }
 
 INSTANTIATE_TEST_CASE_P(FenceSyncParameterizedTest, xeFenceSynchronizeTests,
@@ -115,7 +115,7 @@ TEST_F(xeFenceSynchronizeTests,
   const std::vector<int8_t> input = {72, 101, 108, 108, 111, 32,
                                      87, 111, 114, 108, 100, 33};
 
-  void *output_buffer = cs::allocate_device_memory(input.size());
+  void *output_buffer = lzt::allocate_device_memory(input.size());
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
@@ -133,7 +133,7 @@ TEST_F(xeFenceSynchronizeTests,
   std::this_thread::sleep_for(timespan);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceQueryStatus(fence_));
-  cs::free_memory(output_buffer);
+  lzt::free_memory(output_buffer);
 }
 
 TEST_F(xeFenceSynchronizeTests,
@@ -142,7 +142,7 @@ TEST_F(xeFenceSynchronizeTests,
   const std::vector<int8_t> input = {72, 101, 108, 108, 111, 32,
                                      87, 111, 114, 108, 100, 33};
 
-  void *output_buffer = cs::allocate_device_memory(input.size());
+  void *output_buffer = lzt::allocate_device_memory(input.size());
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
@@ -155,11 +155,11 @@ TEST_F(xeFenceSynchronizeTests,
             xeCommandQueueExecuteCommandLists(cq.command_queue_, 1,
                                               &cl.command_list_, fence_));
 
-  cs::sync_fence(fence_, UINT32_MAX);
+  lzt::sync_fence(fence_, UINT32_MAX);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceReset(fence_));
 
-  cs::free_memory(output_buffer);
+  lzt::free_memory(output_buffer);
 }
 
 TEST_F(xeFenceSynchronizeTests,
@@ -168,7 +168,7 @@ TEST_F(xeFenceSynchronizeTests,
   const std::vector<int8_t> input = {72, 101, 108, 108, 111, 32,
                                      87, 111, 114, 108, 100, 33};
 
-  void *output_buffer = cs::allocate_device_memory(input.size());
+  void *output_buffer = lzt::allocate_device_memory(input.size());
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
@@ -181,11 +181,11 @@ TEST_F(xeFenceSynchronizeTests,
             xeCommandQueueExecuteCommandLists(cq.command_queue_, 1,
                                               &cl.command_list_, fence_));
 
-  cs::sync_fence(fence_, UINT32_MAX);
-  cs::reset_fence(fence_);
+  lzt::sync_fence(fence_, UINT32_MAX);
+  lzt::reset_fence(fence_);
 
   EXPECT_EQ(XE_RESULT_ERROR_INVALID_PARAMETER, xeFenceQueryStatus(fence_));
-  cs::free_memory(output_buffer);
+  lzt::free_memory(output_buffer);
 }
 
 } // namespace

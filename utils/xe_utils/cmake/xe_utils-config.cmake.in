@@ -30,7 +30,7 @@ include(CMakeFindDependencyMacro)
 #TODO: Add L0 dependency
 #find_dependency(LevelZero REQUIRED)
 
-if(NOT TARGET compute_samples::xe_utils)
+if(NOT TARGET level_zero_tests::xe_utils)
     include("${xe_utils_CMAKE_DIR}/xe_utils-targets.cmake")
 endif()
 

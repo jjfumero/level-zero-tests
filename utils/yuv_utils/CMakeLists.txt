@@ -27,5 +27,5 @@ add_core_library(yuv_utils
 )
 target_link_libraries(yuv_utils
     PUBLIC
-    compute_samples::image
+    level_zero_tests::image
 )

@@ -25,7 +25,7 @@
 
 #include <limits>
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 typedef testing::Types<int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t,
                        uint32_t, uint64_t>
@@ -53,7 +53,7 @@ TYPED_TEST(GenerateIntegerValue, WithinGivenMinAndMaxValue) {
   const TypeParam min = 1;
   const TypeParam max = 10;
   for (int i = 0; i < this->iterations; ++i) {
-    const TypeParam value = cs::generate_value(min, max, this->seed);
+    const TypeParam value = lzt::generate_value(min, max, this->seed);
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
   }
@@ -63,7 +63,7 @@ TYPED_TEST(GenerateFloatingPointValue, WithinGivenMinAndMaxValue) {
   const TypeParam min = 1.5;
   const TypeParam max = 10.5;
   for (int i = 0; i < this->iterations; ++i) {
-    const TypeParam value = cs::generate_value(min, max, this->seed);
+    const TypeParam value = lzt::generate_value(min, max, this->seed);
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
   }
@@ -73,7 +73,7 @@ TYPED_TEST(GenerateValue, WithinTypeMinAndMaxValue) {
   const TypeParam min = std::numeric_limits<TypeParam>::min();
   const TypeParam max = std::numeric_limits<TypeParam>::max();
   for (int i = 0; i < this->iterations; ++i) {
-    const TypeParam value = cs::generate_value<TypeParam>(this->seed);
+    const TypeParam value = lzt::generate_value<TypeParam>(this->seed);
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
   }
@@ -97,7 +97,7 @@ TYPED_TEST(GenerateIntegerVector, WithinGivenMinAndMaxValue) {
   const TypeParam min = 1;
   const TypeParam max = 10;
   const std::vector<TypeParam> vector =
-      cs::generate_vector(this->size, min, max, this->seed);
+      lzt::generate_vector(this->size, min, max, this->seed);
   for (const auto &value : vector) {
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
@@ -108,7 +108,7 @@ TYPED_TEST(GenerateFloatingPointVector, WithinGivenMinAndMaxValue) {
   const TypeParam min = 1.5;
   const TypeParam max = 10.5;
   const std::vector<TypeParam> vector =
-      cs::generate_vector(this->size, min, max, this->seed);
+      lzt::generate_vector(this->size, min, max, this->seed);
   for (const auto &value : vector) {
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
@@ -119,7 +119,7 @@ TYPED_TEST(GenerateVector, WithinTypeMinAndMaxValue) {
   const TypeParam min = std::numeric_limits<TypeParam>::min();
   const TypeParam max = std::numeric_limits<TypeParam>::max();
   const std::vector<TypeParam> vector =
-      cs::generate_vector<TypeParam>(this->size, this->seed);
+      lzt::generate_vector<TypeParam>(this->size, this->seed);
   for (const auto &value : vector) {
     EXPECT_GE(value, min);
     EXPECT_LE(value, max);
@@ -128,6 +128,6 @@ TYPED_TEST(GenerateVector, WithinTypeMinAndMaxValue) {
 
 TYPED_TEST(GenerateVector, WithExpectedSize) {
   const std::vector<TypeParam> vector =
-      cs::generate_vector<TypeParam>(this->size, this->seed);
+      lzt::generate_vector<TypeParam>(this->size, this->seed);
   EXPECT_EQ(this->size, vector.size());
 }

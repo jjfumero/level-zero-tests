@@ -29,7 +29,7 @@ namespace gil = boost::gil;
 
 #include "bmp.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 template <typename T> ImagePNG<T>::ImagePNG() : width_(0), height_(0) {}
 
 template <typename T> ImagePNG<T>::ImagePNG(const std::string &image_path) {
@@ -116,7 +116,7 @@ void ImagePNG<T>::set_pixel(const int x, const int y, const T data) {
 }
 
 template <typename T>
-std::vector<T> compute_samples::ImagePNG<T>::get_pixels() const {
+std::vector<T> level_zero_tests::ImagePNG<T>::get_pixels() const {
   return pixels_;
 }
 
@@ -245,4 +245,4 @@ template <typename T> bool ImageBMP<T>::operator==(const ImageBMP &rhs) const {
 
 template class ImageBMP<uint8_t>;
 template class ImageBMP<uint32_t>;
-} // namespace compute_samples
+} // namespace level_zero_tests

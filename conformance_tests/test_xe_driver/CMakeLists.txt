@@ -28,7 +28,7 @@ add_conformance_test(
     src/test_xe_driver_init_flag_none.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
+    level_zero_tests::logging
 )
 
 add_conformance_test(
@@ -37,7 +37,7 @@ add_conformance_test(
     src/test_xe_driver_init_flag_gpu.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
+    level_zero_tests::logging
 )
 
 add_conformance_test(
@@ -46,5 +46,5 @@ add_conformance_test(
     src/test_xe_driver.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
+    level_zero_tests::logging
 )

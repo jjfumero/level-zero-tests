@@ -28,8 +28,8 @@ add_conformance_test(
     src/test_xe_copy.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
-    compute_samples::image
-    compute_samples::utils
-    compute_samples::xe_utils
+    level_zero_tests::logging
+    level_zero_tests::image
+    level_zero_tests::utils
+    level_zero_tests::xe_utils
 )

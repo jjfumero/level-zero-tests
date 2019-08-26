@@ -28,7 +28,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_memory.h"
@@ -38,11 +38,11 @@ namespace {
 
 class xeDeviceMakeMemoryResidentTests : public ::testing::Test {
 protected:
-  void SetUp() override { memory_ = cs::allocate_device_memory(size_); }
+  void SetUp() override { memory_ = lzt::allocate_device_memory(size_); }
 
   void TearDown() override {
     EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeDeviceGroupFreeMem(cs::get_default_device_group(), memory_));
+              xeDeviceGroupFreeMem(lzt::get_default_device_group(), memory_));
   }
 
   void *memory_ = nullptr;
@@ -53,7 +53,7 @@ TEST_F(xeDeviceMakeMemoryResidentTests,
        GivenDeviceMemoryWhenMakingMemoryResidentThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceMakeMemoryResident(
-                cs::xeDevice::get_instance()->get_device(), memory_, size_));
+                lzt::xeDevice::get_instance()->get_device(), memory_, size_));
 }
 
 class xeDeviceEvictMemoryTests : public xeDeviceMakeMemoryResidentTests {};
@@ -63,18 +63,18 @@ TEST_F(
     GivenResidentDeviceMemoryWhenEvictingResidentMemoryThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceMakeMemoryResident(
-                cs::xeDevice::get_instance()->get_device(), memory_, size_));
+                lzt::xeDevice::get_instance()->get_device(), memory_, size_));
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceEvictMemory(cs::xeDevice::get_instance()->get_device(),
+            xeDeviceEvictMemory(lzt::xeDevice::get_instance()->get_device(),
                                 memory_, size_));
 }
 
-class xeDeviceMakeImageResidentTests : public cs::xeImageCreateCommonTests {};
+class xeDeviceMakeImageResidentTests : public lzt::xeImageCreateCommonTests {};
 
 TEST_F(xeDeviceMakeImageResidentTests,
        GivenDeviceImageWhenMakingImageResidentThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceMakeImageResident(
-                                   cs::xeDevice::get_instance()->get_device(),
+                                   lzt::xeDevice::get_instance()->get_device(),
                                    img.dflt_device_image_));
 }
 
@@ -83,10 +83,10 @@ class xeDeviceEvictImageTests : public xeDeviceMakeImageResidentTests {};
 TEST_F(xeDeviceEvictImageTests,
        GivenResidentDeviceImageWhenEvictingResidentImageThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceMakeImageResident(
-                                   cs::xeDevice::get_instance()->get_device(),
+                                   lzt::xeDevice::get_instance()->get_device(),
                                    img.dflt_device_image_));
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceEvictImage(cs::xeDevice::get_instance()->get_device(),
+            xeDeviceEvictImage(lzt::xeDevice::get_instance()->get_device(),
                                img.dflt_device_image_));
 }
 

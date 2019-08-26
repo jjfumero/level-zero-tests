@@ -34,7 +34,7 @@
 #include "xe_driver.h"
 #include "xe_memory.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 namespace {
 
@@ -47,13 +47,13 @@ protected:
 TEST_F(
     xeIpcMemHandleTests,
     GivenDeviceMemoryAllocationWhenGettingIpcMemHandleThenSuccessIsReturned) {
-  memory_ = cs::allocate_device_memory(1);
+  memory_ = lzt::allocate_device_memory(1);
 
-  const xe_device_group_handle_t device_group = cs::get_default_device_group();
+  const xe_device_group_handle_t device_group = lzt::get_default_device_group();
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemIpcHandle(
                                    device_group, memory_, &ipc_mem_handle_));
 
-  cs::free_memory(memory_);
+  lzt::free_memory(memory_);
 }
 
 #ifdef __linux__
@@ -84,8 +84,8 @@ protected:
 
   void TearDown() override {
     EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
-                                     cs::get_default_device_group(), memory_));
-    cs::free_memory(memory_);
+                                     lzt::get_default_device_group(), memory_));
+    lzt::free_memory(memory_);
     free(ipc_mem_handle_);
   }
 
@@ -98,8 +98,8 @@ TEST_F(xeIpcMemHandleOpenTests,
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeDeviceGroupOpenMemIpcHandle(
-                cs::get_default_device_group(),
-                cs::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
+                lzt::get_default_device_group(),
+                lzt::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
                 XE_IPC_MEMORY_FLAG_NONE, &memory_));
 }
 #endif
@@ -107,24 +107,25 @@ TEST_F(xeIpcMemHandleOpenTests,
 class xeIpcMemHandleCloseTests : public xeIpcMemHandleTests {
 protected:
   void SetUp() override {
-    cs::allocate_mem_and_get_ipc_handle(&ipc_mem_handle_, &memory_,
-                                        XE_MEMORY_TYPE_DEVICE);
+    lzt::allocate_mem_and_get_ipc_handle(&ipc_mem_handle_, &memory_,
+                                         XE_MEMORY_TYPE_DEVICE);
 
     xe_ipc_memory_flag_t flags = XE_IPC_MEMORY_FLAG_NONE;
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupOpenMemIpcHandle(
-                                     cs::get_default_device_group(),
-                                     cs::xeDevice::get_instance()->get_device(),
-                                     ipc_mem_handle_, flags, &memory_));
+    EXPECT_EQ(XE_RESULT_SUCCESS,
+              xeDeviceGroupOpenMemIpcHandle(
+                  lzt::get_default_device_group(),
+                  lzt::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
+                  flags, &memory_));
   }
 
-  void TearDown() { cs::free_memory(memory_); }
+  void TearDown() { lzt::free_memory(memory_); }
 };
 
 TEST_F(
     xeIpcMemHandleCloseTests,
     GivenValidPointerToDeviceMemoryAllocationWhenClosingIpcHandleThenSuccessIsReturned) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
-                                   cs::get_default_device_group(), memory_));
+                                   lzt::get_default_device_group(), memory_));
 }
 
 } // namespace

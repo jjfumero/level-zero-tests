@@ -33,7 +33,7 @@ target_include_directories(image
 )
 target_link_libraries(image
     PUBLIC
-    compute_samples::logging
+    level_zero_tests::logging
     PRIVATE
     Boost::boost
     PNG::PNG

@@ -37,7 +37,7 @@ namespace expr = boost::log::expressions;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 typedef sinks::synchronous_sink<sinks::text_ostream_backend> text_sink;
 static boost::shared_ptr<text_sink> sink;
@@ -138,4 +138,4 @@ LoggingSettings parse_command_line(std::vector<std::string> &command_line) {
   return settings;
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

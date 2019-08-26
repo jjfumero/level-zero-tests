@@ -20,15 +20,15 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_OCL_UTILS_HPP
-#define COMPUTE_SAMPLES_OCL_UTILS_HPP
+#ifndef level_zero_tests_OCL_UTILS_HPP
+#define level_zero_tests_OCL_UTILS_HPP
 
 #include <vector>
 
 #include <boost/compute/core.hpp>
 namespace compute = boost::compute;
 
-namespace compute_samples {
+namespace level_zero_tests {
 compute::program build_program(const compute::context &context,
                                const std::string &file,
                                const std::string &options = std::string());
@@ -92,7 +92,7 @@ template <typename T> std::string cl_vector_to_string(const T &x) {
   ss << "]";
   return ss.str();
 }
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 // Global namespace
 bool operator==(const cl_int2 &lhs, const cl_int2 &rhs);

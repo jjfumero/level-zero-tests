@@ -29,7 +29,7 @@ add_core_xe_library(xe_utils
 )
 target_link_libraries(xe_utils
     PUBLIC
-    compute_samples::logging
+    level_zero_tests::logging
     ${LevelZero_LIBRARIES}
 )
 

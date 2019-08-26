@@ -21,7 +21,7 @@
 #
 
 add_library(boost_intel INTERFACE)
-add_library(compute_samples::boost_intel ALIAS boost_intel)
+add_library(level_zero_tests::boost_intel ALIAS boost_intel)
 target_include_directories(boost_intel
     INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -29,5 +29,5 @@ target_include_directories(boost_intel
 )
 target_link_libraries(boost_intel
     INTERFACE
-    compute_samples::ocl_entrypoints
+    level_zero_tests::ocl_entrypoints
 )

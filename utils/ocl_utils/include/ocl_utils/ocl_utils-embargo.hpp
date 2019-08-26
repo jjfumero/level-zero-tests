@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_OCL_UTILS_EMBARGO_HPP
-#define COMPUTE_SAMPLES_OCL_UTILS_EMBARGO_HPP
+#ifndef level_zero_tests_OCL_UTILS_EMBARGO_HPP
+#define level_zero_tests_OCL_UTILS_EMBARGO_HPP
 
 #include <vector>
 
@@ -29,7 +29,7 @@
 #include <boost/compute/intel/command_queue.hpp>
 namespace compute = boost::compute;
 
-namespace compute_samples {
+namespace level_zero_tests {
 compute::context create_multi_tile_context(compute::device &device);
 compute::command_queue
 create_multi_tile_queue(const compute::device &device,
@@ -59,6 +59,6 @@ void enqueue_verify_memory(compute::command_queue &queue, const void *actual,
 
 void add_comment(const compute::platform &platform, const char *comment);
 void add_comment(const compute::platform &platform, const std::string comment);
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

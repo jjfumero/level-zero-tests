@@ -27,14 +27,14 @@
 #include "logging/logging.hpp"
 #include "xe_utils/xe_utils.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 void create_xe_image(xe_image_handle_t &image,
                      xe_image_desc_t *image_descriptor) {
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeImageCreate(cs::xeDevice::get_instance()->get_device(),
+            xeImageCreate(lzt::xeDevice::get_instance()->get_device(),
                           image_descriptor, &image));
   EXPECT_NE(nullptr, image);
 }
@@ -52,9 +52,9 @@ void destroy_xe_image(xe_image_handle_t image) {
 
 void generate_xe_image_creation_flags_list(
     std::vector<xe_image_flag_t> &image_creation_flags_list) {
-  for (auto image_rw_flag_a : cs::image_creation_rw_flags) {
-    for (auto image_rw_flag_b : cs::image_creation_rw_flags) {
-      for (auto image_cached_flag : cs::image_creation_cached_flags) {
+  for (auto image_rw_flag_a : lzt::image_creation_rw_flags) {
+    for (auto image_rw_flag_b : lzt::image_creation_rw_flags) {
+      for (auto image_cached_flag : lzt::image_creation_cached_flags) {
         xe_image_flag_t image_creation_flags =
             static_cast<xe_image_flag_t>(static_cast<int>(image_rw_flag_a) |
                                          static_cast<int>(image_rw_flag_b) |
@@ -66,7 +66,7 @@ void generate_xe_image_creation_flags_list(
 }
 
 xeImageCreateCommon::xeImageCreateCommon() : dflt_host_image_(128, 128) {
-  cs::generate_xe_image_creation_flags_list(image_creation_flags_list_);
+  lzt::generate_xe_image_creation_flags_list(image_creation_flags_list_);
   xe_image_desc_t image_desc;
   image_desc.version = XE_IMAGE_DESC_VERSION_CURRENT;
   image_desc.format.layout = XE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
@@ -109,4 +109,4 @@ void print_image_descriptor(const xe_image_desc_t descriptor) {
             << "   MIPLEVELS = " << descriptor.miplevels;
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

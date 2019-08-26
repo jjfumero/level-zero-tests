@@ -27,7 +27,7 @@ get_filename_component(ocl_entrypoints_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PA
 include(CMakeFindDependencyMacro)
 find_dependency(OpenCL REQUIRED)
 
-if(NOT TARGET compute_samples::ocl_entrypoints)
+if(NOT TARGET level_zero_tests::ocl_entrypoints)
     include("${ocl_entrypoints_CMAKE_DIR}/ocl_entrypoints-targets.cmake")
 endif()
 

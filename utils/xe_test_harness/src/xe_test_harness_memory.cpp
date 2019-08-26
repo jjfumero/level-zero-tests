@@ -25,11 +25,11 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "gtest/gtest.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_memory.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 void *allocate_host_memory(const size_t size) {
   return allocate_host_memory(size, 1);
@@ -38,7 +38,7 @@ void *allocate_host_memory(const size_t size) {
 void *allocate_host_memory(const size_t size, const size_t alignment) {
   const xe_host_mem_alloc_flag_t flags = XE_HOST_MEM_ALLOC_FLAG_DEFAULT;
 
-  xe_device_group_handle_t device_group = cs::get_default_device_group();
+  xe_device_group_handle_t device_group = lzt::get_default_device_group();
 
   void *memory = nullptr;
   EXPECT_EQ(
@@ -61,7 +61,7 @@ void *allocate_device_memory(const size_t size, const size_t alignment) {
 void *allocate_device_memory(const size_t size, const size_t alignment,
                              const xe_device_mem_alloc_flag_t flags) {
 
-  xe_device_group_handle_t device_group = cs::get_default_device_group();
+  xe_device_group_handle_t device_group = lzt::get_default_device_group();
   xe_device_handle_t device = xeDevice::get_instance()->get_device();
   return allocate_device_memory(size, alignment, flags, device, device_group);
 }
@@ -115,7 +115,7 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
                              xe_device_handle_t device) {
 
   uint32_t ordinal = 0;
-  auto device_group = cs::get_default_device_group();
+  auto device_group = lzt::get_default_device_group();
 
   void *memory = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
@@ -127,7 +127,7 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
 }
 
 void free_memory(const void *ptr) {
-  free_memory(cs::get_default_device_group(), ptr);
+  free_memory(lzt::get_default_device_group(), ptr);
 }
 
 void free_memory(xe_device_group_handle_t device_group, const void *ptr) {
@@ -153,7 +153,7 @@ void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *mem_handle,
   }
 
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetMemIpcHandle(cs::get_default_device_group(),
+            xeDeviceGroupGetMemIpcHandle(lzt::get_default_device_group(),
                                          *memory, mem_handle));
 }
 
@@ -175,4 +175,4 @@ void validate_data_pattern(void *buff, size_t size, int8_t data_pattern) {
   }
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

@@ -22,14 +22,14 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_MEMORY_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_MEMORY_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_MEMORY_HPP
+#define level_zero_tests_XE_TEST_HARNESS_MEMORY_HPP
 
 #include "xe_test_harness_device.hpp"
 #include "xe_memory.h"
 #include "gtest/gtest.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 #ifndef XE_MAX_IPC_HANDLE_SIZE
 #define XE_MAX_IPC_HANDLE_SIZE 64
@@ -73,5 +73,5 @@ void allocate_mem_and_get_ipc_handle(xe_ipc_mem_handle_t *handle, void **memory,
 void write_data_pattern(void *buff, size_t size, int8_t data_pattern);
 void validate_data_pattern(void *buff, size_t size, int8_t data_pattern);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 #endif

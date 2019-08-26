@@ -24,7 +24,7 @@
 
 #include "ocl_utils/embargo/unified_shared_memory.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 std::string to_string(const compute::usm_type &x) {
   if (x == compute::usm_type::host) {
     return "host";
@@ -36,12 +36,12 @@ std::string to_string(const compute::usm_type &x) {
     return "unknown";
   }
 }
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 namespace boost {
 namespace compute {
 std::ostream &operator<<(std::ostream &os, const compute::usm_type &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::istream &operator>>(std::istream &is, compute::usm_type &x) {

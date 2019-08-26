@@ -24,7 +24,7 @@
 
 get_filename_component(random_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-if(NOT TARGET compute_samples::random)
+if(NOT TARGET level_zero_tests::random)
     include("${random_CMAKE_DIR}/random-targets.cmake")
 endif()
 

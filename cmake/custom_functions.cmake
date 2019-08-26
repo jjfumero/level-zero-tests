@@ -23,7 +23,7 @@
 function(add_core_library name)
     cmake_parse_arguments(F "" "" "SOURCE" ${ARGN})
     add_library(${name} ${F_SOURCE})
-    add_library(compute_samples::${name} ALIAS ${name})
+    add_library(level_zero_tests::${name} ALIAS ${name})
 
     target_include_directories(${name}
         PUBLIC
@@ -36,11 +36,11 @@ function(add_core_library_test project_name)
     cmake_parse_arguments(F "" "" "SOURCE" ${ARGN})
     set(name "${project_name}_tests")
     add_executable(${name} ${F_SOURCE})
-    add_executable(compute_samples::${name} ALIAS ${name})
+    add_executable(level_zero_tests::${name} ALIAS ${name})
 
     target_link_libraries(${name}
         PUBLIC
-        compute_samples::${project_name}
+        level_zero_tests::${project_name}
         GTest::GTest
     )
 
@@ -64,7 +64,7 @@ endfunction()
 function(add_core_xe_library name)
     cmake_parse_arguments(F "" "" "SOURCE" ${ARGN})
     add_library(${name} ${F_SOURCE})
-    add_library(compute_samples::${name} ALIAS ${name})
+    add_library(level_zero_tests::${name} ALIAS ${name})
 
     target_include_directories(${name}
         PUBLIC
@@ -85,11 +85,11 @@ function(add_core_xe_library_test project_name)
     cmake_parse_arguments(F "" "" "SOURCE" ${ARGN})
     set(name "${project_name}_tests")
     add_executable(${name} ${F_SOURCE})
-    add_executable(compute_samples::${name} ALIAS ${name})
+    add_executable(level_zero_tests::${name} ALIAS ${name})
 
     target_link_libraries(${name}
         PUBLIC
-        compute_samples::${project_name}
+        level_zero_tests::${project_name}
         GTest::GTest
     )
 

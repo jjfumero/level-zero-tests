@@ -25,9 +25,9 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "gtest/gtest.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_event_pool_handle_t create_event_pool(uint32_t count,
                                          xe_event_pool_flag_t flags) {
@@ -145,4 +145,4 @@ void xeEventPool::close_ipc_handle_pool(xe_event_pool_handle_t &eventPool) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolCloseIpcHandle(eventPool));
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

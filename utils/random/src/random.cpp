@@ -22,7 +22,7 @@
 
 #include "random/random.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 template <>
 int8_t generate_value<int8_t>(const int8_t min, const int8_t max,
                               const int seed) {
@@ -52,4 +52,4 @@ double generate_value<double>(const double min, const double max,
   return distribution(engine);
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

@@ -25,7 +25,7 @@
 #include "xe_utils/xe_utils.hpp"
 #include "logging/logging.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 uint32_t get_device_group_count() {
   uint32_t count = 0;
@@ -416,54 +416,54 @@ void print_platform_overview() {
   print_device_group_overview(device_groups);
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 std::ostream &operator<<(std::ostream &os, const xe_api_version_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_result_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os,
                          const xe_command_queue_desc_version_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_command_queue_flag_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_command_queue_mode_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os,
                          const xe_command_queue_priority_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_desc_version_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_format_layout_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_format_type_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_format_swizzle_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_flag_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }
 
 std::ostream &operator<<(std::ostream &os, const xe_image_type_t &x) {
-  return os << compute_samples::to_string(x);
+  return os << level_zero_tests::to_string(x);
 }

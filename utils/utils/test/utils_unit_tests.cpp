@@ -31,17 +31,17 @@ TYPED_TEST_CASE(SizeInBytes, StandardTypes);
 
 TYPED_TEST(SizeInBytes, EmptyVector) {
   const std::vector<TypeParam> vector(0);
-  EXPECT_EQ(0, compute_samples::size_in_bytes(vector));
+  EXPECT_EQ(0, level_zero_tests::size_in_bytes(vector));
 }
 
 TYPED_TEST(SizeInBytes, SingleElement) {
   const std::vector<TypeParam> vector(1);
   EXPECT_EQ(sizeof(TypeParam) * vector.size(),
-            compute_samples::size_in_bytes(vector));
+            level_zero_tests::size_in_bytes(vector));
 }
 
 TYPED_TEST(SizeInBytes, MultipleElements) {
   const std::vector<TypeParam> vector(2);
   EXPECT_EQ(sizeof(TypeParam) * vector.size(),
-            compute_samples::size_in_bytes(vector));
+            level_zero_tests::size_in_bytes(vector));
 }

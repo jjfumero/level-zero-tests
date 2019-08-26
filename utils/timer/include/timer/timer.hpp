@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_TIMER_HPP
-#define COMPUTE_SAMPLES_TIMER_HPP
+#ifndef level_zero_tests_TIMER_HPP
+#define level_zero_tests_TIMER_HPP
 
 #include <boost/timer/timer.hpp>
 namespace timer = boost::timer;
 
-namespace compute_samples {
+namespace level_zero_tests {
 class Timer {
 public:
   Timer();
@@ -36,6 +36,6 @@ private:
   timer::cpu_timer timer_;
   const std::string timer_format_ = "%ws";
 };
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

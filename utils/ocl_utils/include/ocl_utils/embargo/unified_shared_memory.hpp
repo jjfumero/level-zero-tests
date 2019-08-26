@@ -22,8 +22,8 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_OCL_UTILS_UNIFIED_SHARED_MEMORY_HPP
-#define COMPUTE_SAMPLES_OCL_UTILS_UNIFIED_SHARED_MEMORY_HPP
+#ifndef level_zero_tests_OCL_UTILS_UNIFIED_SHARED_MEMORY_HPP
+#define level_zero_tests_OCL_UTILS_UNIFIED_SHARED_MEMORY_HPP
 
 #include <iostream>
 #include <string>
@@ -31,9 +31,9 @@
 #include "boost/compute/intel/usm.hpp"
 namespace compute = boost::compute;
 
-namespace compute_samples {
+namespace level_zero_tests {
 std::string to_string(const compute::usm_type &x);
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 namespace boost {
 namespace compute {

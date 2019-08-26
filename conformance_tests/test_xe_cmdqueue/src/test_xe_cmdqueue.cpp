@@ -28,7 +28,7 @@
 #include "random/random.hpp"
 #include "logging/logging.hpp"
 #include <chrono>
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 #include "xe_cmdqueue.h"
 #include "xe_cmdlist.h"
 #include "xe_device.h"
@@ -69,8 +69,8 @@ TEST_P(xeCommandQueueCreateTests,
       std::get<1>(GetParam()),               // mode
       std::get<2>(GetParam())                // priority
   };
-  const xe_device_handle_t device = cs::xeDevice::get_instance()->get_device();
-  const xe_device_group_handle_t device_group = cs::get_default_device_group();
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  const xe_device_group_handle_t device_group = lzt::get_default_device_group();
 
   xe_device_properties_t properties;
   properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
@@ -94,7 +94,7 @@ TEST_P(xeCommandQueueCreateTests,
             xeCommandQueueCreate(device, &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
-  cs::destroy_command_queue(command_queue);
+  lzt::destroy_command_queue(command_queue);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -121,11 +121,11 @@ TEST_F(
 
   xe_command_queue_handle_t command_queue = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandQueueCreate(cs::xeDevice::get_instance()->get_device(),
+            xeCommandQueueCreate(lzt::xeDevice::get_instance()->get_device(),
                                  &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
-  cs::destroy_command_queue(command_queue);
+  lzt::destroy_command_queue(command_queue);
 }
 
 struct CustomExecuteParams {
@@ -139,9 +139,9 @@ class xeCommandQueueExecuteCommandListTests
 protected:
   void SetUp() override {
     const xe_device_handle_t device =
-        cs::xeDevice::get_instance()->get_device();
+        lzt::xeDevice::get_instance()->get_device();
     const xe_device_group_handle_t device_group =
-        cs::get_default_device_group();
+        lzt::get_default_device_group();
     EXPECT_GT(params.num_command_lists, 0);
 
     print_cmdqueue_exec(params.num_command_lists, params.sync_timeout);
@@ -174,7 +174,7 @@ protected:
 
       uint8_t *char_input = static_cast<uint8_t *>(host_shared);
       for (uint32_t j = 0; j < buff_size_bytes; j++) {
-        char_input[j] = cs::generate_value<uint8_t>(0, 255, 0);
+        char_input[j] = lzt::generate_value<uint8_t>(0, 255, 0);
       }
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListAppendMemoryCopy(
@@ -212,10 +212,10 @@ protected:
           0, memcmp(host_buffer.at(i), device_buffer.at(i), buff_size_bytes));
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListDestroy(list_of_command_lists.at(i)));
-      cs::free_memory(host_buffer.at(i));
-      cs::free_memory(device_buffer.at(i));
+      lzt::free_memory(host_buffer.at(i));
+      lzt::free_memory(device_buffer.at(i));
     }
-    cs::destroy_command_queue(command_queue);
+    lzt::destroy_command_queue(command_queue);
   }
 
   const uint32_t buff_size_bytes = 12;

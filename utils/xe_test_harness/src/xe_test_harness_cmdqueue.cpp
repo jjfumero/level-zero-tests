@@ -25,9 +25,9 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "gtest/gtest.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_command_queue_handle_t create_command_queue() {
   return create_command_queue(xeDevice::get_instance()->get_device());
@@ -90,4 +90,4 @@ void destroy_command_queue(xe_command_queue_handle_t cq) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueDestroy(cq));
 }
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests

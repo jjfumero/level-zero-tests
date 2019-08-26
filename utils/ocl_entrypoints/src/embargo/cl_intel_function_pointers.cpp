@@ -25,12 +25,12 @@
 #include "ocl_entrypoints/embargo/cl_intel_function_pointers.h"
 #include "ocl_entrypoints/loader.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 CL_API_ENTRY cl_int CL_API_CALL clGetDeviceFunctionPointerINTEL(
     cl_device_id device, cl_program program, const char *function_name,
     cl_ulong *function_pointer_ret) CL_API_SUFFIX__VERSION_1_2 {
-  const auto e = cs::load_entrypoint<clGetDeviceFunctionPointerINTEL_fn>(
+  const auto e = lzt::load_entrypoint<clGetDeviceFunctionPointerINTEL_fn>(
       device, "clGetDeviceFunctionPointerINTEL");
   return e(device, program, function_name, function_pointer_ret);
 }

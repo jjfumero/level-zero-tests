@@ -23,7 +23,7 @@
 #include "timer/timer.hpp"
 #include "logging/logging.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 Timer::Timer() { timer_.start(); }
 
 void Timer::print(const std::string &event_name) {
@@ -32,4 +32,4 @@ void Timer::print(const std::string &event_name) {
            << timer_.format(timer::default_places, timer_format_);
   timer_.start();
 }
-} // namespace compute_samples
+} // namespace level_zero_tests

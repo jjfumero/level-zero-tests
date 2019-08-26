@@ -29,7 +29,7 @@
 
 #include "logging/logging.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 #pragma pack(push, 1)
 
@@ -337,4 +337,4 @@ bool BmpUtils::load_bmp_image_8u(uint8_t *&data, int &width, int &height,
 
   return success;
 }
-} // namespace compute_samples
+} // namespace level_zero_tests

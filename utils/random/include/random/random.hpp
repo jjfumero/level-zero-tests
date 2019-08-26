@@ -20,15 +20,15 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_RANDOM_HPP
-#define COMPUTE_SAMPLES_RANDOM_HPP
+#ifndef level_zero_tests_RANDOM_HPP
+#define level_zero_tests_RANDOM_HPP
 
 #include <vector>
 #include <random>
 #include <limits>
 #include <algorithm>
 
-namespace compute_samples {
+namespace level_zero_tests {
 template <typename T>
 T generate_value(const T min, const T max, const int seed) {
   static std::default_random_engine engine(seed);
@@ -71,6 +71,6 @@ std::vector<T> generate_vector(const int size, const int seed) {
   return data;
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

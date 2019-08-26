@@ -26,9 +26,9 @@ add_conformance_test(
     src/test_xe_p2p.cpp
     src/main.cpp
   LINK_LIBRARIES
-    compute_samples::logging
-    compute_samples::xe_utils
-    compute_samples::utils
+    level_zero_tests::logging
+    level_zero_tests::xe_utils
+    level_zero_tests::utils
   KERNELS
     xe_atomic_access
     xe_concurrent_access

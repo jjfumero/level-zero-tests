@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_UTILS_HPP
-#define COMPUTE_SAMPLES_UTILS_HPP
+#ifndef level_zero_tests_UTILS_HPP
+#define level_zero_tests_UTILS_HPP
 
 #include <vector>
 #include <string>
 
-namespace compute_samples {
+namespace level_zero_tests {
 std::vector<uint8_t> load_binary_file(const std::string &file_path);
 void save_binary_file(const std::vector<uint8_t> &data,
                       const std::string &file_path);
@@ -35,6 +35,6 @@ template <typename T> int size_in_bytes(const std::vector<T> &v) {
   return static_cast<int>(sizeof(T) * v.size());
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

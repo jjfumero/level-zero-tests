@@ -22,15 +22,15 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_EVENT_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_EVENT_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_EVENT_HPP
+#define level_zero_tests_XE_TEST_HARNESS_EVENT_HPP
 
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "xe_event.h"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 class xeEventPool {
 public:
@@ -71,6 +71,6 @@ protected:
   xeEventPool ep;
 };
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 
 #endif

@@ -24,7 +24,7 @@
 
 get_filename_component(utils_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-if(NOT TARGET compute_samples::utils)
+if(NOT TARGET level_zero_tests::utils)
     include("${utils_CMAKE_DIR}/utils-targets.cmake")
 endif()
 

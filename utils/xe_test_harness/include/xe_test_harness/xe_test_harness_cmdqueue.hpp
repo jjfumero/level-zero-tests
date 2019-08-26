@@ -22,14 +22,14 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_CMDQUEUE_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_CMDQUEUE_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_CMDQUEUE_HPP
+#define level_zero_tests_XE_TEST_HARNESS_CMDQUEUE_HPP
 
 #include "xe_test_harness/xe_test_harness_device.hpp"
 #include "xe_cmdqueue.h"
 #include "gtest/gtest.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 class xeCommandQueue {
 public:
@@ -59,5 +59,5 @@ void synchronize(xe_command_queue_handle_t cq, uint32_t timeout);
 
 void destroy_command_queue(xe_command_queue_handle_t cq);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 #endif

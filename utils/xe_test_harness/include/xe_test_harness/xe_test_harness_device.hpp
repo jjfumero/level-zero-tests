@@ -22,13 +22,13 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_DEVICE_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_DEVICE_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_DEVICE_HPP
+#define level_zero_tests_XE_TEST_HARNESS_DEVICE_HPP
 
 #include "xe_device.h"
 #include "gtest/gtest.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 class xeDevice {
 public:
@@ -83,5 +83,5 @@ void set_intermediate_cache_config(xe_device_handle_t device,
 void set_last_level_cache_config(xe_device_handle_t device,
                                  xe_cache_config_t config);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 #endif

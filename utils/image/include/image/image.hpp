@@ -20,14 +20,14 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_IMAGE_HPP
-#define COMPUTE_SAMPLES_IMAGE_HPP
+#ifndef level_zero_tests_IMAGE_HPP
+#define level_zero_tests_IMAGE_HPP
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
-namespace compute_samples {
+namespace level_zero_tests {
 template <typename T> class Image {
 public:
   virtual ~Image() = default;
@@ -120,6 +120,6 @@ template <typename T> int size_in_bytes(const Image<T> &i) {
   return i.size_in_bytes();
 }
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

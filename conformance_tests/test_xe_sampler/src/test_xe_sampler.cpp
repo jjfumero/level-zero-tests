@@ -28,7 +28,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_sampler.h"
@@ -44,7 +44,7 @@ TEST_F(xeDeviceCreateSamplerTests,
 
   xe_sampler_handle_t sampler = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeSamplerCreate(cs::xeDevice::get_instance()->get_device(),
+            xeSamplerCreate(lzt::xeDevice::get_instance()->get_device(),
                             &descriptor, &sampler));
   EXPECT_NE(nullptr, sampler);
 

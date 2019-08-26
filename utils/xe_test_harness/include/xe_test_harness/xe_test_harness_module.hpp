@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_MODULE_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_MODULE_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_MODULE_HPP
+#define level_zero_tests_XE_TEST_HARNESS_MODULE_HPP
 
 #include "xe_module.h"
 #include <string>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_module_handle_t create_module(xe_device_handle_t device,
                                  const std::string filename);
@@ -67,6 +67,6 @@ void create_and_execute_function(xe_device_handle_t device,
                                  xe_module_handle_t module,
                                  std::string func_name, int group_size,
                                  const std::vector<FunctionArg> &args);
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

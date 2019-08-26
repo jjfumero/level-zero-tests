@@ -27,7 +27,7 @@ add_core_library(random
 )
 target_link_libraries(random
     PUBLIC
-    compute_samples::logging
+    level_zero_tests::logging
 )
 
 add_core_library_test(random

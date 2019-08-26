@@ -34,7 +34,7 @@
 
 namespace {
 
-class xeDeviceCreateEventPoolTests : public cs::xeEventPoolTests {};
+class xeDeviceCreateEventPoolTests : public lzt::xeEventPoolTests {};
 
 TEST_F(
     xeDeviceCreateEventPoolTests,
@@ -55,7 +55,7 @@ TEST_F(
 }
 
 class xeDeviceCreateEventPermuteEventsTests
-    : public cs::xeEventPoolTests,
+    : public lzt::xeEventPoolTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_event_scope_flag_t, xe_event_scope_flag_t>> {};
 
@@ -106,8 +106,8 @@ TEST_F(
   ep.close_ipc_handle_pool(eventPool);
 }
 
-class xeDeviceCreateEventAndCommandListTests : public cs::xeCommandList,
-                                               public cs::xeEventPoolTests {};
+class xeDeviceCreateEventAndCommandListTests : public lzt::xeCommandList,
+                                               public lzt::xeEventPoolTests {};
 
 TEST_F(
     xeDeviceCreateEventAndCommandListTests,
@@ -132,7 +132,7 @@ TEST_F(
   ep.destroy_events(events);
 }
 
-class xeDeviceCreateEventTests : public cs::xeEventPoolTests {};
+class xeDeviceCreateEventTests : public lzt::xeEventPoolTests {};
 
 TEST_F(
     xeDeviceCreateEventTests,
@@ -145,7 +145,7 @@ TEST_F(
 }
 
 class xeHostEventSyncPermuteTimeoutTests
-    : public cs::xeEventPoolTests,
+    : public lzt::xeEventPoolTests,
       public ::testing::WithParamInterface<uint32_t> {};
 
 void child_thread_function(xe_event_handle_t event, uint32_t timeout) {

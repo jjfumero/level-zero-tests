@@ -27,7 +27,7 @@ get_filename_component(ocl_utils_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 find_dependency(OpenCL REQUIRED)
 
-if(NOT TARGET compute_samples::ocl_utils)
+if(NOT TARGET level_zero_tests::ocl_utils)
     include("${ocl_utils_CMAKE_DIR}/ocl_utils-targets.cmake")
 endif()
 

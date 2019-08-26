@@ -22,8 +22,8 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_IMAGE_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_IMAGE_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_IMAGE_HPP
+#define level_zero_tests_XE_TEST_HARNESS_IMAGE_HPP
 
 #include "xe_test_harness_device.hpp"
 #include "xe_image.h"
@@ -31,7 +31,7 @@
 #include "xe_utils/xe_utils.hpp"
 #include "image/image.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 const std::vector<xe_image_flag_t> image_creation_rw_flags = {
     XE_IMAGE_FLAG_PROGRAM_READ, XE_IMAGE_FLAG_PROGRAM_WRITE};
@@ -100,7 +100,7 @@ public:
   ~xeImageCreateCommon();
 
   std::vector<xe_image_flag_t> image_creation_flags_list_;
-  compute_samples::ImagePNG32Bit dflt_host_image_;
+  level_zero_tests::ImagePNG32Bit dflt_host_image_;
   xe_image_handle_t dflt_device_image_ = nullptr;
   xe_image_handle_t dflt_device_image_2_ = nullptr;
 };
@@ -109,5 +109,5 @@ class xeImageCreateCommonTests : public ::testing::Test {
 protected:
   xeImageCreateCommon img;
 };
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 #endif

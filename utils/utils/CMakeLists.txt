@@ -27,7 +27,7 @@ add_core_library(utils
 )
 target_link_libraries(utils
     PUBLIC
-    compute_samples::logging
+    level_zero_tests::logging
 )
 
 add_core_library_test(utils

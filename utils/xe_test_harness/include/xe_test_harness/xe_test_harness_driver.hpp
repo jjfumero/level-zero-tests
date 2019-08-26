@@ -21,18 +21,18 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_DRIVER_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_DRIVER_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_DRIVER_HPP
+#define level_zero_tests_XE_TEST_HARNESS_DRIVER_HPP
 
 #include "xe_driver.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 void xe_init();
 void xe_init(xe_init_flag_t init_flag);
 
 uint32_t get_driver_version(xe_device_group_handle_t device_group);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 
 #endif

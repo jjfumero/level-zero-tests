@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_BMP_HPP
-#define COMPUTE_SAMPLES_BMP_HPP
+#ifndef level_zero_tests_BMP_HPP
+#define level_zero_tests_BMP_HPP
 
 #include <cstdint>
 #include <stddef.h>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 class BmpUtils {
 public:
@@ -43,6 +43,6 @@ public:
   static bool load_bmp_image_8u(uint8_t *&data, int &width, int &height,
                                 const char *file_name);
 };
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 #endif

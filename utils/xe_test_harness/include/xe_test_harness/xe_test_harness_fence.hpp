@@ -20,12 +20,12 @@
  * SOFTWARE.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_TEST_HARNESS_FENCE_HPP
-#define COMPUTE_SAMPLES_XE_TEST_HARNESS_FENCE_HPP
+#ifndef level_zero_tests_XE_TEST_HARNESS_FENCE_HPP
+#define level_zero_tests_XE_TEST_HARNESS_FENCE_HPP
 
 #include "xe_fence.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_fence_handle_t create_fence(xe_command_queue_handle_t cmd_queue);
 void destroy_fence(xe_fence_handle_t fence);
@@ -33,6 +33,6 @@ void reset_fence(xe_fence_handle_t fence);
 xe_result_t query_fence(xe_fence_handle_t fence);
 xe_result_t sync_fence(xe_fence_handle_t fence, uint32_t timeout);
 
-}; // namespace compute_samples
+}; // namespace level_zero_tests
 
 #endif

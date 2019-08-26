@@ -33,7 +33,7 @@
 
 #include "image/image.hpp"
 
-namespace compute_samples {
+namespace level_zero_tests {
 PlanarImage *PlanarImage::create_planar_image(int width, int height,
                                               int pitch_y) {
   PlanarImage *im = new PlanarImage;
@@ -643,4 +643,4 @@ FrameWriter *FrameWriter::create_frame_writer(int width, int height,
 
 void FrameWriter::release(FrameWriter *writer) { delete writer; }
 
-} // namespace compute_samples
+} // namespace level_zero_tests

@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 typedef struct {
   int16_t x, y;
@@ -137,4 +137,4 @@ protected:
 private:
   FrameWriter(const FrameWriter &);
 };
-} // namespace compute_samples
+} // namespace level_zero_tests

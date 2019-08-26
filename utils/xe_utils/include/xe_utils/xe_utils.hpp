@@ -22,8 +22,8 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef COMPUTE_SAMPLES_XE_UTILS_HPP
-#define COMPUTE_SAMPLES_XE_UTILS_HPP
+#ifndef level_zero_tests_XE_UTILS_HPP
+#define level_zero_tests_XE_UTILS_HPP
 
 #include <vector>
 #include <string>
@@ -33,7 +33,7 @@
 #include "xe_cmdqueue.h"
 #include "xe_image.h"
 
-namespace compute_samples {
+namespace level_zero_tests {
 
 xe_device_handle_t get_default_device();
 xe_device_group_handle_t get_default_device_group();
@@ -65,7 +65,7 @@ void print_device_group_overview(
     const std::vector<xe_device_group_handle_t> device_groups);
 void print_platform_overview();
 
-} // namespace compute_samples
+} // namespace level_zero_tests
 
 std::ostream &operator<<(std::ostream &os, const xe_api_version_t &x);
 std::ostream &operator<<(std::ostream &os, const xe_result_t &x);

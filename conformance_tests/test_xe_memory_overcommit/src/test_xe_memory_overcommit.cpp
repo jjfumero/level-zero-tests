@@ -27,7 +27,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 #include "xe_driver.h"
 #include "xe_module.h"
@@ -43,7 +43,7 @@ class xeDeviceGroupMemoryOvercommitTests
 protected:
   xe_module_handle_t create_module(const xe_device_handle_t device,
                                    const std::string path) {
-    const std::vector<uint8_t> binary_file = cs::load_binary_file(path);
+    const std::vector<uint8_t> binary_file = lzt::load_binary_file(path);
 
     LOG_INFO << "set up module description for path " << path;
     xe_module_desc_t module_description;
@@ -201,8 +201,8 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandQueueSynchronize(command_queue, UINT32_MAX));
 
-    cs::destroy_command_queue(command_queue);
-    cs::destroy_command_list(command_list);
+    lzt::destroy_command_queue(command_queue);
+    lzt::destroy_command_list(command_list);
     EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(fill_function));
     EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(test_function));
   }
@@ -468,13 +468,13 @@ TEST_P(
   size_t pattern_memory_count = pattern_memory_size >> 3; // array of uint64_t
 
   uint64_t *gpu_pattern_buffer;
-  gpu_pattern_buffer = (uint64_t *)compute_samples::allocate_device_memory(
+  gpu_pattern_buffer = (uint64_t *)level_zero_tests::allocate_device_memory(
       pattern_memory_size, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
       use_this_ordinal_on_device_, device_handle, device_group_handle);
 
   uint64_t *gpu_expected_output_buffer;
   gpu_expected_output_buffer =
-      (uint64_t *)compute_samples::allocate_device_memory(
+      (uint64_t *)level_zero_tests::allocate_device_memory(
           output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
           use_this_ordinal_on_device_, device_handle, device_group_handle);
   uint64_t *host_expected_output_buffer = new uint64_t[output_count_];
@@ -482,9 +482,10 @@ TEST_P(
             host_expected_output_buffer + output_count_, 0);
 
   uint64_t *gpu_found_output_buffer;
-  gpu_found_output_buffer = (uint64_t *)compute_samples::allocate_device_memory(
-      output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-      use_this_ordinal_on_device_, device_handle, device_group_handle);
+  gpu_found_output_buffer =
+      (uint64_t *)level_zero_tests::allocate_device_memory(
+          output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          use_this_ordinal_on_device_, device_handle, device_group_handle);
   uint64_t *host_found_output_buffer = new uint64_t[output_size_];
   std::fill(host_found_output_buffer, host_found_output_buffer + output_count_,
             0);
@@ -517,9 +518,10 @@ TEST_P(
                 gpu_found_output_buffer, output_count_);
 
   LOG_INFO << "call free memory";
-  compute_samples::free_memory(device_group_handle, gpu_pattern_buffer);
-  compute_samples::free_memory(device_group_handle, gpu_expected_output_buffer);
-  compute_samples::free_memory(device_group_handle, gpu_found_output_buffer);
+  level_zero_tests::free_memory(device_group_handle, gpu_pattern_buffer);
+  level_zero_tests::free_memory(device_group_handle,
+                                gpu_expected_output_buffer);
+  level_zero_tests::free_memory(device_group_handle, gpu_found_output_buffer);
 
   LOG_INFO << "call destroy module";
   EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(module_handle));

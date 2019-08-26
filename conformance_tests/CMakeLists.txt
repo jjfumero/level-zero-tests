@@ -42,7 +42,7 @@ function(add_conformance_test)
     target_link_libraries(${ADD_CONFORMANCE_TEST_NAME}
       PRIVATE
         ${LevelZero_LIBRARIES}
-        compute_samples::xe_test_harness
+        level_zero_tests::xe_test_harness
         GMock::GMock
         GTest::GTest
         ${ADD_CONFORMANCE_TEST_LINK_LIBRARIES}

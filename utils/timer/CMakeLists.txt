@@ -28,5 +28,5 @@ add_core_library(timer
 target_link_libraries(timer
     PUBLIC
     Boost::timer
-    compute_samples::logging
+    level_zero_tests::logging
 )

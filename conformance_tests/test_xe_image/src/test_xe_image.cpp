@@ -26,71 +26,71 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-namespace cs = compute_samples;
+namespace lzt = level_zero_tests;
 
 namespace {
 
 class xeImageCreateDefaultTests : public ::testing::Test {};
 
 class xeImage1DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t>> {};
 
 class xeImageArray1DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t, size_t>> {};
 
 class xeImage2DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t, xe_image_format_swizzle_t>> {};
 
 class xeImageArray2DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<std::tuple<
           xe_image_format_layout_t, xe_image_format_type_t,
           xe_image_format_swizzle_t, xe_image_format_swizzle_t, size_t>> {};
 
 class xeImage3DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t, xe_image_format_swizzle_t,
                      xe_image_format_swizzle_t>> {};
 
 class xeImageArray3DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t, xe_image_format_swizzle_t,
                      xe_image_format_swizzle_t, size_t>> {};
 
 class xeImage4DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t,
                      xe_image_format_swizzle_t, xe_image_format_swizzle_t,
                      xe_image_format_swizzle_t, xe_image_format_swizzle_t>> {};
 
 class xeImageArray4DSwizzleCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<std::tuple<
           xe_image_format_layout_t, xe_image_format_type_t,
           xe_image_format_swizzle_t, xe_image_format_swizzle_t,
           xe_image_format_swizzle_t, xe_image_format_swizzle_t, size_t>> {};
 
 class xeImageMediaCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<
           std::tuple<xe_image_format_layout_t, xe_image_format_type_t>> {};
 
 class xeImageArrayMediaCreateTests
-    : public cs::xeImageCreateCommonTests,
+    : public lzt::xeImageCreateCommonTests,
       public ::testing::WithParamInterface<std::tuple<
           xe_image_format_layout_t, xe_image_format_type_t, size_t>> {};
 
@@ -98,8 +98,8 @@ TEST_F(
     xeImageCreateDefaultTests,
     GivenDefaultImageDescriptorWhenCreatingImageThenNotNullPointerIsReturned) {
   xe_image_handle_t image;
-  cs::create_xe_image(image);
-  cs::destroy_xe_image(image);
+  lzt::create_xe_image(image);
+  lzt::destroy_xe_image(image);
 }
 
 TEST_P(
@@ -107,7 +107,7 @@ TEST_P(
     GivenValidDescriptorWhenCreating1DImageWith1DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -130,9 +130,9 @@ TEST_P(
           0,                             // arraylevels
           0};                            // miplevels
 
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -142,8 +142,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DImageWith1DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -165,9 +165,9 @@ TEST_P(
             0,                             // depth
             0,                             // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -178,9 +178,9 @@ TEST_P(
     GivenValidDescriptorWhenCreating3DImageWith1DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
-        for (auto image_depth : cs::image_depths) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
+        for (auto image_depth : lzt::image_depths) {
 
           xe_image_handle_t image;
           xe_image_format_desc_t format_descriptor = {
@@ -203,9 +203,9 @@ TEST_P(
               0,                             // arraylevels
               0};                            // miplevels
 
-          cs::print_image_descriptor(image_descriptor);
-          cs::create_xe_image(image, &image_descriptor);
-          cs::destroy_xe_image(image);
+          lzt::print_image_descriptor(image_descriptor);
+          lzt::create_xe_image(image, &image_descriptor);
+          lzt::destroy_xe_image(image);
         }
       }
     }
@@ -214,16 +214,16 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(1DSwizzleImageCreationCombinations,
                         xeImage1DSwizzleCreateTests,
-                        ::testing::Combine(cs::image_format_1d_swizzle_layouts,
-                                           cs::image_format_types,
-                                           cs::image_format_swizzles));
+                        ::testing::Combine(lzt::image_format_1d_swizzle_layouts,
+                                           lzt::image_format_types,
+                                           lzt::image_format_swizzles));
 
 TEST_P(
     xeImageArray1DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DArrayImageWith1DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -245,9 +245,9 @@ TEST_P(
           0,                             // depth
           std::get<3>(GetParam()),       // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -257,8 +257,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DArrayImageWith1DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -280,9 +280,9 @@ TEST_P(
             0,                             // depth
             std::get<3>(GetParam()),       // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -290,17 +290,17 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(1DSwizzleArrayImageCreationCombinations,
                         xeImageArray1DSwizzleCreateTests,
-                        ::testing::Combine(cs::image_format_1d_swizzle_layouts,
-                                           cs::image_format_types,
-                                           cs::image_format_swizzles,
-                                           cs::image_array_levels));
+                        ::testing::Combine(lzt::image_format_1d_swizzle_layouts,
+                                           lzt::image_format_types,
+                                           lzt::image_format_swizzles,
+                                           lzt::image_array_levels));
 
 TEST_P(
     xeImage2DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DImageWith2DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -323,9 +323,9 @@ TEST_P(
           0,                             // arraylevels
           0};                            // miplevels
 
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -335,8 +335,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DImageWith2DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -358,9 +358,9 @@ TEST_P(
             0,                             // depth
             0,                             // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -371,9 +371,9 @@ TEST_P(
     GivenValidDescriptorWhenCreating3DImageWith2DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
-        for (auto image_depth : cs::image_depths) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
+        for (auto image_depth : lzt::image_depths) {
 
           xe_image_handle_t image;
           xe_image_format_desc_t format_descriptor = {
@@ -396,9 +396,9 @@ TEST_P(
               0,                             // arraylevels
               0};                            // miplevels
 
-          cs::print_image_descriptor(image_descriptor);
-          cs::create_xe_image(image, &image_descriptor);
-          cs::destroy_xe_image(image);
+          lzt::print_image_descriptor(image_descriptor);
+          lzt::create_xe_image(image, &image_descriptor);
+          lzt::destroy_xe_image(image);
         }
       }
     }
@@ -407,17 +407,17 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(2DSwizzleImageCreationCombinations,
                         xeImage2DSwizzleCreateTests,
-                        ::testing::Combine(cs::image_format_2d_swizzle_layouts,
-                                           cs::image_format_types,
-                                           cs::image_format_swizzles,
-                                           cs::image_format_swizzles));
+                        ::testing::Combine(lzt::image_format_2d_swizzle_layouts,
+                                           lzt::image_format_types,
+                                           lzt::image_format_swizzles,
+                                           lzt::image_format_swizzles));
 
 TEST_P(
     xeImageArray2DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DArrayImageWith2DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -439,9 +439,9 @@ TEST_P(
           0,                             // depth
           std::get<4>(GetParam()),       // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -451,8 +451,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DArrayImageWith2DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -474,9 +474,9 @@ TEST_P(
             0,                             // depth
             std::get<4>(GetParam()),       // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -484,16 +484,16 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(
     2DSwizzleArrayImageCreationCombinations, xeImageArray2DSwizzleCreateTests,
-    ::testing::Combine(cs::image_format_2d_swizzle_layouts,
-                       cs::image_format_types, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_array_levels));
+    ::testing::Combine(lzt::image_format_2d_swizzle_layouts,
+                       lzt::image_format_types, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_array_levels));
 
 TEST_P(
     xeImage3DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DImageWith3DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -516,9 +516,9 @@ TEST_P(
           0,                             // arraylevels
           0};                            // miplevels
 
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -528,8 +528,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DImageWith3DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -551,9 +551,9 @@ TEST_P(
             0,                             // depth
             0,                             // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -564,9 +564,9 @@ TEST_P(
     GivenValidDescriptorWhenCreating3DImageWith3DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
-        for (auto image_depth : cs::image_depths) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
+        for (auto image_depth : lzt::image_depths) {
 
           xe_image_handle_t image;
           xe_image_format_desc_t format_descriptor = {
@@ -589,9 +589,9 @@ TEST_P(
               0,                             // arraylevels
               0};                            // miplevels
 
-          cs::print_image_descriptor(image_descriptor);
-          cs::create_xe_image(image, &image_descriptor);
-          cs::destroy_xe_image(image);
+          lzt::print_image_descriptor(image_descriptor);
+          lzt::create_xe_image(image, &image_descriptor);
+          lzt::destroy_xe_image(image);
         }
       }
     }
@@ -600,16 +600,16 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(
     3DSwizzleImageCreationCombinations, xeImage3DSwizzleCreateTests,
-    ::testing::Combine(cs::image_format_3d_swizzle_layouts,
-                       cs::image_format_types, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_format_swizzles));
+    ::testing::Combine(lzt::image_format_3d_swizzle_layouts,
+                       lzt::image_format_types, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_format_swizzles));
 
 TEST_P(
     xeImageArray3DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DArrayImageWith3DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -631,9 +631,9 @@ TEST_P(
           0,                             // depth
           std::get<5>(GetParam()),       // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -643,8 +643,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DArrayImageWith3DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -666,9 +666,9 @@ TEST_P(
             0,                             // depth
             std::get<5>(GetParam()),       // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -676,17 +676,17 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(
     3DSwizzleArrayImageCreationCombinations, xeImageArray3DSwizzleCreateTests,
-    ::testing::Combine(cs::image_format_3d_swizzle_layouts,
-                       cs::image_format_types, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_format_swizzles,
-                       cs::image_array_levels));
+    ::testing::Combine(lzt::image_format_3d_swizzle_layouts,
+                       lzt::image_format_types, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_format_swizzles,
+                       lzt::image_array_levels));
 
 TEST_P(
     xeImage4DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DImageWith4DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -709,9 +709,9 @@ TEST_P(
           0,                             // arraylevels
           0};                            // miplevels
 
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -721,8 +721,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DImageWith4DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -744,9 +744,9 @@ TEST_P(
             0,                             // depth
             0,                             // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -757,9 +757,9 @@ TEST_P(
     GivenValidDescriptorWhenCreating3DImageWith4DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
-        for (auto image_depth : cs::image_depths) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
+        for (auto image_depth : lzt::image_depths) {
 
           xe_image_handle_t image;
           xe_image_format_desc_t format_descriptor = {
@@ -782,9 +782,9 @@ TEST_P(
               0,                             // arraylevels
               0};                            // miplevels
 
-          cs::print_image_descriptor(image_descriptor);
-          cs::create_xe_image(image, &image_descriptor);
-          cs::destroy_xe_image(image);
+          lzt::print_image_descriptor(image_descriptor);
+          lzt::create_xe_image(image, &image_descriptor);
+          lzt::destroy_xe_image(image);
         }
       }
     }
@@ -793,17 +793,17 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(
     4DSwizzleImageCreationCombinations, xeImage4DSwizzleCreateTests,
-    ::testing::Combine(cs::image_format_4d_swizzle_layouts,
-                       cs::image_format_types, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_format_swizzles,
-                       cs::image_format_swizzles));
+    ::testing::Combine(lzt::image_format_4d_swizzle_layouts,
+                       lzt::image_format_types, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles));
 
 TEST_P(
     xeImageArray4DSwizzleCreateTests,
     GivenValidDescriptorWhenCreating1DArrayImageWith4DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -825,9 +825,9 @@ TEST_P(
           0,                             // depth
           std::get<6>(GetParam()),       // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -837,8 +837,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DArrayImageWith4DSwizzleFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -860,9 +860,9 @@ TEST_P(
             0,                             // depth
             std::get<6>(GetParam()),       // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -870,17 +870,17 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(
     4DSwizzleArrayImageCreationCombinations, xeImageArray4DSwizzleCreateTests,
-    ::testing::Combine(cs::image_format_4d_swizzle_layouts,
-                       cs::image_format_types, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_format_swizzles,
-                       cs::image_format_swizzles, cs::image_array_levels));
+    ::testing::Combine(lzt::image_format_4d_swizzle_layouts,
+                       lzt::image_format_types, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_format_swizzles,
+                       lzt::image_format_swizzles, lzt::image_array_levels));
 
 TEST_P(
     xeImageMediaCreateTests,
     GivenValidDescriptorWhenCreating1DImageWithMediaFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -902,9 +902,9 @@ TEST_P(
           0,                             // depth
           0,                             // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -914,8 +914,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DImageWithMediaFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -937,9 +937,9 @@ TEST_P(
             0,                             // depth
             0,                             // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -950,9 +950,9 @@ TEST_P(
     GivenValidDescriptorWhenCreating3DImageWithMediaFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
-        for (auto image_depth : cs::image_depths) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
+        for (auto image_depth : lzt::image_depths) {
 
           xe_image_handle_t image;
           xe_image_format_desc_t format_descriptor = {
@@ -974,9 +974,9 @@ TEST_P(
               image_depth,                   // depth
               0,                             // arraylevels
               0};                            // miplevels
-          cs::print_image_descriptor(image_descriptor);
-          cs::create_xe_image(image, &image_descriptor);
-          cs::destroy_xe_image(image);
+          lzt::print_image_descriptor(image_descriptor);
+          lzt::create_xe_image(image, &image_descriptor);
+          lzt::destroy_xe_image(image);
         }
       }
     }
@@ -984,15 +984,15 @@ TEST_P(
 }
 
 INSTANTIATE_TEST_CASE_P(MediaImageCreationCombinations, xeImageMediaCreateTests,
-                        ::testing::Combine(cs::image_format_media_layouts,
-                                           cs::image_format_types));
+                        ::testing::Combine(lzt::image_format_media_layouts,
+                                           lzt::image_format_types));
 
 TEST_P(
     xeImageArrayMediaCreateTests,
     GivenValidDescriptorWhenCreating1DArrayImageWithMediaFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
+    for (auto image_width : lzt::image_widths) {
 
       xe_image_handle_t image;
       xe_image_format_desc_t format_descriptor = {
@@ -1014,9 +1014,9 @@ TEST_P(
           0,                             // depth
           std::get<2>(GetParam()),       // arraylevels
           0};                            // miplevels
-      cs::print_image_descriptor(image_descriptor);
-      cs::create_xe_image(image, &image_descriptor);
-      cs::destroy_xe_image(image);
+      lzt::print_image_descriptor(image_descriptor);
+      lzt::create_xe_image(image, &image_descriptor);
+      lzt::destroy_xe_image(image);
     }
   }
 }
@@ -1026,8 +1026,8 @@ TEST_P(
     GivenValidDescriptorWhenCreating2DArrayImageWithMediaFormatThenNotNullPointerIsReturned) {
 
   for (auto image_create_flags : img.image_creation_flags_list_) {
-    for (auto image_width : cs::image_widths) {
-      for (auto image_height : cs::image_heights) {
+    for (auto image_width : lzt::image_widths) {
+      for (auto image_height : lzt::image_heights) {
 
         xe_image_handle_t image;
         xe_image_format_desc_t format_descriptor = {
@@ -1049,9 +1049,9 @@ TEST_P(
             0,                             // depth
             std::get<2>(GetParam()),       // arraylevels
             0};                            // miplevels
-        cs::print_image_descriptor(image_descriptor);
-        cs::create_xe_image(image, &image_descriptor);
-        cs::destroy_xe_image(image);
+        lzt::print_image_descriptor(image_descriptor);
+        lzt::create_xe_image(image, &image_descriptor);
+        lzt::destroy_xe_image(image);
       }
     }
   }
@@ -1059,9 +1059,9 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(MediaArrayImageCreationCombinations,
                         xeImageArrayMediaCreateTests,
-                        ::testing::Combine(cs::image_format_media_layouts,
-                                           cs::image_format_types,
-                                           cs::image_array_levels));
+                        ::testing::Combine(lzt::image_format_media_layouts,
+                                           lzt::image_format_types,
+                                           lzt::image_array_levels));
 
 } // namespace
 
