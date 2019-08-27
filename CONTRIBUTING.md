@@ -58,9 +58,14 @@ cmake --build . --target clang-format
 
 ## Kernels (SPV files)
 
-Whenever you add or update any kernels (contained in `.cl` files), you must
-re-generate the binaries (`.spv` files) and commit them with your changes. A
-specialized build of clang is required to do this.
+OpenCL C kernel source code (`.cl`) and binaries (`.spv`) should be placed in a
+`kernels/` subdirectory of your conformance of performance test. The
+`add_perf_test` and `add_conformance_test` CMake functions will search for
+kernels in that directory.
+
+Whenever you add or update any kernels, you must re-generate the SPIR-V binaries
+and commit them with your changes. A specialized build of clang is required to
+do this.
 
 A [Dockerfile][clang-spv] is available in the one-api/devops GitLab repository
 which specifies an image containing this specialized build of clang. You can
