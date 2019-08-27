@@ -82,26 +82,24 @@ INSTANTIATE_TEST_CASE_P(
 
 TEST_F(xeDeviceCreateEventPoolTests,
        GivenDefaultDeviceWhenGettingIpcHandleThenNotNullisReturned) {
-  xe_ipc_event_pool_handle_t hIpc = nullptr;
+  xe_ipc_event_pool_handle_t hIpc;
   ep.InitEventPool();
-  ep.get_ipc_handle(hIpc);
   // As of July 10, 2019, xeEventPoolGetIpcHandle() returns UNSUPPORTED
   // and thus the following test fails:
-  EXPECT_NE(nullptr, hIpc);
+  ASSERT_EQ(XE_RESULT_SUCCESS, xeEventPoolGetIpcHandle(ep.event_pool_, &hIpc));
 }
 
 TEST_F(
     xeDeviceCreateEventPoolTests,
     GivenDefaultDeviceWhenGettingIpcHandleAndOpeningAndClosingThenSuccessIsReturned) {
-  xe_ipc_event_pool_handle_t hIpc = nullptr;
+  xe_ipc_event_pool_handle_t hIpc;
   ep.InitEventPool();
-  ep.get_ipc_handle(hIpc);
   // As of July 10, 2019, xeEventPoolGetIpcHandle() returns UNSUPPORTED
-  // and thus the following test fails:
-  EXPECT_NE(nullptr, hIpc);
+  ASSERT_EQ(XE_RESULT_SUCCESS, xeEventPoolGetIpcHandle(ep.event_pool_, &hIpc));
+
   // Due to the above failures, the following tests obviously also fail.
-  xe_event_pool_handle_t eventPool = nullptr;
-  ep.open_ipc_handle(hIpc, eventPool);
+  xe_event_pool_handle_t eventPool;
+  ep.open_ipc_handle(hIpc, &eventPool);
   EXPECT_NE(nullptr, eventPool);
   ep.close_ipc_handle_pool(eventPool);
 }

@@ -72,12 +72,11 @@ protected:
     acceptor.accept(sock);
 
     boost::system::error_code error;
-    ipc_mem_handle_ = (xe_ipc_mem_handle_t)malloc(XE_MAX_IPC_HANDLE_SIZE);
     size_t bytes = boost::asio::read(
-        sock, boost::asio::buffer(ipc_mem_handle_, XE_MAX_IPC_HANDLE_SIZE),
+        sock, boost::asio::buffer(&ipc_mem_handle_, sizeof(ipc_mem_handle_)),
         error);
 
-    if (error || bytes < XE_MAX_IPC_HANDLE_SIZE) {
+    if (error || bytes < sizeof(ipc_mem_handle_)) {
       FAIL() << "Failed to retrieve ipc handle";
     }
   }
@@ -86,11 +85,10 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
                                      lzt::get_default_device_group(), memory_));
     lzt::free_memory(memory_);
-    free(ipc_mem_handle_);
   }
 
   void *memory_ = nullptr;
-  xe_ipc_mem_handle_t ipc_mem_handle_ = nullptr;
+  xe_ipc_mem_handle_t ipc_mem_handle_;
 };
 
 TEST_F(xeIpcMemHandleOpenTests,

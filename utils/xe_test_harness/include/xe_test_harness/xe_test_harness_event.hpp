@@ -56,9 +56,9 @@ public:
   void destroy_event(xe_event_handle_t event);
   void destroy_events(std::vector<xe_event_handle_t> &events);
 
-  void get_ipc_handle(xe_ipc_event_pool_handle_t &hIpc);
-  void open_ipc_handle(xe_ipc_event_pool_handle_t hIpc,
-                       xe_event_pool_handle_t &eventPool);
+  void get_ipc_handle(xe_ipc_event_pool_handle_t *hIpc);
+  void open_ipc_handle(xe_ipc_event_pool_handle_t &hIpc,
+                       xe_event_pool_handle_t *eventPool);
   void close_ipc_handle_pool(xe_event_pool_handle_t &eventPool);
 
   xe_event_pool_handle_t event_pool_ = nullptr;

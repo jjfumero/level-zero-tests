@@ -128,17 +128,17 @@ void xeEventPool::destroy_events(std::vector<xe_event_handle_t> &events) {
   events.clear();
 }
 
-void xeEventPool::get_ipc_handle(xe_ipc_event_pool_handle_t &hIpc) {
+void xeEventPool::get_ipc_handle(xe_ipc_event_pool_handle_t *hIpc) {
   // As of July 10, 2019, xeEventPoolGetIpcHandle() returns UNSUPPORTED
   // and thus the following test fails:
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolGetIpcHandle(event_pool_, &hIpc));
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolGetIpcHandle(event_pool_, hIpc));
 }
 
-void xeEventPool::open_ipc_handle(xe_ipc_event_pool_handle_t hIpc,
-                                  xe_event_pool_handle_t &eventPool) {
+void xeEventPool::open_ipc_handle(xe_ipc_event_pool_handle_t &hIpc,
+                                  xe_event_pool_handle_t *eventPool) {
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeEventPoolOpenIpcHandle(xeDevice::get_instance()->get_device(),
-                                     hIpc, &eventPool));
+                                     hIpc, eventPool));
 }
 
 void xeEventPool::close_ipc_handle_pool(xe_event_pool_handle_t &eventPool) {

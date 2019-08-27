@@ -50,10 +50,10 @@ int main() {
       boost::asio::ip::address::from_string("127.0.0.1"), 65432));
 
   boost::system::error_code error;
-  auto buffer = boost::asio::buffer(ipc_mem_handle, XE_MAX_IPC_HANDLE_SIZE);
+  auto buffer = boost::asio::buffer(&ipc_mem_handle, sizeof(ipc_mem_handle));
   size_t bytes = boost::asio::write(sock, buffer, error);
 
-  if (error || (bytes < XE_MAX_IPC_HANDLE_SIZE)) {
+  if (error || (bytes < sizeof(ipc_mem_handle))) {
     LOG_INFO << "Failed to send ipc handle";
   }
   sock.close();
