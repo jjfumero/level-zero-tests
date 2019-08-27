@@ -59,7 +59,7 @@ cmake --build . --target clang-format
 ## Kernels (SPV files)
 
 OpenCL C kernel source code (`.cl`) and binaries (`.spv`) should be placed in a
-`kernels/` subdirectory of your conformance of performance test. The
+`kernels/` subdirectory of your conformance or performance test. The
 `add_perf_test` and `add_conformance_test` CMake functions will search for
 kernels in that directory.
 
