@@ -40,7 +40,10 @@ uint32_t get_device_group_count() {
 xe_device_group_handle_t get_default_device_group() {
   xe_result_t result = XE_RESULT_SUCCESS;
 
-  xe_device_group_handle_t device_group = nullptr;
+  static xe_device_group_handle_t device_group = nullptr;
+  if (device_group)
+    return device_group;
+
   uint32_t count = 1;
   result = xeDeviceGroupGet(&count, &device_group);
 
@@ -66,7 +69,10 @@ xe_device_handle_t get_default_device() {
   xe_result_t result = XE_RESULT_SUCCESS;
 
   // TODO: Select device from command line
-  xe_device_handle_t device = nullptr;
+  static xe_device_handle_t device = nullptr;
+  if (device)
+    return device;
+
   uint32_t count = 1;
   result = xeDeviceGroupGetDevices(get_default_device_group(), &count, &device);
 
