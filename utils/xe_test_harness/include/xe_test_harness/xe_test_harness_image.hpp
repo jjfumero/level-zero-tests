@@ -94,6 +94,8 @@ void create_xe_image(xe_image_handle_t &image,
                      xe_image_desc_t *image_descriptor);
 void destroy_xe_image(xe_image_handle_t image);
 
+xe_image_properties_t get_xe_image_properties(xe_image_desc_t image_descriptor);
+
 class xeImageCreateCommon {
 public:
   xeImageCreateCommon();

@@ -109,4 +109,24 @@ void print_image_descriptor(const xe_image_desc_t descriptor) {
             << "   MIPLEVELS = " << descriptor.miplevels;
 }
 
+xe_image_properties_t
+get_xe_image_properties(xe_image_desc_t image_descriptor) {
+
+  xe_image_properties_t image_properties = {
+      XE_IMAGE_PROPERTIES_VERSION_CURRENT};
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeImageGetProperties(lzt::xeDevice::get_instance()->get_device(),
+                                 &image_descriptor, &image_properties));
+
+  auto samplerFilterFlagsValid = (image_properties.samplerFilterFlags ==
+                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_NONE) ||
+                                 (image_properties.samplerFilterFlags ==
+                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_POINT) ||
+                                 (image_properties.samplerFilterFlags ==
+                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_LINEAR);
+  EXPECT_TRUE(samplerFilterFlagsValid);
+
+  return image_properties;
+}
+
 }; // namespace level_zero_tests
