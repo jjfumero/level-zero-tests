@@ -207,13 +207,8 @@ TEST_F(
   const size_t size = 4 * 1024;
   std::vector<uint8_t> host_memory1(size), host_memory2(size, 0);
   void *device_memory = allocate_device_memory(size_in_bytes(host_memory1));
-  uint8_t ui8_data_pattern;
 
-  ui8_data_pattern = 0;
-  for (auto &ui : host_memory1) {
-    ui = ui8_data_pattern;
-    ui8_data_pattern = (ui8_data_pattern + 1) & 0xff;
-  }
+  lzt::write_data_pattern(host_memory1.data(), size, 1);
 
   append_memory_copy(cl.command_list_, device_memory, host_memory1.data(),
                      size_in_bytes(host_memory1), nullptr, 0, nullptr);
@@ -225,11 +220,48 @@ TEST_F(
   execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
   synchronize(cq.command_queue_, UINT32_MAX);
 
-  ui8_data_pattern = 0;
-  for (auto &ui : host_memory2) {
-    EXPECT_EQ(ui, ui8_data_pattern);
-    ui8_data_pattern = (ui8_data_pattern + 1) & 0xff;
+  lzt::validate_data_pattern(host_memory2.data(), size, 1);
+  free_memory(device_memory);
+}
+
+TEST_F(
+    xeCommandListAppendMemoryCopyWithDataVerificationTests,
+    GivenDeviceMemoryToDeviceMemoryAndSizeWhenAppendingMemoryCopyThenSuccessIsReturnedAndCopyIsCorrect) {
+  const size_t size = 1024;
+  // number of transfers to device memory
+  const size_t num_dev_mem_copy = 8;
+  // byte address alignment
+  const size_t addr_alignment = 1;
+  std::vector<uint8_t> host_memory1(size), host_memory2(size, 0);
+  void *device_memory = allocate_device_memory(
+      num_dev_mem_copy * (size_in_bytes(host_memory1) + addr_alignment));
+
+  lzt::write_data_pattern(host_memory1.data(), size, 1);
+
+  uint8_t *char_src_ptr = static_cast<uint8_t *>(device_memory);
+  uint8_t *char_dst_ptr = char_src_ptr;
+  append_memory_copy(cl.command_list_, static_cast<void *>(char_dst_ptr),
+                     host_memory1.data(), size, nullptr, 0, nullptr);
+  append_barrier(cl.command_list_, nullptr, 0, nullptr);
+  // Must assert here to prevent Fulsim crash.  Ref: LOKI-473
+  FAIL();
+  for (uint32_t i = 1; i < num_dev_mem_copy; i++) {
+    char_src_ptr = char_dst_ptr;
+    char_dst_ptr += (size + addr_alignment);
+    append_memory_copy(cl.command_list_, static_cast<void *>(char_dst_ptr),
+                       static_cast<void *>(char_src_ptr), size, nullptr, 0,
+                       nullptr);
+    append_barrier(cl.command_list_, nullptr, 0, nullptr);
   }
+  append_memory_copy(cl.command_list_, host_memory2.data(),
+                     static_cast<void *>(char_dst_ptr), size, nullptr, 0,
+                     nullptr);
+  append_barrier(cl.command_list_, nullptr, 0, nullptr);
+  close_command_list(cl.command_list_);
+  execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
+  synchronize(cq.command_queue_, UINT32_MAX);
+
+  lzt::validate_data_pattern(host_memory2.data(), size, 1);
 
   free_memory(device_memory);
 }
