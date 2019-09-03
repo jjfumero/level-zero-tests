@@ -35,12 +35,24 @@ namespace lzt = level_zero_tests;
 
 namespace {
 
-class xeDeviceCreateSamplerTests : public ::testing::Test {};
+const auto sampler_address_modes = ::testing::Values(
+    XE_SAMPLER_ADDRESS_MODE_NONE, XE_SAMPLER_ADDRESS_MODE_REPEAT,
+    XE_SAMPLER_ADDRESS_MODE_CLAMP, XE_SAMPLER_ADDRESS_MODE_MIRROR);
 
-TEST_F(xeDeviceCreateSamplerTests,
+const auto sampler_filter_modes = ::testing::Values(
+    XE_SAMPLER_FILTER_MODE_NEAREST, XE_SAMPLER_FILTER_MODE_LINEAR);
+
+class xeDeviceCreateSamplerTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<std::tuple<
+          xe_sampler_address_mode_t, xe_sampler_filter_mode_t, xe_bool_t>> {};
+TEST_P(xeDeviceCreateSamplerTests,
        GivenSamplerDescriptorWhenCreatingSamplerThenNotNullSamplerIsReturned) {
   xe_sampler_desc_t descriptor;
   descriptor.version = XE_SAMPLER_DESC_VERSION_CURRENT;
+  descriptor.addressMode = std::get<0>(GetParam());
+  descriptor.filterMode = std::get<1>(GetParam());
+  descriptor.isNormalized = std::get<2>(GetParam());
 
   xe_sampler_handle_t sampler = nullptr;
   EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -50,6 +62,11 @@ TEST_F(xeDeviceCreateSamplerTests,
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeSamplerDestroy(sampler));
 }
+
+INSTANTIATE_TEST_CASE_P(SamplerCreationCombinations, xeDeviceCreateSamplerTests,
+                        ::testing::Combine(sampler_address_modes,
+                                           sampler_filter_modes,
+                                           ::testing::Values(true, false)));
 
 } // namespace
 
