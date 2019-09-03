@@ -117,4 +117,89 @@ TEST_F(
   lzt::destroy_module(module);
 }
 
+class xeSharedSystemMemoryHostTests : public ::testing::Test {
+protected:
+  xeSharedSystemMemoryHostTests() { memory_ = new uint8_t[size_]; }
+  ~xeSharedSystemMemoryHostTests() { delete[] memory_; }
+  const size_t size_ = 4 * 1024;
+  uint8_t *memory_ = nullptr;
+};
+
+TEST_F(
+    xeSharedSystemMemoryHostTests,
+    GivenSharedSystemAllocationWhenWritingAndReadingOnHostThenCorrectDataIsRead) {
+  lzt::write_data_pattern(memory_, size_, 1);
+  lzt::validate_data_pattern(memory_, size_, 1);
+}
+
+class xeSharedSystemMemoryDeviceTests : public ::testing::Test {
+protected:
+  xeSharedSystemMemoryDeviceTests() { memory_ = new uint8_t[size_]; }
+  ~xeSharedSystemMemoryDeviceTests() { delete[] memory_; }
+  const size_t size_ = 4 * 1024;
+  uint8_t *memory_ = nullptr;
+  lzt::xeCommandList cmdlist_;
+  lzt::xeCommandQueue cmdqueue_;
+};
+
+TEST_F(
+    xeSharedSystemMemoryDeviceTests,
+    GivenSharedSystemAllocationWhenAccessingMemoryOnDeviceThenCorrectDataIsRead) {
+  // FIXME: LOKI-488
+  FAIL()
+      << "Fail due to Abort when accessing system memory allocation: LOKI-488";
+  lzt::write_data_pattern(memory_, size_, 1);
+  std::string module_name = "xe_unified_mem_test.spv";
+  xe_module_handle_t module = lzt::create_module(
+      lzt::xeDevice::get_instance()->get_device(), module_name);
+  std::string func_name = "xe_unified_mem_test";
+
+  lzt::FunctionArg arg;
+  std::vector<lzt::FunctionArg> args;
+
+  arg.arg_size = sizeof(uint8_t *);
+  arg.arg_value = &memory_;
+  args.push_back(arg);
+  arg.arg_size = sizeof(int);
+  int size = static_cast<int>(size_);
+  arg.arg_value = &size;
+  args.push_back(arg);
+  lzt::create_and_execute_function(lzt::xeDevice::get_instance()->get_device(),
+                                   module, func_name, 1, args);
+  lzt::validate_data_pattern(memory_, size_, -1);
+  lzt::destroy_module(module);
+}
+
+TEST_F(
+    xeSharedSystemMemoryDeviceTests,
+    GivenSharedSystemAllocationWhenCopyingMemoryOnDeviceThenMemoryCopiedCorrectly) {
+  lzt::write_data_pattern(memory_, size_, 1);
+  uint8_t *other_system_memory = new uint8_t[size_];
+
+  lzt::append_memory_copy(cmdlist_.command_list_, other_system_memory, memory_,
+                          size_, nullptr, 0, nullptr);
+  lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
+  lzt::close_command_list(cmdlist_.command_list_);
+  lzt::execute_command_lists(cmdqueue_.command_queue_, 1,
+                             &cmdlist_.command_list_, nullptr);
+  lzt::synchronize(cmdqueue_.command_queue_, UINT32_MAX);
+  lzt::validate_data_pattern(other_system_memory, size_, 1);
+  delete[] other_system_memory;
+}
+
+TEST_F(xeSharedSystemMemoryDeviceTests,
+       GivenSharedSystemMemoryWhenSettingMemoryOnDeviceThenMemorySetCorrectly) {
+  // This test case fails due to the memory not being set: LOKI-490
+  const int value = 0x55;
+  lzt::write_data_pattern(memory_, size_, 1);
+  lzt::append_memory_set(cmdlist_.command_list_, memory_, value, size_);
+  lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
+  lzt::close_command_list(cmdlist_.command_list_);
+  lzt::execute_command_lists(cmdqueue_.command_queue_, 1,
+                             &cmdlist_.command_list_, nullptr);
+  lzt::synchronize(cmdqueue_.command_queue_, UINT32_MAX);
+  for (unsigned int ui = 0; ui < size_; ui++)
+    EXPECT_EQ(value, static_cast<uint8_t *>(memory_)[ui]);
+}
+
 } // namespace
