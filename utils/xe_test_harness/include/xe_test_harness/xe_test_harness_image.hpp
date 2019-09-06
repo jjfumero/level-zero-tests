@@ -39,13 +39,13 @@ const std::vector<xe_image_flag_t> image_creation_rw_flags = {
 const std::vector<xe_image_flag_t> image_creation_cached_flags = {
     XE_IMAGE_FLAG_BIAS_CACHED, XE_IMAGE_FLAG_BIAS_UNCACHED};
 
-const std::vector<size_t> image_widths = {0, 640, 1920};
+const std::vector<size_t> image_widths = {0, 1920};
 
-const std::vector<size_t> image_heights = {0, 360, 1080};
+const std::vector<size_t> image_heights = {0, 1080};
 
 const std::vector<size_t> image_depths = {0, 8};
 
-const auto image_array_levels = ::testing::Values(0, 1, 2, 3);
+const auto image_array_levels = ::testing::Values(0, 3);
 
 const auto image_format_types =
     ::testing::Values(XE_IMAGE_FORMAT_TYPE_UINT, XE_IMAGE_FORMAT_TYPE_SINT,
