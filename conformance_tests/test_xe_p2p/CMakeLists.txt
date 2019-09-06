@@ -32,6 +32,5 @@ add_conformance_test(
   KERNELS
     xe_atomic_access
     xe_concurrent_access
-    xe_atomic_and_concurrent_access
     xe_p2p_test
 )

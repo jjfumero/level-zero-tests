@@ -35,6 +35,7 @@ namespace lzt = level_zero_tests;
 #include "xe_barrier.h"
 
 namespace {
+enum MemAccessTestType { ATOMIC, CONCURRENT, CONCURRENT_ATOMIC };
 
 class xeP2PTests : public ::testing::Test {
 protected:
@@ -332,11 +333,24 @@ protected:
 
   void setup_cmd_list(uint32_t i, uint32_t num, bool sync,
                       xe_event_handle_t event_sync_start,
+                      enum MemAccessTestType type,
                       std::vector<xe_event_handle_t> events_sync_end) {
 
     void *p_init_val = &dev_access_[i].init_val;
 
     dev_access_[i].cmd_list = lzt::create_command_list(dev_access_[i].dev);
+
+    if ((num > 1) && (i == (num - 1))) {
+      EXPECT_EQ(XE_RESULT_SUCCESS,
+                xeCommandListAppendMemoryCopy(
+                    dev_access_[i].cmd_list, dev_access_[i].device_mem_local,
+                    p_init_val, sizeof(int), nullptr, 0, nullptr));
+    } else if (type != CONCURRENT_ATOMIC) {
+      EXPECT_EQ(XE_RESULT_SUCCESS,
+                xeCommandListAppendMemoryCopy(
+                    dev_access_[i].cmd_list, dev_access_[i].device_mem_remote,
+                    p_init_val, sizeof(int), nullptr, 0, nullptr));
+    }
 
     if (sync) {
       if (i == 0) {
@@ -348,18 +362,6 @@ protected:
                   xeCommandListAppendWaitOnEvents(dev_access_[i].cmd_list, 1,
                                                   &event_sync_start));
       }
-    }
-
-    if ((num > 1) && (i == (num - 1))) {
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    dev_access_[i].cmd_list, dev_access_[i].device_mem_local,
-                    p_init_val, sizeof(int), nullptr, 0, nullptr));
-    } else {
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    dev_access_[i].cmd_list, dev_access_[i].device_mem_remote,
-                    p_init_val, sizeof(int), nullptr, 0, nullptr));
     }
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
@@ -405,7 +407,7 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev_access_[i].cmd_list));
   }
 
-  void run_test(uint32_t num, bool sync) {
+  void run_test(uint32_t num, bool sync, enum MemAccessTestType type) {
     const std::string module_path = kernel_name_ + ".spv";
     xe_event_handle_t event_sync_start = nullptr;
     std::vector<xe_event_handle_t> events_sync_end(num, nullptr);
@@ -419,7 +421,11 @@ protected:
                        XE_EVENT_SCOPE_FLAG_DEVICE);
     }
 
-    dev_access_[0].init_val = 1;
+    if (type == CONCURRENT_ATOMIC) {
+      dev_access_[0].init_val = 0;
+    } else {
+      dev_access_[0].init_val = 1;
+    }
     dev_access_[0].kernel_add_val = 10;
     dev_access_[0].device_mem_remote = lzt::allocate_device_memory(
         (num * sizeof(int)), 1, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
@@ -433,19 +439,26 @@ protected:
     dev_access_[0].function = create_function(
         dev_access_[0].module, kernel_name_, dev_access_[0].group_size_x,
         (int *)dev_access_[0].device_mem_remote, dev_access_[0].kernel_add_val);
-    setup_cmd_list(0, num, sync, event_sync_start, events_sync_end);
+    setup_cmd_list(0, num, sync, event_sync_start, type, events_sync_end);
     dev_access_[0].cmd_q = lzt::create_command_queue(
         dev_access_[0].dev, XE_COMMAND_QUEUE_FLAG_NONE,
         XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS, XE_COMMAND_QUEUE_PRIORITY_NORMAL,
         0);
     for (uint32_t i = 1; i < num; i++) {
-      dev_access_[i].init_val = (1 + i) * dev_access_[0].init_val;
-      dev_access_[i].kernel_add_val = (1 + i) * dev_access_[0].kernel_add_val;
+      if (type == CONCURRENT_ATOMIC) {
+        dev_access_[i].init_val = dev_access_[0].init_val;
+        dev_access_[i].kernel_add_val = dev_access_[0].kernel_add_val;
+      } else {
+        dev_access_[i].init_val = (1 + i) * dev_access_[0].init_val;
+        dev_access_[i].kernel_add_val = (1 + i) * dev_access_[0].kernel_add_val;
+      }
       dev_access_[i].module =
           lzt::create_module(dev_access_[i].dev, module_path);
       uint8_t *char_src =
           static_cast<uint8_t *>(dev_access_[0].device_mem_remote);
-      char_src += (i * sizeof(int));
+      if (type == CONCURRENT) {
+        char_src += (i * sizeof(int));
+      }
       if (i < num - 1) {
         dev_access_[i].device_mem_remote =
             static_cast<void *>(static_cast<uint8_t *>(char_src));
@@ -462,7 +475,7 @@ protected:
             dev_access_[i].kernel_add_val);
       }
 
-      setup_cmd_list(i, num, sync, event_sync_start, events_sync_end);
+      setup_cmd_list(i, num, sync, event_sync_start, type, events_sync_end);
       dev_access_[i].cmd_q = lzt::create_command_queue(
           dev_access_[i].dev, XE_COMMAND_QUEUE_FLAG_NONE,
           XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS, XE_COMMAND_QUEUE_PRIORITY_NORMAL,
@@ -535,7 +548,7 @@ TEST_P(xeP2PKernelTestsAtomicAccess,
                 XE_MEMORY_ATOMIC_ACCESS);
 
   kernel_name_ = GetParam();
-  run_test(1, false);
+  run_test(1, false, ATOMIC);
 
   int *dev0_int = (static_cast<int *>(dev_access_[0].shared_mem));
   LOG_INFO << "OUTPUT = " << dev0_int[0];
@@ -560,7 +573,7 @@ TEST_P(xeP2PKernelTestsConcurrentAccess,
               dev_access_[num_concurrent - 1]
                       .dev_mem_properties.deviceAllocCapabilities &
                   XE_MEMORY_CONCURRENT_ACCESS);
-    run_test(num_concurrent, true);
+    run_test(num_concurrent, true, CONCURRENT);
     int *dev0_int = (static_cast<int *>(dev_access_[0].shared_mem));
     for (uint32_t i = 0; i < num_concurrent; i++) {
       LOG_INFO << "OUTPUT[" << i << "] = " << dev0_int[i];
@@ -601,12 +614,14 @@ TEST_P(
                       .dev_mem_properties.deviceAllocCapabilities &
                   XE_MEMORY_CONCURRENT_ATOMIC_ACCESS);
 
-    run_test(num_concurrent, true);
+    run_test(num_concurrent, true, CONCURRENT_ATOMIC);
     int *dev0_int = (static_cast<int *>(dev_access_[0].shared_mem));
+    // Concurrent Atomic test has all devices writing to same dev mem integer
+    // All values read back to shared mem should be identical
     for (uint32_t i = 0; i < num_concurrent; i++) {
       LOG_INFO << "OUTPUT[" << i << "] = " << dev0_int[i];
-      EXPECT_EQ(dev_access_[i].group_size_x * dev_access_[i].kernel_add_val +
-                    dev_access_[i].init_val + 1,
+      EXPECT_EQ(num_concurrent * dev_access_[i].group_size_x *
+                    dev_access_[i].kernel_add_val,
                 dev0_int[i]);
     }
   }
@@ -614,6 +629,6 @@ TEST_P(
 
 INSTANTIATE_TEST_CASE_P(TestP2PAtomicAndConcurrentAccess,
                         xeP2PKernelTestsAtomicAndConcurrentAccess,
-                        testing::Values("xe_atomic_and_concurrent_access"));
+                        testing::Values("xe_atomic_access"));
 
 } // namespace
