@@ -45,7 +45,7 @@ const std::vector<size_t> image_heights = {0, 1080};
 
 const std::vector<size_t> image_depths = {0, 8};
 
-const auto image_array_levels = ::testing::Values(0, 3);
+const std::vector<size_t> image_array_levels = {0, 3};
 
 const auto image_format_types =
     ::testing::Values(XE_IMAGE_FORMAT_TYPE_UINT, XE_IMAGE_FORMAT_TYPE_SINT,
@@ -78,11 +78,11 @@ const auto image_format_media_layouts =
                       XE_IMAGE_FORMAT_LAYOUT_P016, XE_IMAGE_FORMAT_LAYOUT_Y216,
                       XE_IMAGE_FORMAT_LAYOUT_P216, XE_IMAGE_FORMAT_LAYOUT_P416);
 
-const auto image_format_swizzles =
-    ::testing::Values(XE_IMAGE_FORMAT_SWIZZLE_R, XE_IMAGE_FORMAT_SWIZZLE_G,
-                      XE_IMAGE_FORMAT_SWIZZLE_B, XE_IMAGE_FORMAT_SWIZZLE_A,
-                      XE_IMAGE_FORMAT_SWIZZLE_0, XE_IMAGE_FORMAT_SWIZZLE_1,
-                      XE_IMAGE_FORMAT_SWIZZLE_X);
+const std::vector<xe_image_format_swizzle_t> image_format_swizzles = {
+    XE_IMAGE_FORMAT_SWIZZLE_R, XE_IMAGE_FORMAT_SWIZZLE_G,
+    XE_IMAGE_FORMAT_SWIZZLE_B, XE_IMAGE_FORMAT_SWIZZLE_A,
+    XE_IMAGE_FORMAT_SWIZZLE_0, XE_IMAGE_FORMAT_SWIZZLE_1,
+    XE_IMAGE_FORMAT_SWIZZLE_X};
 
 void print_image_format_descriptor(const xe_image_format_desc_t descriptor);
 void print_image_descriptor(const xe_image_desc_t descriptor);
