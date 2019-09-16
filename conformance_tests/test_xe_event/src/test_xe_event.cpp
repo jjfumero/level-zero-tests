@@ -168,11 +168,11 @@ INSTANTIATE_TEST_CASE_P(ImplictHostSynchronizeEventParameterizedTest,
 
 TEST_F(
     xeDeviceCreateEventTests,
-    GivenDefaultDeviceAndEventPoolWhenCreatingAnEventAndQueryingItsStatusThenSuccessIsReturned) {
+    GivenDefaultDeviceAndEventPoolWhenCreatingAnEventAndQueryingItsStatusThenNotReadyIsReturned) {
   xe_event_handle_t event = nullptr;
 
   ep.create_event(event);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(event));
+  EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(event));
   ep.destroy_event(event);
 }
 
