@@ -1,8 +1,9 @@
 stages:
   - build
+  - run
   - deploy
 
-windows:
+build-windows:
   stage: build
   tags:
     - ilab
@@ -49,7 +50,7 @@ windows:
     paths:
       - build/out
 
-ubuntu1804:
+build-ubuntu1804:
   stage: build
   image: docker:19.03.1
   only:
@@ -114,8 +115,78 @@ ubuntu1804:
     name: "$CI_JOB_NAME"
     when: always
     paths:
+      - third_party/level_zero_linux
       - build/out
       - build/clang_format_results.patch
+
+run-ubuntu1804:
+  stage: run
+  image: docker:19.03.1
+  only:
+    - merge_requests
+    - tags
+    - web
+  tags:
+    - caas
+    - dind
+    - docker
+    - linux
+    - privileged
+    - production
+  services:
+    - amr-registry.caas.intel.com/caas/docker:19.03.1-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""  # https://about.gitlab.com/2019/07/31/docker-in-docker-with-docker-19-dot-03/
+    DOCKER_HOST: tcp://localhost:2375/
+    DOCKER_DRIVER: overlay2  # better performance for dind
+    RUNTIME_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-run-ubuntu1804
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
+    HARBOR_USER2: ${HARBOR_USER}
+    HARBOR_TOKEN2: ${HARBOR_TOKEN}
+  script:
+    - docker info
+    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
+    - docker pull ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG} ||
+      docker pull ${RUNTIME_IMAGE}:latest ||
+      true
+    - docker build
+        --cache-from ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${RUNTIME_IMAGE}:latest
+        -t ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
+        -t ${RUNTIME_IMAGE}:latest
+        --build-arg QB_USER
+        --build-arg QB_PASSWORD
+        ./docker/run-ubuntu1804
+    # TODO: parse output of --gtest_list_tests
+    - docker pull amr-registry.caas.intel.com/level-zero-linux-compute/fulsim:gen9-r36707
+    - touch run.log
+    - tail -f run.log &
+      LOG_TAIL_PID=$!;
+      for test in $(find build/out/conformance_tests -executable -type f); do
+          test=$(basename $test);
+          echo "Launching execution containers for $test";
+          docker run
+            --detach
+            --name fulsim-$test
+            amr-registry.caas.intel.com/level-zero-linux-compute/fulsim:gen9-r36707
+            AubLoad -device skl.2.a0 -socket tcp;
+          docker run
+            --detach
+            --name runtime-$test
+            --network=container:fulsim-$test
+            -v ${PWD}:/root/project
+            -w /root/project
+            ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
+            ./ci-run-linux.sh $test;
+      done;
+      docker wait $(docker ps -a -q -f "label=role=runtime") &>/dev/null;
+      kill $LOG_TAIL_PID
+    - docker push ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
+    - docker push ${RUNTIME_IMAGE}:latest
+    - cat run_results/*
+  artifacts:
+    paths:
+      - run_results
 
 deploy-artifactory:
   stage: deploy

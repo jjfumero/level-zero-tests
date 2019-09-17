@@ -1,0 +1,13 @@
+# YAML test configuration
+#
+# Use this file to specify runtime attributes for different tests that override
+# the default values. Currently, each test is specified by the test binary name,
+# and the available attributes are "timeout".
+#
+# Example:
+#
+# test_xe_module:
+#   timeout: 60
+
+---
+...

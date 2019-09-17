@@ -252,7 +252,8 @@ the web interface.
 
 Changes should be verified before being merged into master. The minimum level of
 verification is currently for your changes to successfully build on Ubuntu 18.04
-and Windows.
+and Windows. You should also verify that your changes do not introduce any
+unexpected regressions in test passes.
 
 There are two ways to verify your changes: automated GitLab pipelines, and
 manually using the provided Dockerfiles.
@@ -266,6 +267,13 @@ to the title, which will prevent it from being accidentally merged.
 
 You can also manually trigger a GitLab pipeline to run on your branch from the [CI/CD][ci_cd_page]
 page by clicking the **Run Pipeline** button.
+
+After building your changes, all the tests will be executed against fulsim-gen9
+on Ubuntu 18.04. The final pipeline job (run-summarize) will dump all of the
+gtest output to the log, and you should review it to ensure the test(s) that
+were changed are executing as expected (you may have to open the raw log in
+order to view all the output). Automatic regression checking will be enabled at
+a future point.
 
 ### Manual Verification
 
@@ -290,7 +298,7 @@ your checkout of this repository, run the following:
 ```
 docker build \
   -t level_zero_tests:latest \
-  ./docker/<platform>
+  ./docker/build/<platform>
 ```
 
 This will create the image locally and tag it as `level_zero_tests`.

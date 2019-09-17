@@ -1,4 +1,5 @@
 FROM ubuntu:bionic-20190718
+LABEL role="builder"
 
 ENV http_proxy http://proxy-chain.intel.com:911
 ENV https_proxy http://proxy-chain.intel.com:911
