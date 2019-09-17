@@ -120,6 +120,31 @@ cmake argument to point to whichever level-zero directory gets created in
 You should synchronize these components whenever their entries are updated in
 the [`dependencies.yml`](./dependencies.yml) file.
 
+## Updating Third Party Assets
+
+Third party assets are specified in the [`dependencies.yml`](./dependencies.yml)
+file, and the versions of each can be updated there.
+
+The level-zero build/runtime dependency is specified by a version string, like
+`0.2.2-2189`. The first component is the level-zero version, and the second
+component is the depth of the commit that the artifact was created from (to
+allow artifacts for commits between official "releases" to exist). Simply update
+this version string in the [`dependencies.yml`](./dependencies.yml) file to
+change the version of level-zero used. In general, the level_zero_linux and
+level_zero_windows components should have the same version string.
+
+To determine the version string to use for a given commit on the `integration`
+branch of `level_zero_gpu_driver`, take the level-zero version of that commit
+(e.g., `0.2.2`, check the top of `level_zero/CMakeLists.txt`) and append the
+commit depth to it, which can be obtained by running
+`git rev-list --count <COMMIT HASH>` on the commit you want. Alternately, check
+the log of the deploy-artifactory job for the GitLab pipeline corresponding to
+that commit, which should be visible on the commit's GitLab page (example: [commit page][gitlab_commit_page_example],
+[job log][gitlab_commit_page_job_log]).
+
+[gitlab_commit_page_example]: https://gitlab.devtools.intel.com/one-api/level_zero_gpu_driver/commit/2b168dd54dccaa147a7d80e8f97477caffa4917c
+[gitlab_commit_page_job_log]: https://gitlab.devtools.intel.com/one-api/level_zero_gpu_driver/-/jobs/1846290
+
 ## Submitting Changes
 
 [Merge requests][mrdoc] are used for proposing changes and doing code review.

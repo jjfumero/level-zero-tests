@@ -11,14 +11,14 @@ components:
     root_url: https://gfx-assets.fm.intel.com/artifactory
     asset_path: gfx-sandbox-fm/level_zero_external_build_artifacts
     asset_name: linux-release-internal64-gcc8
-    asset_version: v0.2.2
+    asset_version: 0.2.2-2189
     dest_dir: third_party/level_zero_linux
   level_zero_windows:
     type: artifactory
     root_url: https://gfx-assets.fm.intel.com/artifactory
     asset_path: gfx-sandbox-fm/level_zero_external_build_artifacts
     asset_name: windows-release-internal64
-    asset_version: v0.2.2
+    asset_version: 0.2.2-2189
     dest_dir: third_party/level_zero_windows
   yuv_samples:
     type: artifactory
