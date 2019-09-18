@@ -42,7 +42,10 @@ size_t get_native_binary_size(const xe_module_handle_t module);
 void save_native_binary_file(const xe_module_handle_t module,
                              const std::string filename);
 void destroy_build_log(const xe_module_build_log_handle_t build_log);
-
+void set_argument_value(xe_function_handle_t hFunction, uint32_t argIndex,
+                        size_t argSize, const void *pArgValue);
+void set_group_size(xe_function_handle_t hFunction, uint32_t groupSizeX,
+                    uint32_t groupSizeY, uint32_t groupSizeZ);
 xe_function_handle_t create_function(xe_module_handle_t module,
                                      std::string func_name);
 xe_function_handle_t create_function(xe_module_handle_t module,

@@ -110,6 +110,18 @@ void destroy_build_log(const xe_module_build_log_handle_t build_log) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleBuildLogDestroy(build_log));
 }
 
+void set_argument_value(xe_function_handle_t hFunction, uint32_t argIndex,
+                        size_t argSize, const void *pArgValue) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionSetArgumentValue(hFunction, argIndex,
+                                                          argSize, pArgValue));
+}
+
+void set_group_size(xe_function_handle_t hFunction, uint32_t groupSizeX,
+                    uint32_t groupSizeY, uint32_t groupSizeZ) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionSetGroupSize(hFunction, groupSizeX,
+                                                      groupSizeY, groupSizeZ));
+}
+
 void destroy_module(xe_module_handle_t module) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(module));
 }

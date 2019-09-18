@@ -101,6 +101,35 @@ void append_barrier(xe_command_list_handle_t cl, xe_event_handle_t hSignalEvent,
                                        phWaitEvents));
 }
 
+void append_memory_ranges_barrier(xe_command_list_handle_t hCommandList,
+                                  uint32_t numRanges, const size_t *pRangeSizes,
+                                  const void **pRanges,
+                                  xe_event_handle_t hSignalEvent,
+                                  uint32_t numWaitEvents,
+                                  xe_event_handle_t *phWaitEvents) {
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendMemoryRangesBarrier(
+                hCommandList, numRanges, pRangeSizes, pRanges, hSignalEvent,
+                numWaitEvents, phWaitEvents));
+}
+
+void append_launch_function(xe_command_list_handle_t hCommandList,
+                            xe_function_handle_t hFunction,
+                            const xe_thread_group_dimensions_t *pLaunchFuncArgs,
+                            xe_event_handle_t hSignalEvent,
+                            uint32_t numWaitEvents,
+                            xe_event_handle_t *phWaitEvents) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendLaunchFunction(
+                                   hCommandList, hFunction, pLaunchFuncArgs,
+                                   hSignalEvent, numWaitEvents, phWaitEvents));
+}
+
+void append_signal_event(xe_command_list_handle_t hCommandList,
+                         xe_event_handle_t hEvent) {
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendSignalEvent(hCommandList, hEvent));
+}
+
 void close_command_list(xe_command_list_handle_t cl) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl));
 }
