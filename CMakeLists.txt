@@ -3,6 +3,25 @@ project(intel-level-zero-tests
     VERSION 0.2.2  # corresponds to level-zero release
 )
 
+# Generate VERSION and VERSION_SUFFIX (if building in tree) files to facilitate
+# artifact publishing.
+file(WRITE "${CMAKE_BINARY_DIR}/VERSION" "${PROJECT_VERSION}")
+find_program(GIT_EXE NAMES "git")
+if(GIT_EXE AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    if(MSVC)
+        execute_process(
+            COMMAND CMD /c git rev-list --count HEAD
+            OUTPUT_VARIABLE VERSION_SUFFIX
+        )
+    else()
+        execute_process(
+            COMMAND git rev-list --count HEAD
+            OUTPUT_VARIABLE VERSION_SUFFIX
+        )
+    endif()
+    file(WRITE "${CMAKE_BINARY_DIR}/VERSION_SUFFIX" "${VERSION_SUFFIX}")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(clang_tools)

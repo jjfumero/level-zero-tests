@@ -433,9 +433,15 @@ cmake --build . --config Release --target package_source
 This will generate `.zip` and `.tar.gz` files of the source code suitable for
 distributing to other users to build themselves.
 
-## Releases and Tags
+## Versioning and Releases
 
-Tags are used to specify releases. Tagged commits will be automatically built
-like normal, and will additionally have the artifacts publlished to Artifactory,
-where it can get picked up in GTA jobs. Therefore, only **maintainers** can
-create tags in the repository.
+Continuous delivery is used for releases, wherein every patch merged to master
+will be pushed to artifactory with an appropriate version string. The version
+string is based on the cmake `project()` version specified in the top-level [CMakeLists.txt](./CMakeLists.txt)
+suffixed by the commit depth as computed by `git rev-list --count <COMMIT>`
+(e.g., `0.2.2-110`). The cmake version should match the version of level-zero
+with which the tests are compatible.
+
+These releases are available at https://gfx-assets.fm.intel.com/artifactory
+under `gfx-sandbox-fm/level-zero-{perf,conformance}/<PLATFORM>/<VERSION>` (e.g.,
+`gfx-sandbox-fm/level-zero-conformance/ubuntu1804/0.2.2-110`).
