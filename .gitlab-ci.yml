@@ -186,7 +186,7 @@ run-ubuntu1804:
             -v ${PWD}:/root/project
             -w /root/project
             ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
-            ./ci-run-linux.sh out/ubuntu1804 $test;
+            ./ci-run-linux.sh out/ubuntu1804/conformance_tests $test;
       done;
       docker wait $(docker ps -a -q -f "label=role=runtime") &>/dev/null;
       kill $LOG_TAIL_PID
