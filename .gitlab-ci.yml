@@ -1,6 +1,7 @@
 stages:
   - build
   - run
+  - pre-deploy
   - deploy
 
 build-windows:
@@ -197,6 +198,36 @@ run-ubuntu1804:
     paths:
       - run_results
 
+# Special archived artifacts to support legacy compute-samples GTA plugin
+create-legacy-artifacts:
+  stage: pre-deploy
+  only:
+    - master
+  tags:
+    - caas
+    - docker
+    - linux
+  image:
+    name: amr-registry.caas.intel.com/level-zero-linux-compute/zip:latest
+    entrypoint: ["/bin/bash"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - for type in perf conformance; do
+          mkdir -p archived/${type}_tests;
+          cp -r out/ubuntu1804/${type}_tests archived/${type}_tests/${type}-tests-Linux;
+          cp -r out/windows/${type}_tests archived/${type}_tests/${type}-tests-win64;
+          pushd archived/${type}_tests;
+          tar -czvf ${type}-tests-Linux.tar.gz ${type}-tests-Linux;
+          zip ${type}-tests-win64.zip ${type}-tests-win64;
+          rm -rf ${type}-tests-Linux;
+          rm -rf ${type}-tests-win64;
+          popd;
+      done
+  artifacts:
+    paths:
+      - archived
+
 deploy-artifactory:
   stage: deploy
   only:
@@ -233,21 +264,14 @@ deploy-artifactory:
       done
     # also push specially archived versions to work with the test_compute
     # plugin... ugh
-    - gta-asset push
-        --root-url https://gfx-assets.fm.intel.com/artifactory
-        --no-archive
-        -u ${ARTIFACTORY_USER}
-        -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm
-        level-zero-conformance-archived
-        $VERSION
-        ./out/ubuntu1804/archived/conformance-tests-Linux.tar.gz
-    - gta-asset push
-        --root-url https://gfx-assets.fm.intel.com/artifactory
-        --no-archive
-        -u ${ARTIFACTORY_USER}
-        -p ${ARTIFACTORY_PASSWORD}
-        gfx-sandbox-fm
-        level-zero-perf-archived
-        $VERSION
-        ./out/ubuntu1804/archived/perf-tests-Linux.tar.gz
+    - for type in perf conformance; do
+          gta-asset push
+            --root-url https://gfx-assets.fm.intel.com/artifactory
+            --no-archive
+            -u ${ARTIFACTORY_USER}
+            -p ${ARTIFACTORY_PASSWORD}
+            gfx-sandbox-fm
+            level-zero-${type}-archived
+            $VERSION
+            archived/${type}_tests;
+      done
