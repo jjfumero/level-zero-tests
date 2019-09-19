@@ -245,22 +245,16 @@ deploy-artifactory:
     - VERSION="$(cat build/VERSION)-$(cat build/VERSION_SUFFIX)";
       echo "Version $VERSION";
       for platform in `ls -1 out`; do
-          gta-asset push
-            --root-url https://gfx-assets.fm.intel.com/artifactory
-            -u ${ARTIFACTORY_USER}
-            -p ${ARTIFACTORY_PASSWORD}
-            gfx-sandbox-fm/level-zero-conformance
-            $platform
-            $VERSION
-            ./out/$platform/conformance_tests;
-          gta-asset push
-            --root-url https://gfx-assets.fm.intel.com/artifactory
-            -u ${ARTIFACTORY_USER}
-            -p ${ARTIFACTORY_PASSWORD}
-            gfx-sandbox-fm/level-zero-perf
-            $platform
-            $VERSION
-            ./out/$platform/perf_tests;
+          for type in perf conformance; do
+              gta-asset push
+                --root-url https://gfx-assets.fm.intel.com/artifactory
+                -u ${ARTIFACTORY_USER}
+                -p ${ARTIFACTORY_PASSWORD}
+                gfx-sandbox-fm/level-zero-${type}
+                $platform
+                $VERSION
+                out/$platform/${type}_tests;
+          done;
       done
     # also push specially archived versions to work with the test_compute
     # plugin... ugh
