@@ -171,7 +171,7 @@ run-ubuntu1804:
     - touch run.log
     - tail -f run.log &
       LOG_TAIL_PID=$!;
-      for test in $(find build/out/conformance_tests -executable -type f); do
+      for test in $(find out/ubuntu1804/conformance_tests -executable -type f); do
           test=$(basename $test);
           echo "Launching execution containers for $test";
           docker run
