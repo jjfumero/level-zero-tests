@@ -126,7 +126,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 1
-  std::cout << "float   : ";
+  std::cout << "float : ";
 
   // Run 2 kind of bandwidth kernel
   // lo -- local_size offset - subsequent fetches at local_size offset
@@ -141,11 +141,12 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
   gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << "\n";
+
+  std::cout << gbps << " GBPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 2
-  std::cout << "float2   : ";
+  std::cout << "float2 : ";
 
   temp_global_size = (numItems / 2 / FETCH_PER_WI);
 
@@ -157,11 +158,12 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
   gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << "\n";
+
+  std::cout << gbps << " GBPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 4
-  std::cout << "float4   : ";
+  std::cout << "float4 : ";
 
   temp_global_size = (numItems / 4 / FETCH_PER_WI);
 
@@ -173,11 +175,12 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
   gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << "\n";
+
+  std::cout << gbps << " GBPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 8
-  std::cout << "float8   : ";
+  std::cout << "float8 : ";
 
   temp_global_size = (numItems / 8 / FETCH_PER_WI);
 
@@ -189,11 +192,12 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
   gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << "\n";
+
+  std::cout << gbps << " GBPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 16
-  std::cout << "float16   : ";
+  std::cout << "float16 : ";
   temp_global_size = (numItems / 16 / FETCH_PER_WI);
 
   max_total_work_items =
@@ -204,7 +208,8 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
   gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << "\n";
+
+  std::cout << gbps << " GBPS\n";
 
   result = xeFunctionDestroy(local_offset_v1);
   if (result) {

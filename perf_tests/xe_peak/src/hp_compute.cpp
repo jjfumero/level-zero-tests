@@ -93,38 +93,38 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 1
-  std::cout << "half   : ";
+  std::cout << "half : ";
   timed = run_kernel(context, compute_hp_v1, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 2
-  std::cout << "half2   : ";
+  std::cout << "half2 : ";
   timed = run_kernel(context, compute_hp_v2, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 4
-  std::cout << "half4   : ";
+  std::cout << "half4 : ";
   timed = run_kernel(context, compute_hp_v4, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 8
-  std::cout << "half8   : ";
+  std::cout << "half8 : ";
   timed = run_kernel(context, compute_hp_v8, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 16
-  std::cout << "half16   : ";
+  std::cout << "half16 : ";
   timed = run_kernel(context, compute_hp_v16, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   result = xeFunctionDestroy(compute_hp_v1);
   if (result) {

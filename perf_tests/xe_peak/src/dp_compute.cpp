@@ -112,38 +112,38 @@ void XePeak::xe_peak_dp_compute(L0Context &context) {
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 1
-  std::cout << "double   : ";
+  std::cout << "double : ";
   timed = run_kernel(context, compute_dp_v1, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 2
-  std::cout << "double2   : ";
+  std::cout << "double2 : ";
   timed = run_kernel(context, compute_dp_v2, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 4
-  std::cout << "double4   : ";
+  std::cout << "double4 : ";
   timed = run_kernel(context, compute_dp_v4, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 8
-  std::cout << "double8   : ";
+  std::cout << "double8 : ";
   timed = run_kernel(context, compute_dp_v8, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 16
-  std::cout << "double16   : ";
+  std::cout << "double16 : ";
   timed = run_kernel(context, compute_dp_v16, workgroup_info, type);
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
-  std::cout << "GFLOPS: " << gflops << "\n";
+  std::cout << gflops << " GFLOPS\n";
 
   result = xeFunctionDestroy(compute_dp_v1);
   if (result) {

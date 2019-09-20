@@ -54,7 +54,8 @@ void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
   timed /= static_cast<float>(iters);
 
   gbps = static_cast<float>(buffer_size) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << std::endl;
+
+  std::cout << gbps << " GBPS\n";
 }
 
 void XePeak::_transfer_bw_host_copy(void *destination_buffer,
@@ -74,7 +75,8 @@ void XePeak::_transfer_bw_host_copy(void *destination_buffer,
 
   timed /= static_cast<float>(iters);
   gbps = static_cast<float>(buffer_size) / timed / 1e3f;
-  std::cout << "GBPS: " << gbps << std::endl;
+
+  std::cout << gbps << " GBPS\n";
 }
 
 void XePeak::_transfer_bw_shared_memory(L0Context &context,
@@ -94,17 +96,17 @@ void XePeak::_transfer_bw_shared_memory(L0Context &context,
                              std::to_string(result));
   }
 
-  std::cout << "GPU Copy: Host to Shared Memory (WRITE)" << std::endl;
+  std::cout << "GPU Copy Host to Shared Memory : ";
   _transfer_bw_gpu_copy(context, shared_memory_buffer, local_memory.data(),
                         local_memory_size);
 
-  std::cout << "GPU Copy: Shared Memory to Host (READ)" << std::endl;
+  std::cout << "GPU Copy Shared Memory to Host : ";
   _transfer_bw_gpu_copy(context, local_memory.data(), shared_memory_buffer,
                         local_memory_size);
-  std::cout << "memcpy: Host to Shared Memory Copy (WRITE)" << std::endl;
+  std::cout << "Memcpy Host to Shared Memory : ";
   _transfer_bw_host_copy(shared_memory_buffer, local_memory.data(),
                          local_memory_size);
-  std::cout << "memcpy: Shared Memory to Host Copy (READ)" << std::endl;
+  std::cout << "Memcpy Shared Memory to Host : ";
   _transfer_bw_host_copy(local_memory.data(), shared_memory_buffer,
                          local_memory_size);
 
@@ -143,11 +145,11 @@ void XePeak::xe_peak_transfer_bw(L0Context &context) {
 
   std::cout << "Transfer Bandwidth (GBPS)\n";
 
-  std::cout << "GPU Copy: Host to Device (WRITE)\n";
+  std::cout << "GPU Copy Host to Device : ";
   _transfer_bw_gpu_copy(context, device_buffer, local_memory.data(),
                         local_memory_size);
 
-  std::cout << "GPU Copy: Device to Host (READ)\n";
+  std::cout << "GPU Copy Device to Host : ";
   /*TODO: Add support for timing the enqueue using event timers*/
   _transfer_bw_gpu_copy(context, local_memory.data(), device_buffer,
                         local_memory_size);
