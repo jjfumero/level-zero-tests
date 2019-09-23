@@ -26,10 +26,41 @@
 #include "gtest/gtest.h"
 #include "logging/logging.hpp"
 #include "xe_utils/xe_utils.hpp"
+#include "xe_api.h"
 
 namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
+
+void copy_image_from_mem(lzt::ImagePNG32Bit input, xe_image_handle_t output) {
+
+  auto command_list = lzt::create_command_list();
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopyFromMemory(
+                                   command_list, output, input.raw_data(),
+                                   nullptr, nullptr, 0, nullptr));
+  lzt::append_barrier(command_list, nullptr, 0, nullptr);
+  lzt::close_command_list(command_list);
+  auto command_queue = lzt::create_command_queue();
+  lzt::execute_command_lists(command_queue, 1, &command_list, nullptr);
+  lzt::synchronize(command_queue, UINT32_MAX);
+  lzt::destroy_command_queue(command_queue);
+  lzt::destroy_command_list(command_list);
+}
+
+void copy_image_to_mem(xe_image_handle_t input, lzt::ImagePNG32Bit output) {
+
+  auto command_list = lzt::create_command_list();
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopyToMemory(
+                                   command_list, output.raw_data(), input,
+                                   nullptr, nullptr, 0, nullptr));
+  lzt::append_barrier(command_list, nullptr, 0, nullptr);
+  lzt::close_command_list(command_list);
+  auto command_queue = lzt::create_command_queue();
+  lzt::execute_command_lists(command_queue, 1, &command_list, nullptr);
+  lzt::synchronize(command_queue, UINT32_MAX);
+  lzt::destroy_command_queue(command_queue);
+  lzt::destroy_command_list(command_list);
+}
 
 void create_xe_image(xe_image_handle_t &image,
                      xe_image_desc_t *image_descriptor) {

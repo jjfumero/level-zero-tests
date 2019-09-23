@@ -22,24 +22,21 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_HPP
-#define level_zero_tests_XE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#ifndef level_zero_tests_XE_TEST_HARNESS_SAMPLER_HPP
+#define level_zero_tests_XE_TEST_HARNESS_SAMPLER_HPP
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
-#include "xe_test_harness_sampler.hpp"
+#include "xe_sampler.h"
 
-class xeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::xeEventPool ep;
-  level_zero_tests::xeCommandList cl;
-};
+namespace level_zero_tests {
+
+xe_sampler_handle_t create_sampler();
+
+xe_sampler_handle_t create_sampler(xe_sampler_address_mode_t addrmode,
+                                   xe_sampler_filter_mode_t filtmode,
+                                   xe_bool_t normalized);
+
+void destroy_sampler(xe_sampler_handle_t sampler);
+
+}; // namespace level_zero_tests
 
 #endif

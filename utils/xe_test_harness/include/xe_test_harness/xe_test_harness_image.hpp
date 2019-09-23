@@ -96,6 +96,9 @@ void destroy_xe_image(xe_image_handle_t image);
 
 xe_image_properties_t get_xe_image_properties(xe_image_desc_t image_descriptor);
 
+void copy_image_from_mem(lzt::ImagePNG32Bit input, xe_image_handle_t output);
+void copy_image_to_mem(xe_image_handle_t input, lzt::ImagePNG32Bit output);
+
 class xeImageCreateCommon {
 public:
   xeImageCreateCommon();

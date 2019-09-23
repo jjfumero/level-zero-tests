@@ -30,4 +30,11 @@ add_conformance_test(
   LINK_LIBRARIES
     level_zero_tests::logging
     level_zero_tests::xe_utils
+    PNG::PNG
+  KERNELS
+    xe_sampler
+  MEDIA
+    "png/test_input.png"
 )
+
+

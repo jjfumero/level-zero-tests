@@ -24,7 +24,7 @@
 function(add_conformance_test)
     set(options "")
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS MEDIA)
     cmake_parse_arguments(ADD_CONFORMANCE_TEST
       "${options}" "${oneValueArgs}" "${multiValueArgs}"
       ${ARGN}
@@ -58,6 +58,13 @@ function(add_conformance_test)
     foreach(kernel ${ADD_CONFORMANCE_TEST_KERNELS})
         install(
           FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/${kernel}.spv"
+          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+        )
+    endforeach()
+
+    foreach(media ${ADD_CONFORMANCE_TEST_MEDIA})
+        install(
+          FILES "${MEDIA_DIRECTORY}/${media}"
           DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
         )
     endforeach()
