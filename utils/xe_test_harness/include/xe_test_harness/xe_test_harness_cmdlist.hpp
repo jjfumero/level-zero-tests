@@ -83,7 +83,12 @@ void append_launch_function(xe_command_list_handle_t hCommandList,
                             xe_event_handle_t *phWaitEvents);
 void append_signal_event(xe_command_list_handle_t hCommandList,
                          xe_event_handle_t hEvent);
+void append_wait_on_events(xe_command_list_handle_t hCommandList,
+                           uint32_t numEvents, xe_event_handle_t *phEvents);
+void append_reset_event(xe_command_list_handle_t hCommandList,
+                        xe_event_handle_t hEvent);
 void close_command_list(xe_command_list_handle_t cl);
+void reset_command_list(xe_command_list_handle_t cl);
 void destroy_command_list(xe_command_list_handle_t cl);
 
 }; // namespace level_zero_tests

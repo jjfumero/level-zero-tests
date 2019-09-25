@@ -30,6 +30,8 @@
 
 #include "xe_driver.h"
 #include "xe_event.h"
+#include "xe_copy.h"
+#include "xe_barrier.h"
 #include <thread>
 
 namespace {
@@ -194,6 +196,194 @@ TEST_F(xeDeviceCreateEventTests,
   ep.create_event(event);
   EXPECT_EQ(XE_RESULT_SUCCESS, xeEventReset(event));
   ep.destroy_event(event);
+}
+
+class xeEventSignalingTests : public lzt::xeEventPoolTests {};
+
+TEST_F(
+    xeEventSignalingTests,
+    GivenOneEventSignaledbyHostWhenQueryStatusThenVerifyOnlyOneEventDetected) {
+  size_t num_event = 10;
+  std::vector<xe_event_handle_t> host_event(num_event, nullptr);
+
+  ep.InitEventPool(num_event);
+  ep.create_events(host_event, num_event);
+  for (uint32_t i = 0; i < num_event; i++) {
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventHostSignal(host_event[i]));
+    for (uint32_t j = 0; j < num_event; j++) {
+      if (j == i) {
+        EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(host_event[j]));
+      } else {
+        EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(host_event[j]));
+      }
+    }
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventReset(host_event[i]));
+  }
+  ep.destroy_events(host_event);
+}
+
+TEST_F(
+    xeEventSignalingTests,
+    GivenOneEventSignaledbyCommandListWhenQueryStatusOnHostThenVerifyOnlyOneEventDetected) {
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  size_t num_event = 10;
+  ASSERT_GE(num_event, 3);
+  std::vector<xe_event_handle_t> device_event(num_event, nullptr);
+  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  size_t copy_size = 4096;
+  void *src_buff = lzt::allocate_host_memory(copy_size);
+  void *dst_buff = lzt::allocate_shared_memory(copy_size);
+  ep.InitEventPool(num_event);
+  ep.create_events(device_event, num_event);
+
+  lzt::write_data_pattern(src_buff, copy_size, 1);
+  lzt::write_data_pattern(dst_buff, copy_size, 0);
+  // Add in Wait on Event to check issue identified in LOKI-537
+  for (uint32_t i = 0; i < num_event - 1; i++) {
+    lzt::append_signal_event(cmd_list, device_event[i]);
+    lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+    lzt::append_wait_on_events(cmd_list, 1, &device_event[num_event - 1]);
+    lzt::append_memory_copy(cmd_list, dst_buff, src_buff, copy_size, nullptr, 0,
+                            nullptr);
+    lzt::close_command_list(cmd_list);
+    lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
+    EXPECT_EQ(XE_RESULT_SUCCESS,
+              xeEventHostSynchronize(device_event[i], UINT32_MAX - 1));
+    EXPECT_EQ(XE_RESULT_SUCCESS,
+              xeEventHostSignal(device_event[num_event - 1]));
+    lzt::synchronize(cmd_q, UINT32_MAX);
+
+    for (uint32_t j = 0; j < num_event - 1; j++) {
+      if (j == i) {
+        EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(device_event[j]));
+      } else {
+        EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(device_event[j]));
+      }
+    }
+    lzt::validate_data_pattern(dst_buff, copy_size, 1);
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventReset(device_event[i]));
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventReset(device_event[num_event - 1]));
+    lzt::reset_command_list(cmd_list);
+  }
+
+  lzt::destroy_command_queue(cmd_q);
+  lzt::destroy_command_list(cmd_list);
+  lzt::free_memory(src_buff);
+  lzt::free_memory(dst_buff);
+  ep.destroy_events(device_event);
+}
+
+TEST_F(
+    xeEventSignalingTests,
+    GivenCommandListWaitsForEventsWhenHostAndCommandListSendsSignalsThenCommandListExecutesSuccessfully) {
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  size_t num_event = 10;
+  ASSERT_GE(num_event, 3);
+  std::vector<xe_event_handle_t> device_event(num_event, nullptr);
+  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  size_t copy_size = 4096;
+  void *src_buff = lzt::allocate_host_memory(copy_size);
+  void *dev_buff = lzt::allocate_device_memory(copy_size);
+  void *dst_buff = lzt::allocate_shared_memory(copy_size);
+  ep.InitEventPool(num_event);
+  ep.create_events(device_event, num_event);
+
+  lzt::write_data_pattern(src_buff, copy_size, 1);
+  lzt::write_data_pattern(dst_buff, copy_size, 0);
+
+  lzt::append_signal_event(cmd_list, device_event[0]);
+  lzt::append_memory_copy(cmd_list, dev_buff, src_buff, copy_size, nullptr, 0,
+                          nullptr);
+  lzt::append_signal_event(cmd_list, device_event[1]);
+  lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+  lzt::append_wait_on_events(cmd_list, num_event, device_event.data());
+  lzt::append_memory_copy(cmd_list, dst_buff, dev_buff, copy_size, nullptr, 0,
+                          nullptr);
+  lzt::close_command_list(cmd_list);
+  lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
+  for (uint32_t i = 2; i < num_event; i++) {
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventHostSignal(device_event[i]));
+  }
+  lzt::synchronize(cmd_q, UINT32_MAX);
+
+  for (uint32_t i = 0; i < num_event; i++) {
+    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(device_event[i]));
+  }
+
+  lzt::validate_data_pattern(dst_buff, copy_size, 1);
+
+  lzt::destroy_command_queue(cmd_q);
+  lzt::destroy_command_list(cmd_list);
+  lzt::free_memory(src_buff);
+  lzt::free_memory(dev_buff);
+  lzt::free_memory(dst_buff);
+  ep.destroy_events(device_event);
+}
+
+TEST_F(xeEventSignalingTests,
+       GivenEventsSignaledWhenResetThenQueryStatusReturnsNotReady) {
+  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  size_t num_event = 10;
+  ASSERT_GE(num_event, 4);
+  size_t num_loop = 4;
+  ASSERT_GE(num_loop, 4);
+
+  std::vector<xe_event_handle_t> device_event(num_event, nullptr);
+  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  size_t loop_data_size = 300; // do not make this N*256
+  ASSERT_TRUE(loop_data_size % 256);
+  size_t copy_size = num_loop * loop_data_size;
+  void *src_buff = lzt::allocate_host_memory(copy_size);
+  void *dst_buff = lzt::allocate_shared_memory(copy_size);
+  uint8_t *src_char = static_cast<uint8_t *>(src_buff);
+  uint8_t *dst_char = static_cast<uint8_t *>(dst_buff);
+  ep.InitEventPool(num_event);
+  ep.create_events(device_event, num_event);
+
+  lzt::write_data_pattern(src_buff, copy_size, 1);
+  lzt::write_data_pattern(dst_buff, copy_size, 0);
+  for (size_t i = 0; i < num_loop; i++) {
+    for (size_t j = 0; j < num_event; j++) {
+      EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(device_event[i]));
+    }
+    lzt::append_signal_event(cmd_list, device_event[i]);
+    lzt::append_wait_on_events(cmd_list, num_event, device_event.data());
+    lzt::append_memory_copy(cmd_list, static_cast<void *>(dst_char),
+                            static_cast<void *>(src_char), loop_data_size,
+                            nullptr, 0, nullptr);
+    lzt::append_reset_event(cmd_list, device_event[i]);
+    lzt::close_command_list(cmd_list);
+    lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
+    for (size_t j = 0; j < num_event; j++) {
+      if (i != j) {
+        EXPECT_EQ(XE_RESULT_SUCCESS, xeEventHostSignal(device_event[j]));
+      }
+    }
+    lzt::synchronize(cmd_q, UINT32_MAX);
+
+    for (size_t j = 0; j < num_event; j++) {
+      if (i == j) {
+        EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(device_event[j]));
+      } else {
+        EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(device_event[j]));
+        EXPECT_EQ(XE_RESULT_SUCCESS, xeEventReset(device_event[j]));
+        EXPECT_EQ(XE_RESULT_NOT_READY, xeEventQueryStatus(device_event[j]));
+      }
+    }
+    src_char += loop_data_size;
+    dst_char += loop_data_size;
+    lzt::reset_command_list(cmd_list);
+  }
+  lzt::validate_data_pattern(dst_buff, copy_size, 1);
+
+  lzt::destroy_command_queue(cmd_q);
+  lzt::destroy_command_list(cmd_list);
+  lzt::free_memory(src_buff);
+  lzt::free_memory(dst_buff);
+  ep.destroy_events(device_event);
 }
 
 } // namespace

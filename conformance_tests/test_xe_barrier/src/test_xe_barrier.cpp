@@ -331,10 +331,14 @@ TEST_F(
   ep.destroy_events(events_to_barrier);
 }
 
-enum BarrierType { BARRIER, MEMORY_RANGES_BARRIER };
+enum BarrierType {
+  BT_GLOBAL_BARRIER,
+  BT_MEMORY_RANGES_BARRIER,
+  BT_EVENTS_BARRIER
+};
 
 class xeBarrierKernelTests
-    : public ::testing::Test,
+    : public lzt::xeEventPoolTests,
       public ::testing::WithParamInterface<enum BarrierType> {};
 
 TEST_P(
@@ -348,17 +352,47 @@ TEST_P(
   void *host_buff = lzt::allocate_host_memory(num_int * sizeof(int));
 
   int *p_host = static_cast<int *>(host_buff);
-  int addval_1 = -100;
-  int val_1 = 50000;
+  enum BarrierType barrier_type = GetParam();
+
+  // Initialize host buffer with postive and negative integer values
+  const int addval_1 = -100;
+  const int val_1 = 50000;
   int val = val_1;
   for (size_t i = 0; i < num_int; i++) {
     p_host[i] = val;
     val += addval_1;
   }
-  p_host = static_cast<int *>(host_buff);
 
-  enum BarrierType barrier_type = GetParam();
-  int addval_2 = 50;
+  // Setup 2 events if running EVENTS_BARRIER test.  Flags set for coherency
+  // between device and host
+  const size_t num_event = 2;
+  std::vector<xe_event_handle_t> coherency_event(num_event, nullptr);
+  ep.InitEventPool(num_event);
+  ep.create_events(coherency_event, num_event, XE_EVENT_SCOPE_FLAG_HOST,
+                   XE_EVENT_SCOPE_FLAG_HOST);
+
+  xe_event_handle_t signal_event_copy = nullptr;
+  xe_event_handle_t signal_event_func1 = nullptr;
+  uint32_t num_wait = 0;
+  xe_event_handle_t *p_wait_event_func1 = nullptr;
+  xe_event_handle_t *p_wait_event_func2 = nullptr;
+
+  // Coherency test:
+  // 1) Command list memcopy from Host to Device Buffer.
+  // 2) First kernel function uses Device Buffer as input buffer and adds
+  // constant 3) Second kernel function adds Device Buffer output of first to
+  // Host buffer 4) Coherency via barriers or events needed betwen 1&2 and
+  // between 2&3
+
+  if (barrier_type == BT_EVENTS_BARRIER) {
+    signal_event_copy = coherency_event[0];
+    signal_event_func1 = coherency_event[1];
+    num_wait = 1;
+    p_wait_event_func1 = &coherency_event[0];
+    p_wait_event_func2 = &coherency_event[1];
+  }
+
+  const int addval_2 = 50;
   xe_module_handle_t module =
       lzt::create_module(device, "xe_barrier_add.spv",
                          XE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
@@ -373,29 +407,34 @@ TEST_P(
   tg.groupCountX = num_int;
   tg.groupCountY = 1;
   tg.groupCountZ = 1;
+
   lzt::append_memory_copy(cmd_list, dev_buff, host_buff, num_int * sizeof(int),
-                          nullptr, 0, nullptr);
+                          signal_event_copy, 0, nullptr);
   // Memory barrier to ensure memory coherency after copy to device memory
-  if (barrier_type == MEMORY_RANGES_BARRIER) {
+  if (barrier_type == BT_MEMORY_RANGES_BARRIER) {
     const std::vector<size_t> range_sizes{num_int * sizeof(int),
                                           num_int * sizeof(int)};
     std::vector<const void *> ranges{dev_buff, host_buff};
     lzt::append_memory_ranges_barrier(cmd_list, ranges.size(),
                                       range_sizes.data(), ranges.data(),
                                       nullptr, 0, nullptr);
-  } else {
+  } else if (barrier_type == BT_GLOBAL_BARRIER) {
     lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
   }
-  lzt::append_launch_function(cmd_list, function_1, &tg, nullptr, 0, nullptr);
+  lzt::append_launch_function(cmd_list, function_1, &tg, signal_event_func1,
+                              num_wait, p_wait_event_func1);
   // Execution barrier to ensure function_1 completes before function_2 starts
-  lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+  if (barrier_type != BT_EVENTS_BARRIER) {
+    lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+  }
   xe_function_handle_t function_2 =
       lzt::create_function(module, "xe_barrier_add_two_arrays");
   lzt::set_group_size(function_2, 1, 1, 1);
 
   lzt::set_argument_value(function_2, 0, sizeof(p_host), &p_host);
   lzt::set_argument_value(function_2, 1, sizeof(p_dev), &p_dev);
-  lzt::append_launch_function(cmd_list, function_2, &tg, nullptr, 0, nullptr);
+  lzt::append_launch_function(cmd_list, function_2, &tg, nullptr, num_wait,
+                              p_wait_event_func2);
 
   lzt::close_command_list(cmd_list);
   lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
@@ -413,11 +452,14 @@ TEST_P(
   lzt::destroy_command_list(cmd_list);
   lzt::free_memory(host_buff);
   lzt::free_memory(dev_buff);
+  ep.destroy_events(coherency_event);
 }
 
 INSTANTIATE_TEST_CASE_P(TestKernelWithBarrierAndMemoryRangesBarrier,
                         xeBarrierKernelTests,
-                        testing::Values(BARRIER, MEMORY_RANGES_BARRIER));
+                        testing::Values(BT_GLOBAL_BARRIER,
+                                        BT_MEMORY_RANGES_BARRIER,
+                                        BT_EVENTS_BARRIER));
 
 } // namespace
 

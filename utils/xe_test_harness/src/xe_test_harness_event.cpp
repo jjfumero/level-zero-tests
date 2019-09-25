@@ -48,10 +48,11 @@ void destroy_event_pool(xe_event_pool_handle_t event_pool) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolDestroy(event_pool));
 }
 
-void xeEventPool::InitEventPool() {
-  InitEventPool(32, XE_EVENT_POOL_FLAG_DEFAULT);
-}
+void xeEventPool::InitEventPool() { InitEventPool(32); }
 
+void xeEventPool::InitEventPool(uint32_t count) {
+  InitEventPool(count, XE_EVENT_POOL_FLAG_DEFAULT);
+}
 void xeEventPool::InitEventPool(uint32_t count, xe_event_pool_flag_t flags) {
   if (event_pool_ == nullptr) {
     event_pool_ = create_event_pool(count, flags);

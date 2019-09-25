@@ -130,8 +130,24 @@ void append_signal_event(xe_command_list_handle_t hCommandList,
             xeCommandListAppendSignalEvent(hCommandList, hEvent));
 }
 
+void append_wait_on_events(xe_command_list_handle_t hCommandList,
+                           uint32_t numEvents, xe_event_handle_t *phEvents) {
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendWaitOnEvents(hCommandList, numEvents, phEvents));
+}
+
+void append_reset_event(xe_command_list_handle_t hCommandList,
+                        xe_event_handle_t hEvent) {
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendEventReset(hCommandList, hEvent));
+}
+
 void close_command_list(xe_command_list_handle_t cl) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl));
+}
+
+void reset_command_list(xe_command_list_handle_t cl) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListReset(cl));
 }
 
 void destroy_command_list(xe_command_list_handle_t cl) {
