@@ -219,7 +219,7 @@ create-legacy-artifacts:
           cp -r out/windows/${type}_tests archived/${type}_tests/${type}-tests-win64;
           pushd archived/${type}_tests;
           tar -czvf ${type}-tests-Linux.tar.gz ${type}-tests-Linux;
-          zip ${type}-tests-win64.zip ${type}-tests-win64;
+          zip -r ${type}-tests-win64.zip ${type}-tests-win64;
           rm -rf ${type}-tests-Linux;
           rm -rf ${type}-tests-win64;
           popd;
