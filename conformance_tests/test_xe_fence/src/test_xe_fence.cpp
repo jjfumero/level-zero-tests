@@ -86,10 +86,8 @@ TEST_P(xeFenceSynchronizeTests,
 
   void *output_buffer = lzt::allocate_device_memory(input.size());
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
-                                          input.data(), input.size(), nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(cl.command_list_, output_buffer, input.data(),
+                          input.size(), nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
 
@@ -117,10 +115,8 @@ TEST_F(xeFenceSynchronizeTests,
 
   void *output_buffer = lzt::allocate_device_memory(input.size());
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
-                                          input.data(), input.size(), nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(cl.command_list_, output_buffer, input.data(),
+                          input.size(), nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
 
@@ -144,10 +140,8 @@ TEST_F(xeFenceSynchronizeTests,
 
   void *output_buffer = lzt::allocate_device_memory(input.size());
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
-                                          input.data(), input.size(), nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(cl.command_list_, output_buffer, input.data(),
+                          input.size(), nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
 
@@ -170,10 +164,8 @@ TEST_F(xeFenceSynchronizeTests,
 
   void *output_buffer = lzt::allocate_device_memory(input.size());
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(cl.command_list_, output_buffer,
-                                          input.data(), input.size(), nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(cl.command_list_, output_buffer, input.data(),
+                          input.size(), nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
 

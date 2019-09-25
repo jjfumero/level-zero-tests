@@ -141,16 +141,12 @@ protected:
 
     xe_thread_group_dimensions_t thread_group_dimensions = {1, 1, 1};
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendMemoryCopy(
-                  command_list, gpu_expected_output_buffer,
-                  host_expected_output_buffer, output_count * sizeof(uint64_t),
-                  nullptr, 0, nullptr));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendMemoryCopy(
-                  command_list, gpu_found_output_buffer,
-                  host_found_output_buffer, output_count * sizeof(uint64_t),
-                  nullptr, 0, nullptr));
+    lzt::append_memory_copy(
+        command_list, gpu_expected_output_buffer, host_expected_output_buffer,
+        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
+    lzt::append_memory_copy(
+        command_list, gpu_found_output_buffer, host_found_output_buffer,
+        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandListAppendLaunchFunction(command_list, fill_function,
@@ -168,17 +164,13 @@ protected:
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendMemoryCopy(
-                  command_list, host_expected_output_buffer,
-                  gpu_expected_output_buffer, output_count * sizeof(uint64_t),
-                  nullptr, 0, nullptr));
+    lzt::append_memory_copy(
+        command_list, host_expected_output_buffer, gpu_expected_output_buffer,
+        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendMemoryCopy(
-                  command_list, host_found_output_buffer,
-                  gpu_found_output_buffer, output_count * sizeof(uint64_t),
-                  nullptr, 0, nullptr));
+    lzt::append_memory_copy(
+        command_list, host_found_output_buffer, gpu_found_output_buffer,
+        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
 
     EXPECT_EQ(XE_RESULT_SUCCESS,
               xeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));

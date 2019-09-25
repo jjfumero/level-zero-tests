@@ -107,14 +107,10 @@ TEST_F(
     xeP2PTests,
     GivenP2PDevicesWhenCopyingDeviceMemoryFromRemoteDeviceThenSuccessIsReturned) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(dev0_.cmd_list, dev0_.dst_region,
-                                          dev1_.src_region, mem_size_, nullptr,
-                                          0, nullptr));
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(dev1_.cmd_list, dev1_.dst_region,
-                                          dev0_.src_region, mem_size_, nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(dev0_.cmd_list, dev0_.dst_region, dev1_.src_region,
+                          mem_size_, nullptr, 0, nullptr);
+  lzt::append_memory_copy(dev1_.cmd_list, dev1_.dst_region, dev0_.src_region,
+                          mem_size_, nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev0_.cmd_list));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
@@ -134,14 +130,10 @@ TEST_F(
     xeP2PTests,
     GivenP2PDevicesWhenCopyingDeviceMemoryToRemoteDeviceThenSuccessIsReturned) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(dev0_.cmd_list, dev1_.dst_region,
-                                          dev0_.src_region, mem_size_, nullptr,
-                                          0, nullptr));
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(dev1_.cmd_list, dev0_.dst_region,
-                                          dev1_.src_region, mem_size_, nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(dev0_.cmd_list, dev1_.dst_region, dev0_.src_region,
+                          mem_size_, nullptr, 0, nullptr);
+  lzt::append_memory_copy(dev1_.cmd_list, dev0_.dst_region, dev1_.src_region,
+                          mem_size_, nullptr, 0, nullptr);
 
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev0_.cmd_list));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
@@ -171,10 +163,8 @@ TEST_F(
                          static_cast<int>(value), mem_size_);
   EXPECT_EQ(XE_RESULT_SUCCESS,
             xeCommandListAppendBarrier(dev0_.cmd_list, nullptr, 0, nullptr));
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(dev0_.cmd_list, dev1_.dst_region,
-                                          dev0_.src_region, mem_size_, nullptr,
-                                          0, nullptr));
+  lzt::append_memory_copy(dev0_.cmd_list, dev1_.dst_region, dev0_.src_region,
+                          mem_size_, nullptr, 0, nullptr);
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev0_.cmd_list));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
                                    dev0_.cmd_q, 1, &dev0_.cmd_list, nullptr));
@@ -183,9 +173,8 @@ TEST_F(
             xeCommandQueueSynchronize(dev0_.cmd_q, UINT32_MAX));
 
   // Copy memory region from device1 to shared mem, and verify it is correct
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemoryCopy(
-                                   dev1_.cmd_list, shr_mem, dev1_.dst_region,
-                                   mem_size_, nullptr, 0, nullptr));
+  lzt::append_memory_copy(dev1_.cmd_list, shr_mem, dev1_.dst_region, mem_size_,
+                          nullptr, 0, nullptr);
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
                                    dev1_.cmd_q, 1, &dev1_.cmd_list, nullptr));
@@ -225,9 +214,8 @@ TEST_F(xeP2PTests,
                                    dev1_.src_region);
 
   // copy memory to shared region and verify it is correct
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemoryCopy(
-                                   dev1_.cmd_list, shr_mem, dev1_.src_region,
-                                   mem_size_, nullptr, 0, nullptr));
+  lzt::append_memory_copy(dev1_.cmd_list, shr_mem, dev1_.src_region, mem_size_,
+                          nullptr, 0, nullptr);
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(dev1_.cmd_list));
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
                                    dev1_.cmd_q, 1, &dev1_.cmd_list, nullptr));
@@ -341,15 +329,13 @@ protected:
     dev_access_[i].cmd_list = lzt::create_command_list(dev_access_[i].dev);
 
     if ((num > 1) && (i == (num - 1))) {
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    dev_access_[i].cmd_list, dev_access_[i].device_mem_local,
-                    p_init_val, sizeof(int), nullptr, 0, nullptr));
+      lzt::append_memory_copy(dev_access_[i].cmd_list,
+                              dev_access_[i].device_mem_local, p_init_val,
+                              sizeof(int), nullptr, 0, nullptr);
     } else if (type != CONCURRENT_ATOMIC) {
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    dev_access_[i].cmd_list, dev_access_[i].device_mem_remote,
-                    p_init_val, sizeof(int), nullptr, 0, nullptr));
+      lzt::append_memory_copy(dev_access_[i].cmd_list,
+                              dev_access_[i].device_mem_remote, p_init_val,
+                              sizeof(int), nullptr, 0, nullptr);
     }
 
     if (sync) {
@@ -393,11 +379,10 @@ protected:
       }
     }
     if (i == 0) {
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    dev_access_[i].cmd_list, dev_access_[i].shared_mem,
-                    dev_access_[i].device_mem_remote, num * sizeof(int),
-                    nullptr, 0, nullptr));
+      lzt::append_memory_copy(dev_access_[i].cmd_list,
+                              dev_access_[i].shared_mem,
+                              dev_access_[i].device_mem_remote,
+                              num * sizeof(int), nullptr, 0, nullptr);
 
       EXPECT_EQ(XE_RESULT_SUCCESS,
                 xeCommandListAppendBarrier(dev_access_[i].cmd_list, nullptr, 0,

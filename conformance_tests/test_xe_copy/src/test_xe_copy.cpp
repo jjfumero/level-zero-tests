@@ -449,10 +449,8 @@ TEST_F(
   const std::vector<char> host_memory(size, 123);
   void *memory = allocate_device_memory(size_in_bytes(host_memory));
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(
-                cl.command_list_, memory, host_memory.data(),
-                size_in_bytes(host_memory), nullptr, 0, nullptr));
+  append_memory_copy(cl.command_list_, memory, host_memory.data(),
+                     size_in_bytes(host_memory), nullptr, 0, nullptr);
 
   free_memory(memory);
 }
@@ -466,10 +464,8 @@ TEST_F(
   xe_event_handle_t hEvent = nullptr;
 
   ep.create_event(hEvent);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryCopy(
-                cl.command_list_, memory, host_memory.data(),
-                size_in_bytes(host_memory), hEvent, 0, nullptr));
+  append_memory_copy(cl.command_list_, memory, host_memory.data(),
+                     size_in_bytes(host_memory), hEvent, 0, nullptr);
 
   ep.destroy_event(hEvent);
 
@@ -486,10 +482,9 @@ TEST_F(
   std::vector<xe_event_handle_t> hEvents(event_count, nullptr);
 
   ep.create_events(hEvents, event_count);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemoryCopy(
-                                   cl.command_list_, memory, host_memory.data(),
-                                   size_in_bytes(host_memory), nullptr,
-                                   event_count, hEvents.data()));
+  append_memory_copy(cl.command_list_, memory, host_memory.data(),
+                     size_in_bytes(host_memory), nullptr, event_count,
+                     hEvents.data());
   ep.destroy_events(hEvents);
   free_memory(memory);
 }
@@ -506,10 +501,9 @@ TEST_F(
 
   ep.create_event(hEvent);
   ep.create_events(hEvents, event_count);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendMemoryCopy(
-                                   cl.command_list_, memory, host_memory.data(),
-                                   size_in_bytes(host_memory), hEvent,
-                                   hEvents.size(), hEvents.data()));
+  append_memory_copy(cl.command_list_, memory, host_memory.data(),
+                     size_in_bytes(host_memory), hEvent, hEvents.size(),
+                     hEvents.data());
   ep.destroy_event(hEvent);
   ep.destroy_events(hEvents);
 

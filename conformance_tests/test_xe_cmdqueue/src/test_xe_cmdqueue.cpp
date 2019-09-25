@@ -176,10 +176,9 @@ protected:
       for (uint32_t j = 0; j < buff_size_bytes; j++) {
         char_input[j] = lzt::generate_value<uint8_t>(0, 255, 0);
       }
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListAppendMemoryCopy(
-                    command_list, device_buffer.at(i), host_buffer.at(i),
-                    buff_size_bytes, nullptr, 0, nullptr));
+      lzt::append_memory_copy(command_list, device_buffer.at(i),
+                              host_buffer.at(i), buff_size_bytes, nullptr, 0,
+                              nullptr);
       // Current synchronization tests randomly fail on Gen9HW (JIRA LOKI-301).
       // Only way to guarantee copy has occurred is to use barrier
       //         EXPECT_EQ(XE_RESULT_SUCCESS,
