@@ -154,6 +154,36 @@ TEST_F(xeCommandListParameterTests,
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListResetParameters(cl.command_list_));
 }
 
+class xeCommandListReuseTests : public ::testing::Test {};
+
+TEST(xeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
+  auto cmdlist = lzt::create_command_list();
+  auto cmdq = lzt::create_command_queue();
+  const size_t size = 16;
+  auto buffer = lzt::allocate_shared_memory(size);
+
+  lzt::append_memory_set(cmdlist, buffer, 0x1, size);
+  lzt::close_command_list(cmdlist);
+
+  const int num_execute = 5;
+  for (int i = 0; i < num_execute; i++) {
+    memset(buffer, 0x0, size);
+    for (int j = 0; j < size; j++)
+      ASSERT_EQ(static_cast<uint8_t *>(buffer)[i], 0x0)
+          << "Memory Set did not match.";
+
+    lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+    lzt::synchronize(cmdq, UINT32_MAX);
+    for (int j = 0; j < size; j++)
+      ASSERT_EQ(static_cast<uint8_t *>(buffer)[i], 0x1)
+          << "Memory Set did not match.";
+  }
+
+  lzt::destroy_command_list(cmdlist);
+  lzt::destroy_command_queue(cmdq);
+  lzt::free_memory(buffer);
+}
+
 } // namespace
 
 // TODO: Check memory leaks after call to xeCommandListDestroy
