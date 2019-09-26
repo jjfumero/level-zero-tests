@@ -21,6 +21,11 @@
 # must be express and approved by Intel in writing.
 #
 
+# The current distinction between add_conformance_test and
+# add_conformance_test_executable exists mainly for test_xe_ipc, which is
+# currently written to have a "helper" binary that isn't a conformance test by
+# itself.
+
 function(add_conformance_test)
     set(options REQUIRES_OPENCL_INTEROP)
     set(oneValueArgs NAME)
@@ -38,52 +43,75 @@ function(add_conformance_test)
         return()
     endif()
 
-    add_executable(${ADD_CONFORMANCE_TEST_NAME} ${ADD_CONFORMANCE_TEST_SOURCES})
+    add_conformance_test_executable(
+      NAME ${ADD_CONFORMANCE_TEST_NAME}
+      PREFIX "."
+      SOURCES ${ADD_CONFORMANCE_TEST_SOURCES}
+      INCLUDE_DIRECTORIES ${ADD_CONFORMANCE_TEST_INCLUDE_DIRECTORIES}
+      LINK_LIBRARIES ${ADD_CONFORMANCE_TEST_LINK_LIBRARIES}
+      KERNELS ${ADD_CONFORMANCE_TEST_KERNELS}
+      MEDIA ${ADD_CONFORMANCE_TEST_MEDIA}
+    )
+endfunction()
+
+function(add_conformance_test_executable)
+    set(options "")
+    set(oneValueArgs NAME PREFIX)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS MEDIA)
+    cmake_parse_arguments(ADD_CONFORMANCE_TEST_EXECUTABLE
+      "${options}" "${oneValueArgs}" "${multiValueArgs}"
+      ${ARGN}
+    )
+
+    add_executable(
+      ${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
+      ${ADD_CONFORMANCE_TEST_EXECUTABLE_SOURCES}
+    )
 
     if(CLANG_TIDY_EXE)
-        set_target_properties(${ADD_CONFORMANCE_TEST_NAME}
+        set_target_properties(${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
           PROPERTIES
             CXX_CLANG_TIDY ${CLANG_TIDY_EXE}
         )
     endif()
 
-    target_link_libraries(${ADD_CONFORMANCE_TEST_NAME}
+    target_link_libraries(${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
       PRIVATE
         LevelZero::LevelZero
         level_zero_tests::xe_test_harness
         GMock::GMock
         GTest::GTest
-        ${ADD_CONFORMANCE_TEST_LINK_LIBRARIES}
+        ${ADD_CONFORMANCE_TEST_EXECUTABLE_LINK_LIBRARIES}
     )
 
-    target_include_directories(${ADD_CONFORMANCE_TEST_NAME}
+    target_include_directories(${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
       PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${ADD_CONFORMANCE_TEST_INCLUDE_DIRECTORIES}
+        ${ADD_CONFORMANCE_TEST_EXECUTABLE_INCLUDE_DIRECTORIES}
     )
 
-    foreach(kernel ${ADD_CONFORMANCE_TEST_KERNELS})
+    foreach(kernel ${ADD_CONFORMANCE_TEST_EXECUTABLE_KERNELS})
         install(
           FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/${kernel}.spv"
-          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests/${ADD_CONFORMANCE_TEST_EXECUTABLE_PREFIX}"
         )
     endforeach()
 
-    foreach(media ${ADD_CONFORMANCE_TEST_MEDIA})
+    foreach(media ${ADD_CONFORMANCE_TEST_EXECUTABLE_MEDIA})
         install(
           FILES "${MEDIA_DIRECTORY}/${media}"
-          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+          DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests/${ADD_CONFORMANCE_TEST_EXECUTABLE_PREFIX}"
         )
     endforeach()
 
     install(
-      TARGETS ${ADD_CONFORMANCE_TEST_NAME}
-      DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests"
+      TARGETS ${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
+      DESTINATION "${CMAKE_BINARY_DIR}/out/conformance_tests/${ADD_CONFORMANCE_TEST_EXECUTABLE_PREFIX}"
       COMPONENT perf-tests
     )
 
     if(MSVC)
-        set_target_properties(${ADD_CONFORMANCE_TEST_NAME}
+        set_target_properties(${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
           PROPERTIES
             VS_DEBUGGER_COMMAND_ARGUMENTS ""
             VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"

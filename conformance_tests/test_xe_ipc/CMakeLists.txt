@@ -33,9 +33,9 @@ add_conformance_test(
     level_zero_tests::utils
 )
 
-# TODO: should this use the add_conformance_test function at all?
-add_conformance_test(
+add_conformance_test_executable(
   NAME test_xe_ipc_helper
+  PREFIX "ipc"  # install to prefix so it's not confused for a test
   SOURCES
     src/test_xe_ipc_helper.cpp
   LINK_LIBRARIES
