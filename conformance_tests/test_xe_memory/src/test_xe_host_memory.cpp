@@ -36,48 +36,48 @@ namespace lzt = level_zero_tests;
 
 namespace {
 
-class xeSharedMemAccessTests : public ::testing::Test {
+class xeHostMemAccessTests : public ::testing::Test {
 protected:
-  xeSharedMemAccessTests() { memory_ = lzt::allocate_shared_memory(size_); };
-  ~xeSharedMemAccessTests() { lzt::free_memory(memory_); }
+  xeHostMemAccessTests() { memory_ = lzt::allocate_host_memory(size_); };
+  ~xeHostMemAccessTests() { lzt::free_memory(memory_); }
   const size_t size_ = 4 * 1024;
   void *memory_ = nullptr;
 };
 
-class xeSharedMemAccessHostTests : public xeSharedMemAccessTests {};
+class xeHostMemAccessHostTests : public xeHostMemAccessTests {};
 
 TEST_F(
-    xeSharedMemAccessHostTests,
-    GivenSharedAllocationWhenWritingAndReadingBackOnHostThenCorrectDataIsRead) {
+    xeHostMemAccessHostTests,
+    GivenHostAllocationWhenWritingAndReadingBackOnHostThenCorrectDataIsRead) {
   lzt::write_data_pattern(memory_, size_, 1);
   lzt::validate_data_pattern(memory_, size_, 1);
 }
 
-class xeSharedMemAccessCommandListTests : public xeSharedMemAccessTests {
+class xeHostMemAccessCommandListTests : public xeHostMemAccessTests {
 protected:
   lzt::xeCommandList cmdlist_;
   lzt::xeCommandQueue cmdqueue_;
 };
 
 TEST_F(
-    xeSharedMemAccessCommandListTests,
-    GivenSharedAllocationWhenCopyingAndReadingBackOnHostThenCorrectDataIsRead) {
+    xeHostMemAccessCommandListTests,
+    GivenHostAllocationWhenCopyingAndReadingBackOnHostThenCorrectDataIsRead) {
   lzt::write_data_pattern(memory_, size_, 1);
-  void *other_shared_memory = lzt::allocate_shared_memory(size_);
+  void *other_host_memory = lzt::allocate_host_memory(size_);
 
-  lzt::append_memory_copy(cmdlist_.command_list_, other_shared_memory, memory_,
+  lzt::append_memory_copy(cmdlist_.command_list_, other_host_memory, memory_,
                           size_, nullptr, 0, nullptr);
   lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
   lzt::close_command_list(cmdlist_.command_list_);
   lzt::execute_command_lists(cmdqueue_.command_queue_, 1,
                              &cmdlist_.command_list_, nullptr);
   lzt::synchronize(cmdqueue_.command_queue_, UINT32_MAX);
-  lzt::validate_data_pattern(other_shared_memory, size_, 1);
-  lzt::free_memory(other_shared_memory);
+  lzt::validate_data_pattern(other_host_memory, size_, 1);
+  lzt::free_memory(other_host_memory);
 }
 
-TEST_F(xeSharedMemAccessCommandListTests,
-       GivenSharedAllocationSettingAndReadingBackOnHostThenCorrectDataIsRead) {
+TEST_F(xeHostMemAccessCommandListTests,
+       GivenHostAllocationSettingAndReadingBackOnHostThenCorrectDataIsRead) {
   const int value = 0x55;
 
   memset(memory_, 0,
@@ -92,11 +92,11 @@ TEST_F(xeSharedMemAccessCommandListTests,
     EXPECT_EQ(value, static_cast<uint8_t *>(memory_)[ui]);
 }
 
-class xeSharedMemAccessDeviceTests : public xeSharedMemAccessTests {};
+class xeHostMemAccessDeviceTests : public xeHostMemAccessTests {};
 
 TEST_F(
-    xeSharedMemAccessDeviceTests,
-    GivenSharedAllocationWhenWritingAndReadingBackOnDeviceThenCorrectDataIsRead) {
+    xeHostMemAccessDeviceTests,
+    GivenHostAllocationWhenWritingAndReadingBackOnDeviceThenCorrectDataIsRead) {
   lzt::write_data_pattern(memory_, size_, 1);
   std::string module_name = "xe_unified_mem_test.spv";
   xe_module_handle_t module = lzt::create_module(
@@ -119,25 +119,25 @@ TEST_F(
   lzt::destroy_module(module);
 }
 
-class xeSharedSystemMemoryHostTests : public ::testing::Test {
+class xeHostSystemMemoryHostTests : public ::testing::Test {
 protected:
-  xeSharedSystemMemoryHostTests() { memory_ = new uint8_t[size_]; }
-  ~xeSharedSystemMemoryHostTests() { delete[] memory_; }
+  xeHostSystemMemoryHostTests() { memory_ = new uint8_t[size_]; }
+  ~xeHostSystemMemoryHostTests() { delete[] memory_; }
   const size_t size_ = 4 * 1024;
   uint8_t *memory_ = nullptr;
 };
 
 TEST_F(
-    xeSharedSystemMemoryHostTests,
-    GivenSharedSystemAllocationWhenWritingAndReadingOnHostThenCorrectDataIsRead) {
+    xeHostSystemMemoryHostTests,
+    GivenHostSystemAllocationWhenWritingAndReadingOnHostThenCorrectDataIsRead) {
   lzt::write_data_pattern(memory_, size_, 1);
   lzt::validate_data_pattern(memory_, size_, 1);
 }
 
-class xeSharedSystemMemoryDeviceTests : public ::testing::Test {
+class xeHostSystemMemoryDeviceTests : public ::testing::Test {
 protected:
-  xeSharedSystemMemoryDeviceTests() { memory_ = new uint8_t[size_]; }
-  ~xeSharedSystemMemoryDeviceTests() { delete[] memory_; }
+  xeHostSystemMemoryDeviceTests() { memory_ = new uint8_t[size_]; }
+  ~xeHostSystemMemoryDeviceTests() { delete[] memory_; }
   const size_t size_ = 4 * 1024;
   uint8_t *memory_ = nullptr;
   lzt::xeCommandList cmdlist_;
@@ -145,8 +145,8 @@ protected:
 };
 
 TEST_F(
-    xeSharedSystemMemoryDeviceTests,
-    GivenSharedSystemAllocationWhenAccessingMemoryOnDeviceThenCorrectDataIsRead) {
+    xeHostSystemMemoryDeviceTests,
+    GivenHostSystemAllocationWhenAccessingMemoryOnDeviceThenCorrectDataIsRead) {
   // FIXME: LOKI-488
   FAIL()
       << "Fail due to Abort when accessing system memory allocation: LOKI-488";
@@ -173,8 +173,8 @@ TEST_F(
 }
 
 TEST_F(
-    xeSharedSystemMemoryDeviceTests,
-    GivenSharedSystemAllocationWhenCopyingMemoryOnDeviceThenMemoryCopiedCorrectly) {
+    xeHostSystemMemoryDeviceTests,
+    GivenHostSystemAllocationWhenCopyingMemoryOnDeviceThenMemoryCopiedCorrectly) {
   lzt::write_data_pattern(memory_, size_, 1);
   uint8_t *other_system_memory = new uint8_t[size_];
 
@@ -189,8 +189,8 @@ TEST_F(
   delete[] other_system_memory;
 }
 
-TEST_F(xeSharedSystemMemoryDeviceTests,
-       GivenSharedSystemMemoryWhenSettingMemoryOnDeviceThenMemorySetCorrectly) {
+TEST_F(xeHostSystemMemoryDeviceTests,
+       GivenHostSystemMemoryWhenSettingMemoryOnDeviceThenMemorySetCorrectly) {
   // This test case fails due to the memory not being set: LOKI-490
   const int value = 0x55;
   lzt::write_data_pattern(memory_, size_, 1);

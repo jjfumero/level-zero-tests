@@ -32,6 +32,7 @@ add_conformance_test(
   NAME test_xe_memory
   SOURCES
     src/test_xe_memory.cpp
+    src/test_xe_host_memory.cpp
     src/test_xe_unified_memory.cpp
     src/main.cpp
   LINK_LIBRARIES
