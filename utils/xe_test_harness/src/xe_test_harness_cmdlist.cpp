@@ -142,6 +142,41 @@ void append_reset_event(xe_command_list_handle_t hCommandList,
             xeCommandListAppendEventReset(hCommandList, hEvent));
 }
 
+void append_image_copy(xe_command_list_handle_t hCommandList,
+                       xe_image_handle_t dst, xe_image_handle_t src,
+                       xe_event_handle_t hEvent) {
+
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopy(
+                                   hCommandList, dst, src, hEvent, 0, nullptr));
+}
+
+void append_image_copy_to_mem(xe_command_list_handle_t hCommandList, void *dst,
+                              xe_image_handle_t src, xe_event_handle_t hEvent) {
+
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendImageCopyToMemory(hCommandList, dst, src,
+                                                 nullptr, hEvent, 0, nullptr));
+}
+
+void append_image_copy_from_mem(xe_command_list_handle_t hCommandList,
+                                xe_image_handle_t dst, void *src,
+                                xe_event_handle_t hEvent) {
+
+  EXPECT_EQ(XE_RESULT_SUCCESS,
+            xeCommandListAppendImageCopyFromMemory(
+                hCommandList, dst, src, nullptr, hEvent, 0, nullptr));
+}
+
+void append_image_copy_region(xe_command_list_handle_t hCommandList,
+                              xe_image_handle_t dst, xe_image_handle_t src,
+                              xe_image_region_t *dst_region,
+                              xe_image_region_t *src_region,
+                              xe_event_handle_t hEvent) {
+  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopyRegion(
+                                   hCommandList, dst, src, dst_region,
+                                   src_region, hEvent, 0, nullptr));
+}
+
 void close_command_list(xe_command_list_handle_t cl) {
   EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl));
 }

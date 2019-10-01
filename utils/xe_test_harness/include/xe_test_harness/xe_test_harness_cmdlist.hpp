@@ -87,6 +87,21 @@ void append_wait_on_events(xe_command_list_handle_t hCommandList,
                            uint32_t numEvents, xe_event_handle_t *phEvents);
 void append_reset_event(xe_command_list_handle_t hCommandList,
                         xe_event_handle_t hEvent);
+
+void append_image_copy(xe_command_list_handle_t hCommandList,
+                       xe_image_handle_t dst, xe_image_handle_t src,
+                       xe_event_handle_t hEvent);
+void append_image_copy_to_mem(xe_command_list_handle_t hCommandList, void *dst,
+                              xe_image_handle_t src, xe_event_handle_t hEvent);
+void append_image_copy_from_mem(xe_command_list_handle_t hCommandList,
+                                xe_image_handle_t dst, void *src,
+                                xe_event_handle_t hEvent);
+void append_image_copy_region(xe_command_list_handle_t hCommandList,
+                              xe_image_handle_t dst, xe_image_handle_t src,
+                              xe_image_region_t *dst_region,
+                              xe_image_region_t *src_region,
+                              xe_event_handle_t hEvent);
+
 void close_command_list(xe_command_list_handle_t cl);
 void reset_command_list(xe_command_list_handle_t cl);
 void destroy_command_list(xe_command_list_handle_t cl);
