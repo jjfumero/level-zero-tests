@@ -12,12 +12,6 @@ RUN apt-get update && apt-get install -y \
         ocl-icd-opencl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yq, a command-line YAML parser (required for parsing test_config.yml)
-RUN curl -sSL \
-      https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 \
-      -o /usr/local/bin/yq && \
-    chmod +x /usr/local/bin/yq
-
 # Setup irepo
 # RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
 

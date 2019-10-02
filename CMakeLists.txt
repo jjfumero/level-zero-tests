@@ -109,5 +109,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     /docker
     /ci-build-linux.sh
     /ci-build-windows.cmd
+    /ci-run.py
+    /test_config.yml
 )
 include(CPack)

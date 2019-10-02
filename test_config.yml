@@ -1,13 +1,18 @@
 # YAML test configuration
 #
-# Use this file to specify runtime attributes for different tests that override
-# the default values. Currently, each test is specified by the test binary name,
-# and the available attributes are "timeout".
+# Specify default and specific configuration parameters for pre-merge test
+# execution. The default configuration is specified under "default", and
+# configuration for each case is specified under the suite name -> case name.
+# Suite names are any top-level results reported by --gtest_list_tests,
+# including prefixes from parameterization instantiations.
 #
 # Example:
 #
-# test_xe_module:
-#   timeout: 60
+# TestP2PConcurrentAccess/xeP2PKernelTestsConcurrentAccess:
+#   GivenP2PDevicesWhenConcurrentAccessesOfPeerMemoryThenSuccessIsReturned:
+#     timeout: 60
 
 ---
+default:
+  timeout: 60
 ...

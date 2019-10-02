@@ -129,11 +129,12 @@ build-ubuntu1804:
       - out
       - build/clang_format_results.patch
 
-run-ubuntu1804:
+run-linux:
   stage: run
   image: docker:19.03.1
   only:
     - merge_requests
+    - master
     - web
   tags:
     - caas
@@ -148,54 +149,76 @@ run-ubuntu1804:
     DOCKER_TLS_CERTDIR: ""  # https://about.gitlab.com/2019/07/31/docker-in-docker-with-docker-19-dot-03/
     DOCKER_HOST: tcp://localhost:2375/
     DOCKER_DRIVER: overlay2  # better performance for dind
-    RUNTIME_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-run-ubuntu1804
+    IMAGE_NAME_PREFIX: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}
     # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
     HARBOR_USER2: ${HARBOR_USER}
     HARBOR_TOKEN2: ${HARBOR_TOKEN}
   script:
     - docker info
     - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    - docker pull ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG} ||
-      docker pull ${RUNTIME_IMAGE}:latest ||
-      true
-    - docker build
-        --cache-from ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${RUNTIME_IMAGE}:latest
-        -t ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
-        -t ${RUNTIME_IMAGE}:latest
+    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker pull ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG} ||
+          docker pull ${IMAGE_NAME}:latest ||
+          true;
+      done
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-ci-run;
+      docker build
+        --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${IMAGE_NAME}:latest
+        -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        -t ${IMAGE_NAME}:latest
+        ./docker/ci-run
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707;
+      docker build
+        --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${IMAGE_NAME}:latest
+        --build-arg ARTIFACTORY_USER
+        --build-arg ARTIFACTORY_PASSWORD
+        --build-arg FULSIM_NAME=gen9
+        --build-arg FULSIM_VERSION=r36707
+        -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        -t ${IMAGE_NAME}:latest
+        ./docker/fulsim
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-runtime-ubuntu1804;
+      docker build
+        --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${IMAGE_NAME}:latest
         --build-arg QB_USER
         --build-arg QB_PASSWORD
-        ./docker/run-ubuntu1804
-    # TODO: parse output of --gtest_list_tests
-    - docker pull amr-registry.caas.intel.com/level-zero-linux-compute/fulsim:gen9-r36707
-    - touch run.log
-    - tail -f run.log &
-      LOG_TAIL_PID=$!;
-      for test in $(find out/ubuntu1804/conformance_tests -executable -type f); do
-          test=$(basename $test);
-          echo "Launching execution containers for $test";
-          docker run
-            --detach
-            --name fulsim-$test
-            amr-registry.caas.intel.com/level-zero-linux-compute/fulsim:gen9-r36707
-            AubLoad -device skl.2.a0 -socket tcp;
-          docker run
-            --detach
-            --name runtime-$test
-            --network=container:fulsim-$test
-            -v ${PWD}:/root/project
-            -w /root/project
-            ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
-            ./ci-run-linux.sh out/ubuntu1804/conformance_tests $test;
-      done;
-      docker wait $(docker ps -a -q -f "label=role=runtime") &>/dev/null;
-      kill $LOG_TAIL_PID
-    - docker push ${RUNTIME_IMAGE}:${CI_COMMIT_REF_SLUG}
-    - docker push ${RUNTIME_IMAGE}:latest
-    - cat run_results/*
+        -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        -t ${IMAGE_NAME}:latest
+        ./docker/runtime-ubuntu1804
+    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker push ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG};
+      done
+    - mkdir case_logs;
+      time docker run
+        --rm
+        -v ${PWD}:${PWD}
+        -w ${PWD}
+        -v /var/run/docker.sock:/var/run/docker.sock
+        ${IMAGE_NAME_PREFIX}-ci-run:${CI_COMMIT_REF_SLUG}
+        ./ci-run.py
+          docker-fulsim
+          out/ubuntu1804/conformance_tests
+          third_party/level_zero_linux/lib/level_zero
+          case_logs
+          test_config.yml
+          --runtime-image ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+          --parallelism 8
+          --fulsim-image ${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707
+          --output-junit-xml test_results.xml
+    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker push ${IMAGE_NAME}:latest;
+      done
   artifacts:
     paths:
-      - run_results
+      - test_results.xml
+    reports:
+      junit: test_results.xml
 
 # Special archived artifacts to support legacy compute-samples GTA plugin
 create-legacy-artifacts:
