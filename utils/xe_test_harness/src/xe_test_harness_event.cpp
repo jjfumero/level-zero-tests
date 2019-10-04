@@ -29,40 +29,42 @@ namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
 
-xe_event_pool_handle_t create_event_pool(uint32_t count,
-                                         xe_event_pool_flag_t flags) {
-  xe_event_pool_handle_t event_pool;
-  xe_event_pool_desc_t descriptor;
+ze_event_pool_handle_t create_event_pool(uint32_t count,
+                                         ze_event_pool_flag_t flags) {
+  ze_event_pool_handle_t event_pool;
+  ze_event_pool_desc_t descriptor;
 
-  descriptor.version = XE_EVENT_POOL_DESC_VERSION_CURRENT;
+  descriptor.version = ZE_EVENT_POOL_DESC_VERSION_CURRENT;
   descriptor.flags = flags;
   descriptor.count = count;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeEventPoolCreate(xeDevice::get_instance()->get_device(),
-                              &descriptor, &event_pool));
+  ze_driver_handle_t driver = lzt::get_default_driver();
+  ze_device_handle_t device = zeDevice::get_instance()->get_device();
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolCreate(driver, &descriptor,
+                                                 lzt::get_device_count(driver),
+                                                 &device, &event_pool));
   EXPECT_NE(nullptr, event_pool);
   return event_pool;
 }
 
-void destroy_event_pool(xe_event_pool_handle_t event_pool) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolDestroy(event_pool));
+void destroy_event_pool(ze_event_pool_handle_t event_pool) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolDestroy(event_pool));
 }
 
-void xeEventPool::InitEventPool() { InitEventPool(32); }
+void zeEventPool::InitEventPool() { InitEventPool(32); }
 
-void xeEventPool::InitEventPool(uint32_t count) {
-  InitEventPool(count, XE_EVENT_POOL_FLAG_DEFAULT);
+void zeEventPool::InitEventPool(uint32_t count) {
+  InitEventPool(count, ZE_EVENT_POOL_FLAG_DEFAULT);
 }
-void xeEventPool::InitEventPool(uint32_t count, xe_event_pool_flag_t flags) {
+void zeEventPool::InitEventPool(uint32_t count, ze_event_pool_flag_t flags) {
   if (event_pool_ == nullptr) {
     event_pool_ = create_event_pool(count, flags);
     pool_indexes_available_.resize(count, true);
   }
 }
 
-xeEventPool::xeEventPool() {}
+zeEventPool::zeEventPool() {}
 
-xeEventPool::~xeEventPool() {
+zeEventPool::~zeEventPool() {
   // If the event pool was never created, do not attempt to destroy it
   // as that will needlessly cause a test failure.
   if (event_pool_)
@@ -76,74 +78,73 @@ uint32_t find_index(const std::vector<bool> &indexes_available) {
   return -1;
 }
 
-void xeEventPool::create_event(xe_event_handle_t &event) {
-  create_event(event, XE_EVENT_SCOPE_FLAG_NONE, XE_EVENT_SCOPE_FLAG_NONE);
+void zeEventPool::create_event(ze_event_handle_t &event) {
+  create_event(event, ZE_EVENT_SCOPE_FLAG_NONE, ZE_EVENT_SCOPE_FLAG_NONE);
 }
 
-void xeEventPool::create_event(xe_event_handle_t &event,
-                               xe_event_scope_flag_t signal,
-                               xe_event_scope_flag_t wait) {
+void zeEventPool::create_event(ze_event_handle_t &event,
+                               ze_event_scope_flag_t signal,
+                               ze_event_scope_flag_t wait) {
   // Make sure the event pool is initialized to at least defaults:
   InitEventPool();
-  xe_event_desc_t desc;
+  ze_event_desc_t desc;
   memset(&desc, 0, sizeof(desc));
-  desc.version = XE_EVENT_DESC_VERSION_CURRENT;
+  desc.version = ZE_EVENT_DESC_VERSION_CURRENT;
   desc.signal = signal;
   desc.wait = wait;
   event = nullptr;
   desc.index = find_index(pool_indexes_available_);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventCreate(event_pool_, &desc, &event));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventCreate(event_pool_, &desc, &event));
   EXPECT_NE(nullptr, event);
   handle_to_index_map_[event] = desc.index;
   pool_indexes_available_[desc.index] = false;
 }
 
-void xeEventPool::create_events(std::vector<xe_event_handle_t> &events,
+void zeEventPool::create_events(std::vector<ze_event_handle_t> &events,
                                 size_t event_count) {
-  create_events(events, event_count, XE_EVENT_SCOPE_FLAG_NONE,
-                XE_EVENT_SCOPE_FLAG_NONE);
+  create_events(events, event_count, ZE_EVENT_SCOPE_FLAG_NONE,
+                ZE_EVENT_SCOPE_FLAG_NONE);
 }
 
-void xeEventPool::create_events(std::vector<xe_event_handle_t> &events,
+void zeEventPool::create_events(std::vector<ze_event_handle_t> &events,
                                 size_t event_count,
-                                xe_event_scope_flag_t signal,
-                                xe_event_scope_flag_t wait) {
+                                ze_event_scope_flag_t signal,
+                                ze_event_scope_flag_t wait) {
   events.resize(event_count);
   for (auto &event : events)
     create_event(event, signal, wait);
 }
 
-void xeEventPool::destroy_event(xe_event_handle_t event) {
-  std::map<xe_event_handle_t, uint32_t>::iterator it =
+void zeEventPool::destroy_event(ze_event_handle_t event) {
+  std::map<ze_event_handle_t, uint32_t>::iterator it =
       handle_to_index_map_.find(event);
 
   EXPECT_NE(it, handle_to_index_map_.end());
   pool_indexes_available_[(*it).second] = true;
   handle_to_index_map_.erase(it);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventDestroy(event));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventDestroy(event));
 }
 
-void xeEventPool::destroy_events(std::vector<xe_event_handle_t> &events) {
+void zeEventPool::destroy_events(std::vector<ze_event_handle_t> &events) {
   for (auto &event : events)
     destroy_event(event);
   events.clear();
 }
 
-void xeEventPool::get_ipc_handle(xe_ipc_event_pool_handle_t *hIpc) {
-  // As of July 10, 2019, xeEventPoolGetIpcHandle() returns UNSUPPORTED
+void zeEventPool::get_ipc_handle(ze_ipc_event_pool_handle_t *hIpc) {
+  // As of July 10, 2019, zeEventPoolGetIpcHandle() returns UNSUPPORTED
   // and thus the following test fails:
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolGetIpcHandle(event_pool_, hIpc));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolGetIpcHandle(event_pool_, hIpc));
 }
 
-void xeEventPool::open_ipc_handle(xe_ipc_event_pool_handle_t &hIpc,
-                                  xe_event_pool_handle_t *eventPool) {
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeEventPoolOpenIpcHandle(xeDevice::get_instance()->get_device(),
-                                     hIpc, eventPool));
+void zeEventPool::open_ipc_handle(ze_ipc_event_pool_handle_t &hIpc,
+                                  ze_event_pool_handle_t *eventPool) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolOpenIpcHandle(
+                                   lzt::get_default_driver(), hIpc, eventPool));
 }
 
-void xeEventPool::close_ipc_handle_pool(xe_event_pool_handle_t &eventPool) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventPoolCloseIpcHandle(eventPool));
+void zeEventPool::close_ipc_handle_pool(ze_event_pool_handle_t &eventPool) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolCloseIpcHandle(eventPool));
 }
 
 }; // namespace level_zero_tests

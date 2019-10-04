@@ -25,31 +25,31 @@
 
 namespace level_zero_tests {
 
-xe_sampler_handle_t create_sampler(xe_sampler_address_mode_t addrmode,
-                                   xe_sampler_filter_mode_t filtmode,
-                                   xe_bool_t normalized) {
-  xe_sampler_desc_t descriptor;
-  descriptor.version = XE_SAMPLER_DESC_VERSION_CURRENT;
+ze_sampler_handle_t create_sampler(ze_sampler_address_mode_t addrmode,
+                                   ze_sampler_filter_mode_t filtmode,
+                                   ze_bool_t normalized) {
+  ze_sampler_desc_t descriptor;
+  descriptor.version = ZE_SAMPLER_DESC_VERSION_CURRENT;
   descriptor.addressMode = addrmode;
   descriptor.filterMode = filtmode;
   descriptor.isNormalized = normalized;
 
-  xe_sampler_handle_t sampler = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeSamplerCreate(xeDevice::get_instance()->get_device(), &descriptor,
+  ze_sampler_handle_t sampler = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeSamplerCreate(zeDevice::get_instance()->get_device(), &descriptor,
                             &sampler));
   EXPECT_NE(nullptr, sampler);
   return sampler;
 }
 
-xe_sampler_handle_t create_sampler() {
-  return create_sampler(XE_SAMPLER_ADDRESS_MODE_NONE,
-                        XE_SAMPLER_FILTER_MODE_NEAREST, false);
+ze_sampler_handle_t create_sampler() {
+  return create_sampler(ZE_SAMPLER_ADDRESS_MODE_NONE,
+                        ZE_SAMPLER_FILTER_MODE_NEAREST, false);
 }
 
-void destroy_sampler(xe_sampler_handle_t sampler) {
+void destroy_sampler(ze_sampler_handle_t sampler) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeSamplerDestroy(sampler));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeSamplerDestroy(sampler));
 }
 
 }; // namespace level_zero_tests

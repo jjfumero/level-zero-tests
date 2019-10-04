@@ -29,386 +29,378 @@
 
 namespace lzt = level_zero_tests;
 
-#include "xe_driver.h"
-#include "xe_module.h"
-#include "xe_copy.h"
-#include "xe_barrier.h"
+#include "ze_api.h"
 
 namespace {
 
-class xeDeviceGroupMemoryOvercommitTests
+class zeDriverMemoryOvercommitTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
           std::tuple<uint32_t, uint32_t, uint32_t>> {
 protected:
-  xe_module_handle_t create_module(const xe_device_handle_t device,
+  ze_module_handle_t create_module(const ze_device_handle_t device,
                                    const std::string path) {
     const std::vector<uint8_t> binary_file = lzt::load_binary_file(path);
 
     LOG_INFO << "set up module description for path " << path;
-    xe_module_desc_t module_description;
-    module_description.version = XE_MODULE_DESC_VERSION_CURRENT;
-    module_description.format = XE_MODULE_FORMAT_IL_SPIRV;
+    ze_module_desc_t module_description;
+    module_description.version = ZE_MODULE_DESC_VERSION_CURRENT;
+    module_description.format = ZE_MODULE_FORMAT_IL_SPIRV;
     module_description.inputSize = static_cast<uint32_t>(binary_file.size());
     module_description.pInputModule = binary_file.data();
     module_description.pBuildFlags = nullptr;
 
-    xe_module_handle_t module = nullptr;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeModuleCreate(device, &module_description, &module, nullptr));
+    ze_module_handle_t module = nullptr;
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeModuleCreate(device, &module_description, &module, nullptr));
 
     LOG_INFO << "return module";
     return module;
   }
 
-  void run_functions(const xe_device_handle_t device, xe_module_handle_t module,
+  void run_functions(const ze_device_handle_t device, ze_module_handle_t module,
                      void *pattern_memory, size_t pattern_memory_count,
                      uint16_t sub_pattern,
                      uint64_t *host_expected_output_buffer,
                      uint64_t *gpu_expected_output_buffer,
                      uint64_t *host_found_output_buffer,
                      uint64_t *gpu_found_output_buffer, size_t output_count) {
-    xe_function_desc_t fill_function_description;
-    fill_function_description.version = XE_FUNCTION_DESC_VERSION_CURRENT;
-    fill_function_description.flags = XE_FUNCTION_FLAG_NONE;
-    fill_function_description.pFunctionName = "fill_device_memory";
+    ze_kernel_desc_t fill_function_description;
+    fill_function_description.version = ZE_KERNEL_DESC_VERSION_CURRENT;
+    fill_function_description.flags = ZE_KERNEL_FLAG_NONE;
+    fill_function_description.pKernelName = "fill_device_memory";
 
     /* Prepare the fill function */
-    xe_function_handle_t fill_function = nullptr;
+    ze_kernel_handle_t fill_function = nullptr;
     EXPECT_EQ(
-        XE_RESULT_SUCCESS,
-        xeFunctionCreate(module, &fill_function_description, &fill_function));
+        ZE_RESULT_SUCCESS,
+        zeKernelCreate(module, &fill_function_description, &fill_function));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetGroupSize(fill_function, 1, 1, 1));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeKernelSetGroupSize(fill_function, 1, 1, 1));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(
-                  fill_function, 0, sizeof(pattern_memory), &pattern_memory));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(fill_function, 0, sizeof(pattern_memory),
+                                       &pattern_memory));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(fill_function, 1,
-                                         sizeof(pattern_memory_count),
-                                         &pattern_memory_count));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(fill_function, 2, sizeof(sub_pattern),
-                                         &sub_pattern));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(fill_function, 1,
+                                       sizeof(pattern_memory_count),
+                                       &pattern_memory_count));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(fill_function, 2, sizeof(sub_pattern),
+                                       &sub_pattern));
 
-    xe_function_desc_t test_function_description;
-    test_function_description.version = XE_FUNCTION_DESC_VERSION_CURRENT;
-    test_function_description.flags = XE_FUNCTION_FLAG_NONE;
-    test_function_description.pFunctionName = "test_device_memory";
+    ze_kernel_desc_t test_function_description;
+    test_function_description.version = ZE_KERNEL_DESC_VERSION_CURRENT;
+    test_function_description.flags = ZE_KERNEL_FLAG_NONE;
+    test_function_description.pKernelName = "test_device_memory";
 
     /* Prepare the test function */
-    xe_function_handle_t test_function = nullptr;
+    ze_kernel_handle_t test_function = nullptr;
     EXPECT_EQ(
-        XE_RESULT_SUCCESS,
-        xeFunctionCreate(module, &test_function_description, &test_function));
+        ZE_RESULT_SUCCESS,
+        zeKernelCreate(module, &test_function_description, &test_function));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetGroupSize(test_function, 1, 1, 1));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeKernelSetGroupSize(test_function, 1, 1, 1));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(
-                  test_function, 0, sizeof(pattern_memory), &pattern_memory));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 0, sizeof(pattern_memory),
+                                       &pattern_memory));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(test_function, 1,
-                                         sizeof(pattern_memory_count),
-                                         &pattern_memory_count));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(test_function, 2, sizeof(sub_pattern),
-                                         &sub_pattern));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(test_function, 3,
-                                         sizeof(gpu_expected_output_buffer),
-                                         &gpu_expected_output_buffer));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(test_function, 4,
-                                         sizeof(gpu_found_output_buffer),
-                                         &gpu_found_output_buffer));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeFunctionSetArgumentValue(test_function, 5, sizeof(output_count),
-                                         &output_count));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 1,
+                                       sizeof(pattern_memory_count),
+                                       &pattern_memory_count));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 2, sizeof(sub_pattern),
+                                       &sub_pattern));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 3,
+                                       sizeof(gpu_expected_output_buffer),
+                                       &gpu_expected_output_buffer));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 4,
+                                       sizeof(gpu_found_output_buffer),
+                                       &gpu_found_output_buffer));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelSetArgumentValue(test_function, 5, sizeof(output_count),
+                                       &output_count));
 
-    xe_command_list_desc_t command_list_description;
-    command_list_description.version = XE_COMMAND_LIST_DESC_VERSION_CURRENT;
+    ze_command_list_desc_t command_list_description;
+    command_list_description.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
 
-    xe_command_list_handle_t command_list = nullptr;
+    ze_command_list_handle_t command_list = nullptr;
     EXPECT_EQ(
-        XE_RESULT_SUCCESS,
-        xeCommandListCreate(device, &command_list_description, &command_list));
+        ZE_RESULT_SUCCESS,
+        zeCommandListCreate(device, &command_list_description, &command_list));
 
-    xe_thread_group_dimensions_t thread_group_dimensions = {1, 1, 1};
+    ze_thread_group_dimensions_t thread_group_dimensions = {1, 1, 1};
 
-    lzt::append_memory_copy(
-        command_list, gpu_expected_output_buffer, host_expected_output_buffer,
-        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
-    lzt::append_memory_copy(
-        command_list, gpu_found_output_buffer, host_found_output_buffer,
-        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
+    lzt::append_memory_copy(command_list, gpu_expected_output_buffer,
+                            host_expected_output_buffer,
+                            output_count * sizeof(uint64_t), nullptr);
+    lzt::append_memory_copy(command_list, gpu_found_output_buffer,
+                            host_found_output_buffer,
+                            output_count * sizeof(uint64_t), nullptr);
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendLaunchFunction(command_list, fill_function,
-                                                &thread_group_dimensions,
-                                                nullptr, 0, nullptr));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendLaunchKernel(command_list, fill_function,
+                                              &thread_group_dimensions, nullptr,
+                                              0, nullptr));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendLaunchFunction(command_list, test_function,
-                                                &thread_group_dimensions,
-                                                nullptr, 0, nullptr));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendLaunchKernel(command_list, test_function,
+                                              &thread_group_dimensions, nullptr,
+                                              0, nullptr));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
 
-    lzt::append_memory_copy(
-        command_list, host_expected_output_buffer, gpu_expected_output_buffer,
-        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
+    lzt::append_memory_copy(command_list, host_expected_output_buffer,
+                            gpu_expected_output_buffer,
+                            output_count * sizeof(uint64_t), nullptr);
 
-    lzt::append_memory_copy(
-        command_list, host_found_output_buffer, gpu_found_output_buffer,
-        output_count * sizeof(uint64_t), nullptr, 0, nullptr);
+    lzt::append_memory_copy(command_list, host_found_output_buffer,
+                            gpu_found_output_buffer,
+                            output_count * sizeof(uint64_t), nullptr);
 
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(command_list));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListClose(command_list));
 
     const uint32_t command_queue_id = 0;
-    xe_command_queue_desc_t command_queue_description;
-    command_queue_description.version = XE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
+    ze_command_queue_desc_t command_queue_description;
+    command_queue_description.version = ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
     command_queue_description.ordinal = command_queue_id;
-    command_queue_description.mode = XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS;
+    command_queue_description.mode = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS;
 
-    xe_command_queue_handle_t command_queue = nullptr;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandQueueCreate(device, &command_queue_description,
+    ze_command_queue_handle_t command_queue = nullptr;
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandQueueCreate(device, &command_queue_description,
                                    &command_queue));
 
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandQueueExecuteCommandLists(
                                      command_queue, 1, &command_list, nullptr));
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandQueueSynchronize(command_queue, UINT32_MAX));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandQueueSynchronize(command_queue, UINT32_MAX));
 
     lzt::destroy_command_queue(command_queue);
     lzt::destroy_command_list(command_list);
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(fill_function));
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeFunctionDestroy(test_function));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeKernelDestroy(fill_function));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeKernelDestroy(test_function));
   }
 
-  void collect_device_groups_info() {
+  void collect_drivers_info() {
 
-    uint32_t group_count = 0;
+    uint32_t driver_count = 0;
 
-    LOG_INFO << "collect device group information";
+    LOG_INFO << "collect driver information";
 
-    xe_device_group_handle_t *device_group_handles;
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGet(&group_count, NULL));
-    EXPECT_NE(0, group_count);
+    ze_driver_handle_t *driver_handles;
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGet(&driver_count, NULL));
+    EXPECT_NE(0, driver_count);
 
-    device_group_handles = new xe_device_group_handle_t[group_count];
-    ASSERT_NE(nullptr, device_group_handles);
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeDeviceGroupGet(&group_count, device_group_handles));
+    driver_handles = new ze_driver_handle_t[driver_count];
+    ASSERT_NE(nullptr, driver_handles);
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGet(&driver_count, driver_handles));
 
-    LOG_INFO << "number of device groups " << group_count;
+    LOG_INFO << "number of drivers " << driver_count;
 
-    struct DeviceGroupInfo *device_group_info;
-    device_group_info = new struct DeviceGroupInfo[group_count];
+    struct DriverInfo *driver_info;
+    driver_info = new struct DriverInfo[driver_count];
 
-    for (uint32_t i = 0; i < group_count; i++) {
+    for (uint32_t i = 0; i < driver_count; i++) {
 
-      device_group_info[i].device_group_handle = device_group_handles[i];
+      driver_info[i].driver_handle = driver_handles[i];
 
       uint32_t device_count = 0;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetDevices(device_group_handles[i], &device_count,
-                                        NULL));
+      EXPECT_EQ(ZE_RESULT_SUCCESS,
+                zeDeviceGet(driver_handles[i], &device_count, NULL));
       EXPECT_NE(0, device_count);
-      device_group_info[i].device_handles =
-          new xe_device_handle_t[device_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_handles);
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetDevices(device_group_handles[i], &device_count,
-                                        device_group_info[i].device_handles));
-      device_group_info[i].number_device_handles = device_count;
+      driver_info[i].device_handles = new ze_device_handle_t[device_count];
+      ASSERT_NE(nullptr, driver_info[i].device_handles);
+      EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGet(driver_handles[i], &device_count,
+                                               driver_info[i].device_handles));
+      driver_info[i].number_device_handles = device_count;
 
-      LOG_INFO << "there are " << device_count << " devices in device group "
-               << i;
+      LOG_INFO << "there are " << device_count << " devices in driver " << i;
 
-      /* one xe_device_properties_t for each device in the device group */
-      device_group_info[i].device_properties =
-          new xe_device_properties_t[device_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_properties);
+      /* one ze_device_properties_t for each device in the driver */
+      driver_info[i].device_properties =
+          new ze_device_properties_t[device_count];
+      ASSERT_NE(nullptr, driver_info[i].device_properties);
       for (uint32_t j; j < device_count; j++) {
-        device_group_info[i].device_properties[j].version =
-            XE_DEVICE_PROPERTIES_VERSION_CURRENT;
+        driver_info[i].device_properties[j].version =
+            ZE_DEVICE_PROPERTIES_VERSION_CURRENT;
       }
 
-      /* The information in xe_device_properties_t is not complete yet */
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetDeviceProperties(
-                                       device_group_handles[i],
-                                       device_group_info[i].device_properties));
       for (uint32_t j = 0; j < device_count; j++) {
-        LOG_INFO << "xeDevicegroupGetDeviceProperties device " << j;
-        LOG_INFO << " name " << device_group_info[i].device_properties[j].name
-                 << " numTiles "
-                 << device_group_info[i].device_properties[j].numTiles
+        /* The information in ze_device_properties_t is not complete yet */
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetProperties(driver_info[i].device_handles[j],
+                                        &driver_info[i].device_properties[j]));
+        LOG_INFO << "zeDeviceGetProperties device " << j;
+        LOG_INFO << " name " << driver_info[i].device_properties[j].name
+                 << " numTiles " << driver_info[i].device_properties[j].numTiles
                  << " type "
-                 << ((device_group_info[i].device_properties[j].type ==
-                      XE_DEVICE_TYPE_GPU)
+                 << ((driver_info[i].device_properties[j].type ==
+                      ZE_DEVICE_TYPE_GPU)
                          ? " GPU "
                          : " FPGA ");
       }
 
-      /* one xe_device_compute_properties_t for device in the device group */
-      device_group_info[i].device_compute_properties =
-          new xe_device_compute_properties_t[device_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_compute_properties);
+      /* one ze_device_compute_properties_t for device in the driver */
+      driver_info[i].device_compute_properties =
+          new ze_device_compute_properties_t[device_count];
+      ASSERT_NE(nullptr, driver_info[i].device_compute_properties);
       for (uint32_t j = 0; j < device_count; j++) {
-        device_group_info[i].device_compute_properties[j].version =
-            XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
+        driver_info[i].device_compute_properties[j].version =
+            ZE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
       }
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetComputeProperties(
-                    device_group_handles[i],
-                    device_group_info[i].device_compute_properties));
 
       for (uint32_t j = 0; j < device_count; j++) {
-        LOG_INFO << "xeDeviceGroupGetComputeProperties device " << j;
-        LOG_INFO << "maxSharedLocalMemory "
-                 << device_group_info[i]
-                        .device_compute_properties[j]
-                        .maxSharedLocalMemory;
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetComputeProperties(
+                      driver_info[i].device_handles[j],
+                      &driver_info[i].device_compute_properties[j]));
+        LOG_INFO << "zeDeviceGetComputeProperties device " << j;
+        LOG_INFO
+            << "maxSharedLocalMemory "
+            << driver_info[i].device_compute_properties[j].maxSharedLocalMemory;
       }
 
 #ifdef BUG
-      /* one xe_device_memory_properties_t per TILE in the device group?*/
-      uint32_t device_memory_properties_count = 0;
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemoryProperties(
-                                       device_group_handles[i],
-                                       &device_memory_properties_count, NULL));
-      EXPECT_NE(0, device_memory_properties_count);
-      device_group_info[i].device_memory_properties =
-          new xe_device_memory_properties_t[device_memory_properties_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_memory_properties);
-      for (uint32_t j = 0; j < device_memory_properties_count; j++)
-        device_group_info[i].device_memory_properties[j].version =
-            XE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetMemoryProperties(
-                    device_group_handles[i], &device_memory_properties_count,
-                    device_group_info[i].device_memory_properties));
-      device_group_info[i].number_device_memory_properties =
-          device_memory_properties_count;
+      /* one ze_device_memory_properties_t per TILE in the driver?*/
+      for (uint32_t j = 0; j < device_count; j++) {
+        uint32_t device_memory_properties_count = 0;
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetMemoryProperties(driver_info[i].device_handles[j],
+                                              &device_memory_properties_count,
+                                              NULL));
+        EXPECT_NE(0, device_memory_properties_count);
+        driver_info[i].device_memory_properties =
+            new ze_device_memory_properties_t[device_memory_properties_count];
+        ASSERT_NE(nullptr, driver_info[i].device_memory_properties);
+        for (uint32_t k = 0; k < device_memory_properties_count; k++) {
+          driver_info[i].device_memory_properties[k].version =
+              ZE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT;
+        }
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetMemoryProperties(
+                      driver_info[i].device_handles[j],
+                      &device_memory_properties_count,
+                      &driver_info[i].device_memory_properties[j]));
+        driver_info[i].number_device_memory_properties =
+            device_memory_properties_count;
+      }
 #else  /* BUG */
       /*
        * This interface doesn't work properly yet, and it returns
        * incorrect information (e.g. totalSize)
        */
       uint32_t device_memory_properties_count = 1;
-      device_group_info[i].device_memory_properties =
-          new xe_device_memory_properties_t[device_memory_properties_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_memory_properties);
-      for (uint32_t j = 0; j < device_memory_properties_count; j++)
-        device_group_info[i].device_memory_properties[j].version =
-            XE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetMemoryProperties(
-                    device_group_handles[i], &device_memory_properties_count,
-                    device_group_info[i].device_memory_properties));
-      device_group_info[i].number_device_memory_properties =
-          device_memory_properties_count;
+      driver_info[i].device_memory_properties =
+          new ze_device_memory_properties_t[device_memory_properties_count];
+      ASSERT_NE(nullptr, driver_info[i].device_memory_properties);
       for (uint32_t j = 0; j < device_memory_properties_count; j++) {
-        LOG_INFO << "xe_device_memory_properties_t device " << j;
+        driver_info[i].device_memory_properties[j].version =
+            ZE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT;
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetMemoryProperties(
+                      driver_info[i].device_handles[j],
+                      &device_memory_properties_count,
+                      &driver_info[i].device_memory_properties[j]));
+        LOG_INFO << "ze_device_memory_properties_t device " << j;
         LOG_INFO << "totalSize "
-                 << device_group_info[i].device_memory_properties[j].totalSize;
+                 << driver_info[i].device_memory_properties[j].totalSize;
       }
 #endif /* BUG */
 
 #ifdef UNSUPPORTED
 
-      /* one xe_device_memory_access_properties_t per device */
-      device_group_info[i].device_memory_access_properties =
-          new xe_device_memory_access_properties_t[device_count];
-      ASSERT_NE(nullptr, device_group_info[i].device_memory_access_properties);
-      for (uint32_t j = 0; j < device_count; j++)
-        device_group_info[i].device_memory_access_properties[j].version =
-            XE_DEVICE_MEMORY_ACCESS_PROPERTIES_VERSION_CURRENT;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeDeviceGroupGetMemoryAccessProperties(
-                    device_group_handles[i],
-                    device_group_info[i].device_memory_access_properties));
+      /* one ze_device_memory_access_properties_t per device */
+      driver_info[i].device_memory_access_properties =
+          new ze_device_memory_access_properties_t[device_count];
+      ASSERT_NE(nullptr, driver_info[i].device_memory_access_properties);
+      for (uint32_t j = 0; j < device_count; j++) {
+        driver_info[i].device_memory_access_properties[j].version =
+            ZE_DEVICE_MEMORY_ACCESS_PROPERTIES_VERSION_CURRENT;
+        EXPECT_EQ(ZE_RESULT_SUCCESS,
+                  zeDeviceGetMemoryAccessProperties(
+                      driver_info[i].device_handles[j],
+                      driver_info[i].device_memory_access_properties[j]));
+      }
 #endif /* UNSUPPORTED */
     }
 
-    DeviceGroupInfo_ = device_group_info;
-    DeviceGroupInfoCount_ = group_count;
+    DriverInfo_ = driver_info;
+    DriverInfoCount_ = driver_count;
 
-    delete[] device_group_handles;
+    delete[] driver_handles;
   }
 
-  void free_device_groups_info() {
+  void free_drivers_info() {
 
-    LOG_INFO << "free device group information";
+    LOG_INFO << "free driver information";
 
-    for (uint32_t i = 0; i < DeviceGroupInfoCount_; i++) {
-      delete[] DeviceGroupInfo_[i].device_handles;
-      delete[] DeviceGroupInfo_[i].device_properties;
-      delete[] DeviceGroupInfo_[i].device_compute_properties;
-      delete[] DeviceGroupInfo_[i].device_memory_properties;
+    for (uint32_t i = 0; i < DriverInfoCount_; i++) {
+      delete[] DriverInfo_[i].device_handles;
+      delete[] DriverInfo_[i].device_properties;
+      delete[] DriverInfo_[i].device_compute_properties;
+      delete[] DriverInfo_[i].device_memory_properties;
 #ifdef UNSUPPORTED
-      delete[] DeviceGroupInfo_[i].device_memory_access_properties;
+      delete[] DriverInfo_[i].device_memory_access_properties;
 #endif /* UNSUPPORTED */
     }
 
-    delete[] DeviceGroupInfo_;
+    delete[] DriverInfo_;
   }
 
-  typedef struct DeviceGroupInfo {
-    xe_device_group_handle_t device_group_handle;
+  typedef struct DriverInfo {
+    ze_driver_handle_t driver_handle;
 
     uint32_t number_device_handles;
-    xe_device_handle_t *device_handles;
+    ze_device_handle_t *device_handles;
 
     uint32_t number_device_properties;
-    xe_device_properties_t *device_properties;
+    ze_device_properties_t *device_properties;
 
     uint32_t number_device_compute_properties;
-    xe_device_compute_properties_t *device_compute_properties;
+    ze_device_compute_properties_t *device_compute_properties;
 
     /*
      * uint64_t totalSize
-     * Uncertain how many xe_device_memory_properties_t there are.
+     * Uncertain how many ze_device_memory_properties_t there are.
      */
     uint32_t number_device_memory_properties;
-    xe_device_memory_properties_t *device_memory_properties;
+    ze_device_memory_properties_t *device_memory_properties;
 
     /*
      * sharedSystemAllocCapabilities
-     * 	XE_MEMORY_ACCESS_NONE, XE_MEMORY_ACCESS, XE_MEMORY_ATOMIC_ACCESS
-     * 	XE_MEMORY_CONCURENT_ACCESS, XE_MEMORY_CONCURRENT_ATOMIC_ACCESS
+     * 	ZE_MEMORY_ACCESS_NONE, ZE_MEMORY_ACCESS, ZE_MEMORY_ATOMIC_ACCESS
+     * 	ZE_MEMORY_CONCURENT_ACCESS, ZE_MEMORY_CONCURRENT_ATOMIC_ACCESS
      *
-     * 	There is one xe_device_memory_access_properties_t per device handle
+     * 	There is one ze_device_memory_access_properties_t per device handle
      */
-    xe_device_memory_access_properties_t *device_memory_access_properties;
-  } DeviceGroupInfo_t;
+    ze_device_memory_access_properties_t *device_memory_access_properties;
+  } DriverInfo_t;
 
-  DeviceGroupInfo_t *DeviceGroupInfo_;
-  uint32_t DeviceGroupInfoCount_;
+  DriverInfo_t *DriverInfo_;
+  uint32_t DriverInfoCount_;
 
   typedef struct MemoryTestArguments {
-    /* The index into the device group array to test */
-    uint32_t device_group_index;
-    /* The index array of devices in selected device group */
-    uint32_t device_in_group_index;
+    /* The index into the driver array to test */
+    uint32_t driver_index;
+    /* The index array of devices in selected driver */
+    uint32_t device_in_driver_index;
     /*
      * number of multiples of maxSharedLocalMemory
-     * in xeDeviceGroupGetComputeProperties_t
-     * Will always be arounded down to a uint64_t
+     * in zeDriverGetComputeProperties_t
+     * Will always be rounded down to a uint64_t
      * multiple.
      */
     uint32_t memory_size_multiple;
@@ -420,55 +412,54 @@ protected:
 };
 
 TEST_P(
-    xeDeviceGroupMemoryOvercommitTests,
+    zeDriverMemoryOvercommitTests,
     GivenDeviceMemoryWhenAllocationSizeLargerThanDeviceMaxMemoryThenMemoryIsPagedOffAndOnTheDevice) {
 
   MemoryTestArguments_t test_arguments = {
-      std::get<0>(GetParam()), // device group index
-      std::get<1>(GetParam()), // device index within device group
+      std::get<0>(GetParam()), // driver index
+      std::get<1>(GetParam()), // device index within driver
       std::get<2>(GetParam())  // memory size multiple, rounded up to uint16_t
   };
 
-  uint32_t device_group_index = test_arguments.device_group_index;
-  uint32_t device_in_group_index = test_arguments.device_in_group_index;
+  uint32_t driver_index = test_arguments.driver_index;
+  uint32_t device_in_driver_index = test_arguments.device_in_driver_index;
   uint32_t memory_size_multiple = test_arguments.memory_size_multiple;
 
   LOG_INFO << "TEST ARGUMENTS "
-           << "device_group_index " << device_group_index
-           << " device_in_group_index " << device_in_group_index
-           << " memory_size_multiple " << memory_size_multiple;
+           << "driver_index " << driver_index << " device_in_driver_index "
+           << device_in_driver_index << " memory_size_multiple "
+           << memory_size_multiple;
 
-  collect_device_groups_info();
+  collect_drivers_info();
 
-  EXPECT_LT(device_group_index, DeviceGroupInfoCount_);
-  EXPECT_LT(device_in_group_index,
-            DeviceGroupInfo_[device_group_index].number_device_handles);
+  EXPECT_LT(driver_index, DriverInfoCount_);
+  EXPECT_LT(device_in_driver_index,
+            DriverInfo_[driver_index].number_device_handles);
 
-  DeviceGroupInfo_t *device_group_info = &DeviceGroupInfo_[device_group_index];
+  DriverInfo_t *driver_info = &DriverInfo_[driver_index];
 
-  xe_device_group_handle_t device_group_handle =
-      device_group_info->device_group_handle;
+  ze_driver_handle_t driver_handle = driver_info->driver_handle;
 
-  xe_device_handle_t device_handle =
-      device_group_info->device_handles[device_in_group_index];
+  ze_device_handle_t device_handle =
+      driver_info->device_handles[device_in_driver_index];
 
   uint32_t maxSharedLocalMemory =
-      device_group_info->device_compute_properties[0].maxSharedLocalMemory;
-  uint64_t totalSize = device_group_info->device_memory_properties[0].totalSize;
+      driver_info->device_compute_properties[0].maxSharedLocalMemory;
+  uint64_t totalSize = driver_info->device_memory_properties[0].totalSize;
 
   size_t pattern_memory_size = memory_size_multiple * maxSharedLocalMemory;
   size_t pattern_memory_count = pattern_memory_size >> 3; // array of uint64_t
 
   uint64_t *gpu_pattern_buffer;
   gpu_pattern_buffer = (uint64_t *)level_zero_tests::allocate_device_memory(
-      pattern_memory_size, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-      use_this_ordinal_on_device_, device_handle, device_group_handle);
+      pattern_memory_size, 8, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+      use_this_ordinal_on_device_, device_handle, driver_handle);
 
   uint64_t *gpu_expected_output_buffer;
   gpu_expected_output_buffer =
       (uint64_t *)level_zero_tests::allocate_device_memory(
-          output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-          use_this_ordinal_on_device_, device_handle, device_group_handle);
+          output_size_, 8, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          use_this_ordinal_on_device_, device_handle, driver_handle);
   uint64_t *host_expected_output_buffer = new uint64_t[output_count_];
   std::fill(host_expected_output_buffer,
             host_expected_output_buffer + output_count_, 0);
@@ -476,8 +467,8 @@ TEST_P(
   uint64_t *gpu_found_output_buffer;
   gpu_found_output_buffer =
       (uint64_t *)level_zero_tests::allocate_device_memory(
-          output_size_, 8, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-          use_this_ordinal_on_device_, device_handle, device_group_handle);
+          output_size_, 8, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          use_this_ordinal_on_device_, device_handle, driver_handle);
   uint64_t *host_found_output_buffer = new uint64_t[output_size_];
   std::fill(host_found_output_buffer, host_found_output_buffer + output_count_,
             0);
@@ -500,7 +491,7 @@ TEST_P(
   LOG_INFO << "PREPARE TO RUN END";
 
   LOG_INFO << "call create module";
-  xe_module_handle_t module_handle =
+  ze_module_handle_t module_handle =
       create_module(device_handle, "test_xe_fill_device_memory.spv");
 
   LOG_INFO << "call run_functions";
@@ -510,13 +501,12 @@ TEST_P(
                 gpu_found_output_buffer, output_count_);
 
   LOG_INFO << "call free memory";
-  level_zero_tests::free_memory(device_group_handle, gpu_pattern_buffer);
-  level_zero_tests::free_memory(device_group_handle,
-                                gpu_expected_output_buffer);
-  level_zero_tests::free_memory(device_group_handle, gpu_found_output_buffer);
+  level_zero_tests::free_memory(driver_handle, gpu_pattern_buffer);
+  level_zero_tests::free_memory(driver_handle, gpu_expected_output_buffer);
+  level_zero_tests::free_memory(driver_handle, gpu_found_output_buffer);
 
   LOG_INFO << "call destroy module";
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeModuleDestroy(module_handle));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeModuleDestroy(module_handle));
 
   LOG_INFO << "check output buffer";
   bool memory_test_failure = false;
@@ -531,13 +521,13 @@ TEST_P(
 
   EXPECT_EQ(false, memory_test_failure);
 
-  free_device_groups_info();
+  free_drivers_info();
   delete host_expected_output_buffer;
   delete host_found_output_buffer;
 }
 
 INSTANTIATE_TEST_CASE_P(TestAllInputPermuntations,
-                        xeDeviceGroupMemoryOvercommitTests,
+                        zeDriverMemoryOvercommitTests,
                         ::testing::Combine(::testing::Values(0),
                                            ::testing::Values(0),
                                            ::testing::Values(1, 2, 4)));

@@ -33,96 +33,63 @@
 
 namespace lzt = level_zero_tests;
 
-#include "xe_driver.h"
+#include "ze_api.h"
 
 namespace {
 
-TEST(xeDeviceGroupGetTests,
-     GivenZeroCountWhenRetrievingDeviceGroupsThenValidCountReturned) {
-  lzt::get_xe_device_group_count();
+TEST(zeDeviceGetTests,
+     GivenZeroCountWhenRetrievingDevicesThenValidCountReturned) {
+  lzt::get_ze_device_count();
 }
 
-TEST(
-    xeDeviceGroupGetTests,
-    GivenValidDeviceGroupPointerWhenRetrievingDeviceGroupsThenNotNullDeviceGroupsIsReturned) {
-  uint32_t count = lzt::get_xe_device_group_count();
-  auto device_groups = lzt::get_xe_device_groups(count);
+TEST(zeDeviceGetTests,
+     GivenValidCountWhenRetrievingDevicesThenNotNullDevicesAreReturned) {
 
-  for (auto device_group : device_groups) {
-    EXPECT_NE(nullptr, device_group);
+  auto device_count = lzt::get_ze_device_count();
+
+  ASSERT_GT(device_count, 0);
+
+  auto devices = lzt::get_ze_devices(device_count);
+  for (auto device : devices) {
+    EXPECT_NE(nullptr, device);
   }
 }
 
-TEST(xeDeviceGetTests,
-     GivenZeroCountWhenRetrievingDeviceThenValidCountReturned) {
-
-  auto device_groups = lzt::get_xe_device_groups();
-
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    EXPECT_GT(lzt::get_xe_device_count(device_group), 0)
-        << "no devices in device group";
-  }
-}
-
-TEST(xeDeviceGetTests,
-     GivenValidCountWhenRetrievingDeviceThenNotNullDeviceIsReturned) {
-
-  auto device_groups = lzt::get_xe_device_groups();
-
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    auto devices = lzt::get_xe_devices(device_group);
-    for (auto device : devices) {
-      EXPECT_NE(nullptr, device);
-    }
-  }
-}
-
-TEST(xeDeviceGetSubDevicesTest,
+TEST(zeDeviceGetSubDevicesTest,
      GivenZeroCountWhenRetrievingSubDevicesThenValidCountIsReturned) {
-  lzt::get_xe_sub_device_count(lzt::xeDevice::get_instance()->get_device());
+  lzt::get_ze_sub_device_count(lzt::zeDevice::get_instance()->get_device());
 }
 
-TEST(xeDeviceGetSubDevicesTest,
+TEST(zeDeviceGetSubDevicesTest,
      GivenValidCountWhenRetrievingSubDevicesThenNotNullSubDeviceReturned) {
 
-  std::vector<xe_device_handle_t> sub_devices =
-      lzt::get_xe_sub_devices(lzt::xeDevice::get_instance()->get_device());
+  std::vector<ze_device_handle_t> sub_devices =
+      lzt::get_ze_sub_devices(lzt::zeDevice::get_instance()->get_device());
 
   for (auto sub_device : sub_devices) {
     EXPECT_NE(nullptr, sub_device);
   }
 }
 
-TEST(xeDeviceGroupGetApiVersionTests,
-     GivenValidDeviceWhenRetrievingApiVersionThenValidApiVersionIsReturned) {
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    lzt::get_api_version(device_group);
-  }
-}
-
-TEST(xeDeviceGroupGetDevicePropertiesTests,
+TEST(zeDeviceGetDevicePropertiesTests,
      GivenValidDeviceWhenRetrievingPropertiesThenValidPropertiesAreReturned) {
 
-  auto device_groups = lzt::get_xe_device_groups();
-  for (auto device_group : device_groups) {
-    auto properties = lzt::get_device_properties(device_group);
-    EXPECT_EQ(XE_DEVICE_TYPE_GPU, properties[0].type);
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto properties = lzt::get_device_properties(device);
+    EXPECT_EQ(ZE_DEVICE_TYPE_GPU, properties.type);
   }
 }
 
 TEST(
-    xeDeviceGroupGetComputePropertiesTests,
+    zeDeviceGetComputePropertiesTests,
     GivenValidDeviceWhenRetrievingComputePropertiesThenValidPropertiesAreReturned) {
 
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    xe_device_compute_properties_t properties =
-        lzt::get_compute_properties(device_group);
+  auto devices = lzt::get_ze_devices();
+  ASSERT_GT(devices.size(), 0);
+  for (auto device : devices) {
+    ze_device_compute_properties_t properties =
+        lzt::get_compute_properties(device);
 
     EXPECT_GT(properties.maxTotalGroupSize, 0);
     EXPECT_GT(properties.maxGroupSizeX, 0);
@@ -140,32 +107,32 @@ TEST(
 }
 
 TEST(
-    xeDeviceGroupGetMemoryPropertiesTests,
+    zeDeviceGetMemoryPropertiesTests,
     GivenValidCountPointerWhenRetrievingMemoryPropertiesThenValidCountReturned) {
   // FIXME: VLCLJ-354 - The level zero spec indicates the last argument to this
   // API is optional but this test fails with an
-  // XE_RESULT_ERROR_INVALID_PARAMETER
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    lzt::get_memory_properties_count(device_group);
+  // ZE_RESULT_ERROR_INVALID_PARAMETER
+  auto devices = lzt::get_ze_devices();
+  ASSERT_GT(devices.size(), 0);
+  for (auto device : devices) {
+    lzt::get_memory_properties_count(device);
   }
 }
 
 TEST(
-    xeDeviceGroupGetMemoryPropertiesTests,
+    zeDeviceGetMemoryPropertiesTests,
     GivenValidDeviceWhenRetrievingMemoryPropertiesThenValidPropertiesAreReturned) {
 
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0);
+  auto devices = lzt::get_ze_devices();
+  ASSERT_GT(devices.size(), 0);
 
-  for (auto device_group : device_groups) {
-    uint32_t count = lzt::get_memory_properties_count(device_group);
+  for (auto device : devices) {
+    uint32_t count = lzt::get_memory_properties_count(device);
     uint32_t count_out = count;
 
     ASSERT_GT(count, 0) << "no memory properties found";
-    std::vector<xe_device_memory_properties_t> properties =
-        lzt::get_memory_properties(device_group);
+    std::vector<ze_device_memory_properties_t> properties =
+        lzt::get_memory_properties(device);
 
     for (uint32_t i = 0; i < count_out; ++i) {
       EXPECT_EQ(count_out, count);
@@ -177,38 +144,36 @@ TEST(
 }
 
 TEST(
-    xeDeviceGetMemoryAccessTests,
-    GivenValidDeviceGroupWhenRetrievingMemoryAccessPropertiesThenValidPropertiesReturned) {
-  auto device_groups = lzt::get_xe_device_groups();
+    zeDeviceGetMemoryAccessTests,
+    GivenValidDeviceWhenRetrievingMemoryAccessPropertiesThenValidPropertiesReturned) {
+  auto devices = lzt::get_ze_devices();
 
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    lzt::get_memory_access_properties(device_group);
+  ASSERT_GT(devices.size(), 0);
+  for (auto device : devices) {
+    lzt::get_memory_access_properties(device);
   }
 }
 
 TEST(
-    xeDeviceGroupGetCachePropertiesTests,
-    GivenValidDeviceGroupWhenRetrievingCachePropertiesThenValidPropertiesAreReturned) {
-  auto device_groups = lzt::get_xe_device_groups();
+    zeDeviceGetCachePropertiesTests,
+    GivenValidDeviceWhenRetrievingCachePropertiesThenValidPropertiesAreReturned) {
+  auto devices = lzt::get_ze_devices();
 
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    xe_device_cache_properties_t properties =
-        lzt::get_cache_properties(device_group);
+  ASSERT_GT(devices.size(), 0);
+  for (auto device : devices) {
+    ze_device_cache_properties_t properties = lzt::get_cache_properties(device);
   }
 }
 
 // This API is currently not implemented so these tests fail
 TEST(
-    xeDeviceGroupGetImagePropertiesTests,
-    GivenValidDeviceGroupWhenRetrievingImagePropertiesThenValidPropertiesAreReturned) {
-  auto device_groups = lzt::get_xe_device_groups();
+    zeDeviceGetImagePropertiesTests,
+    GivenValidDeviceWhenRetrievingImagePropertiesThenValidPropertiesAreReturned) {
+  auto devices = lzt::get_ze_devices();
 
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups) {
-    xe_device_image_properties_t properties =
-        lzt::get_image_properties(device_group);
+  ASSERT_GT(devices.size(), 0);
+  for (auto device : devices) {
+    ze_device_image_properties_t properties = lzt::get_image_properties(device);
     EXPECT_TRUE(properties.supported);
     EXPECT_GT(properties.maxImageDims1D, 0);
     EXPECT_GT(properties.maxImageDims2D, 0);
@@ -217,31 +182,16 @@ TEST(
   }
 }
 
-TEST(
-    xeDeviceGroupGetIPCPropertiesTests,
-    GivenValidDeviceGroupWhenRetrievingIPCPropertiesThenValidPropertiesAreRetured) {
-
-  FAIL() << "xeDeviceGroupGetIPCProperties API unavailable";
-#if 0
- TODO: enable when this API is available
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0);
-  for (auto device_group : device_groups){
-    lzt::get_ipc_properties(device_group);
-  }
-#endif
-}
-
 TEST(xeDevicGetP2PPropertiesTests,
      GivenValidDevicesWhenRetrievingP2PThenValidPropertiesAreReturned) {
-  auto device_groups = lzt::get_all_device_groups();
+  auto drivers = lzt::get_all_driver_handles();
 
-  ASSERT_GT(device_groups.size(), 0)
-      << "no device groups found for peer to peer device test";
+  ASSERT_GT(drivers.size(), 0)
+      << "no drivers found for peer to peer device test";
 
-  std::vector<xe_device_handle_t> devices;
-  for (auto device_group : device_groups) {
-    devices = lzt::get_xe_devices(device_group);
+  std::vector<ze_device_handle_t> devices;
+  for (auto driver : drivers) {
+    devices = lzt::get_ze_devices(driver);
 
     if (devices.size() >= 2)
       break;
@@ -252,15 +202,15 @@ TEST(xeDevicGetP2PPropertiesTests,
   lzt::get_p2p_properties(devices[0], devices[1]);
 }
 
-TEST(xeDeviceCanAccessPeerTests,
+TEST(zeDeviceCanAccessPeerTests,
      GivenValidDevicesWhenRetrievingCanAccessPropertyThenCapabilityIsReturned) {
-  auto device_groups = lzt::get_xe_device_groups();
-  ASSERT_GT(device_groups.size(), 0)
-      << "no device groups found for peer to peer device test";
+  auto drivers = lzt::get_all_driver_handles();
+  ASSERT_GT(drivers.size(), 0)
+      << "no drivers found for peer to peer device test";
 
-  std::vector<xe_device_handle_t> devices;
-  for (auto device_group : device_groups) {
-    devices = lzt::get_xe_devices(device_group);
+  std::vector<ze_device_handle_t> devices;
+  for (auto driver : drivers) {
+    devices = lzt::get_ze_devices(driver);
 
     if (devices.size() >= 1)
       break;
@@ -269,7 +219,7 @@ TEST(xeDeviceCanAccessPeerTests,
   ASSERT_GE(devices.size(), 2)
       << "less than 2 devices available for peer to peer device test";
 
-  xe_bool_t a2b, b2a;
+  ze_bool_t a2b, b2a;
   a2b = lzt::can_access_peer(devices[0], devices[1]);
   b2a = lzt::can_access_peer(devices[1], devices[0]);
 
@@ -279,31 +229,31 @@ TEST(xeDeviceCanAccessPeerTests,
 // This feature is not currently implemented so these tests fail
 class xeSetCacheConfigTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<xe_cache_config_t> {};
+      public ::testing::WithParamInterface<ze_cache_config_t> {};
 
 TEST_P(xeSetCacheConfigTests,
        GivenConfigFlagWhenSettingIntermediateCacheConfigThenSuccessIsReturned) {
-  lzt::set_last_level_cache_config(lzt::xeDevice::get_instance()->get_device(),
+  lzt::set_last_level_cache_config(lzt::zeDevice::get_instance()->get_device(),
                                    GetParam());
 }
 
 INSTANTIATE_TEST_CASE_P(SetIntermediateCacheConfigParemeterizedTest,
                         xeSetCacheConfigTests,
-                        ::testing::Values(XE_CACHE_CONFIG_DEFAULT,
-                                          XE_CACHE_CONFIG_LARGE_SLM,
-                                          XE_CACHE_CONFIG_LARGE_DATA));
+                        ::testing::Values(ZE_CACHE_CONFIG_DEFAULT,
+                                          ZE_CACHE_CONFIG_LARGE_SLM,
+                                          ZE_CACHE_CONFIG_LARGE_DATA));
 
 TEST_P(xeSetCacheConfigTests,
        GivenConfigFlagWhenSettingLastLevelCacheConfigThenSuccessIsReturned) {
   lzt::set_intermediate_cache_config(
-      lzt::xeDevice::get_instance()->get_device(), GetParam());
+      lzt::zeDevice::get_instance()->get_device(), GetParam());
 }
 
 INSTANTIATE_TEST_CASE_P(SetLastLevelCacheConfigParemeterizedTest,
                         xeSetCacheConfigTests,
-                        ::testing::Values(XE_CACHE_CONFIG_DEFAULT,
-                                          XE_CACHE_CONFIG_LARGE_SLM,
-                                          XE_CACHE_CONFIG_LARGE_DATA));
+                        ::testing::Values(ZE_CACHE_CONFIG_DEFAULT,
+                                          ZE_CACHE_CONFIG_LARGE_SLM,
+                                          ZE_CACHE_CONFIG_LARGE_DATA));
 
 } // namespace
 

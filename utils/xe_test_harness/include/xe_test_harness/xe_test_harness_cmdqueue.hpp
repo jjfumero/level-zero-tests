@@ -22,42 +22,42 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_CMDQUEUE_HPP
-#define level_zero_tests_XE_TEST_HARNESS_CMDQUEUE_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_CMDQUEUE_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_CMDQUEUE_HPP
 
 #include "xe_test_harness/xe_test_harness_device.hpp"
-#include "xe_cmdqueue.h"
+#include "ze_api.h"
 #include "gtest/gtest.h"
 
 namespace level_zero_tests {
 
-class xeCommandQueue {
+class zeCommandQueue {
 public:
-  xeCommandQueue();
-  ~xeCommandQueue();
+  zeCommandQueue();
+  ~zeCommandQueue();
 
-  xe_command_queue_handle_t command_queue_ = nullptr;
+  ze_command_queue_handle_t command_queue_ = nullptr;
 };
 
-class xeCommandQueueTests : public ::testing::Test {
+class zeCommandQueueTests : public ::testing::Test {
 protected:
-  xeCommandQueue cq;
+  zeCommandQueue cq;
 };
 
-xe_command_queue_handle_t create_command_queue();
-xe_command_queue_handle_t create_command_queue(xe_device_handle_t device);
-xe_command_queue_handle_t
-create_command_queue(xe_device_handle_t device, xe_command_queue_flag_t flags,
-                     xe_command_queue_mode_t mode,
-                     xe_command_queue_priority_t priority, uint32_t ordinal);
+ze_command_queue_handle_t create_command_queue();
+ze_command_queue_handle_t create_command_queue(ze_device_handle_t device);
+ze_command_queue_handle_t
+create_command_queue(ze_device_handle_t device, ze_command_queue_flag_t flags,
+                     ze_command_queue_mode_t mode,
+                     ze_command_queue_priority_t priority, uint32_t ordinal);
 
-void execute_command_lists(xe_command_queue_handle_t cq,
+void execute_command_lists(ze_command_queue_handle_t cq,
                            uint32_t numCommandLists,
-                           xe_command_list_handle_t *phCommandLists,
-                           xe_fence_handle_t hFence);
-void synchronize(xe_command_queue_handle_t cq, uint32_t timeout);
+                           ze_command_list_handle_t *phCommandLists,
+                           ze_fence_handle_t hFence);
+void synchronize(ze_command_queue_handle_t cq, uint32_t timeout);
 
-void destroy_command_queue(xe_command_queue_handle_t cq);
+void destroy_command_queue(ze_command_queue_handle_t cq);
 
 }; // namespace level_zero_tests
 #endif

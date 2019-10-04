@@ -32,19 +32,19 @@
 
 int main() {
 #ifdef __linux__
-  xe_result_t result = xeInit(XE_INIT_FLAG_NONE);
+  ze_result_t result = zeInit(ZE_INIT_FLAG_NONE);
   if (result) {
-    throw std::runtime_error("xeInit failed: " +
+    throw std::runtime_error("zeInit failed: " +
                              level_zero_tests::to_string(result));
   }
   boost::asio::io_service io_service;
   boost::asio::ip::tcp::socket sock{io_service};
 
-  xe_ipc_mem_handle_t ipc_mem_handle;
+  ze_ipc_mem_handle_t ipc_mem_handle;
 
   void *memory_ = nullptr;
   lzt::allocate_mem_and_get_ipc_handle(&ipc_mem_handle, &memory_,
-                                       XE_MEMORY_TYPE_DEVICE);
+                                       ZE_MEMORY_TYPE_DEVICE);
 
   sock.connect(boost::asio::ip::tcp::endpoint(
       boost::asio::ip::address::from_string("127.0.0.1"), 65432));

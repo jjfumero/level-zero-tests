@@ -27,75 +27,74 @@
 #include "xe_utils/xe_utils.hpp"
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
-#include "xe_copy.h"
-#include "xe_barrier.h"
+#include "ze_api.h"
 
 namespace lzt = level_zero_tests;
 
 namespace {
 
-class xeCommandListAppendBarrierTests : public lzt::xeCommandListTests {};
+class zeCommandListAppendBarrierTests : public lzt::zeCommandListTests {};
 
-TEST_F(xeCommandListAppendBarrierTests,
+TEST_F(zeCommandListAppendBarrierTests,
        GivenEmptyCommandListWhenAppendingBarrierThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendBarrier(cl.command_list_, nullptr, 0, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendBarrier(cl.command_list_, nullptr, 0, nullptr));
 }
 
-class xeEventPoolCommandListAppendBarrierTests
-    : public xeEventPoolCommandListTests {};
+class zeEventPoolCommandListAppendBarrierTests
+    : public zeEventPoolCommandListTests {};
 
 TEST_F(
-    xeEventPoolCommandListAppendBarrierTests,
+    zeEventPoolCommandListAppendBarrierTests,
     GivenEmptyCommandListWhenAppendingBarrierWithEventThenSuccessIsReturned) {
-  xe_event_handle_t event = nullptr;
+  ze_event_handle_t event = nullptr;
 
   ep.create_event(event);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendBarrier(cl.command_list_, event, 0, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendBarrier(cl.command_list_, event, 0, nullptr));
   ep.destroy_event(event);
 }
 
 TEST_F(
-    xeEventPoolCommandListAppendBarrierTests,
+    zeEventPoolCommandListAppendBarrierTests,
     GivenEmptyCommandListWhenAppendingBarrierWithEventsThenSuccessIsReturned) {
   const size_t event_count = 2;
-  std::vector<xe_event_handle_t> events(event_count, nullptr);
+  std::vector<ze_event_handle_t> events(event_count, nullptr);
 
   ep.create_events(events, event_count);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendBarrier(cl.command_list_, nullptr, events.size(),
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendBarrier(cl.command_list_, nullptr, events.size(),
                                        events.data()));
   ep.destroy_events(events);
 }
 
 TEST_F(
-    xeEventPoolCommandListAppendBarrierTests,
+    zeEventPoolCommandListAppendBarrierTests,
     GivenEmptyCommandListWhenAppendingBarrierWithSignalEventAndWaitEventsThenSuccessIsReturned) {
-  xe_event_handle_t event = nullptr;
+  ze_event_handle_t event = nullptr;
   const size_t event_count = 2;
-  std::vector<xe_event_handle_t> events(event_count, nullptr);
+  std::vector<ze_event_handle_t> events(event_count, nullptr);
 
   ep.create_event(event);
   ep.create_events(events, event_count);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendBarrier(cl.command_list_, event, events.size(),
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendBarrier(cl.command_list_, event, events.size(),
                                        events.data()));
   ep.destroy_events(events);
   ep.destroy_event(event);
 }
 
 void AppendMemoryRangesBarrierTest(
-    xe_command_list_handle_t command_list, xe_event_handle_t signaling_event,
-    std::vector<xe_event_handle_t> &waiting_events) {
+    ze_command_list_handle_t command_list, ze_event_handle_t signaling_event,
+    std::vector<ze_event_handle_t> &waiting_events) {
   const std::vector<size_t> range_sizes{4096, 8192};
   std::vector<const void *> ranges{
       lzt::allocate_device_memory(range_sizes[0] * 2),
       lzt::allocate_device_memory(range_sizes[1] * 2)};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListAppendMemoryRangesBarrier(
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendMemoryRangesBarrier(
                 command_list, ranges.size(), range_sizes.data(), ranges.data(),
                 signaling_event, waiting_events.size(), waiting_events.data()));
 
@@ -104,27 +103,27 @@ void AppendMemoryRangesBarrierTest(
 }
 
 // The following test fails and the failure is recorded in:
-// LOKI-303 xeCommandListAppendMemoryRangesBarrier() returns:
-// XE_RESULT_ERROR_UNSUPPORTED
-class xeCommandListAppendMemoryRangesBarrierTests
-    : public lzt::xeCommandListTests {};
+// LOKI-303 zeCommandListAppendMemoryRangesBarrier() returns:
+// ZE_RESULT_ERROR_UNSUPPORTED
+class zeCommandListAppendMemoryRangesBarrierTests
+    : public lzt::zeCommandListTests {};
 
 TEST_F(
-    xeCommandListAppendMemoryRangesBarrierTests,
+    zeCommandListAppendMemoryRangesBarrierTests,
     GivenEmptyCommandListWhenAppendingMemoryRangesBarrierThenSuccessIsReturned) {
-  std::vector<xe_event_handle_t> waiting_events;
+  std::vector<ze_event_handle_t> waiting_events;
 
   AppendMemoryRangesBarrierTest(cl.command_list_, nullptr, waiting_events);
 }
 
-class xeEventPoolCommandListAppendMemoryRangesBarrierTests
-    : public xeEventPoolCommandListTests {};
+class zeEventPoolCommandListAppendMemoryRangesBarrierTests
+    : public zeEventPoolCommandListTests {};
 
 TEST_F(
-    xeEventPoolCommandListAppendMemoryRangesBarrierTests,
+    zeEventPoolCommandListAppendMemoryRangesBarrierTests,
     GivenEmptyCommandListEventPoolWhenAppendingMemoryRangesBarrierSignalEventThenSuccessIsReturned) {
-  xe_event_handle_t signaling_event = nullptr;
-  std::vector<xe_event_handle_t> waiting_events;
+  ze_event_handle_t signaling_event = nullptr;
+  std::vector<ze_event_handle_t> waiting_events;
 
   ep.create_event(signaling_event);
   AppendMemoryRangesBarrierTest(cl.command_list_, signaling_event,
@@ -133,10 +132,10 @@ TEST_F(
 }
 
 TEST_F(
-    xeEventPoolCommandListAppendMemoryRangesBarrierTests,
+    zeEventPoolCommandListAppendMemoryRangesBarrierTests,
     GivenEmptyCommandListEventPoolWhenAppendingMemoryRangesBarrierWaitEventsThenSuccessIsReturned) {
   const size_t event_count = 2;
-  std::vector<xe_event_handle_t> waiting_events(event_count, nullptr);
+  std::vector<ze_event_handle_t> waiting_events(event_count, nullptr);
 
   ep.create_events(waiting_events, event_count);
   AppendMemoryRangesBarrierTest(cl.command_list_, nullptr, waiting_events);
@@ -144,11 +143,11 @@ TEST_F(
 }
 
 TEST_F(
-    xeEventPoolCommandListAppendMemoryRangesBarrierTests,
+    zeEventPoolCommandListAppendMemoryRangesBarrierTests,
     GivenEmptyCommandListEventPoolWhenAppendingMemoryRangesBarrierSignalEventAndWaitEventsThenSuccessIsReturned) {
-  xe_event_handle_t signaling_event = nullptr;
+  ze_event_handle_t signaling_event = nullptr;
   const size_t event_count = 2;
-  std::vector<xe_event_handle_t> waiting_events(event_count, nullptr);
+  std::vector<ze_event_handle_t> waiting_events(event_count, nullptr);
 
   ep.create_event(signaling_event);
   ep.create_events(waiting_events, event_count);
@@ -159,44 +158,42 @@ TEST_F(
 }
 
 // The following test fails and the failure is recorded in:
-// LOKI-303 xeCommandListAppendMemoryRangesBarrier() returns:
-// XE_RESULT_ERROR_UNSUPPORTED
-class xeDeviceSystemBarrierTests : public ::testing::Test {};
+// LOKI-303 zeCommandListAppendMemoryRangesBarrier() returns:
+// ZE_RESULT_ERROR_UNSUPPORTED
+class zeDeviceSystemBarrierTests : public ::testing::Test {};
 
-TEST_F(xeDeviceSystemBarrierTests,
+TEST_F(zeDeviceSystemBarrierTests,
        GivenDeviceWhenAddingSystemBarrierThenSuccessIsReturned) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceSystemBarrier(lzt::xeDevice::get_instance()->get_device()));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceSystemBarrier(lzt::zeDevice::get_instance()->get_device()));
 }
 
-class xeBarrierEventSignalingTests : public lzt::xeEventPoolTests {};
+class xeBarrierEventSignalingTests : public lzt::zeEventPoolTests {};
 
 TEST_F(
     xeBarrierEventSignalingTests,
     GivenEventSignaledWhenCommandListAppendingBarrierThenHostDetectsEventSuccessfully) {
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
-  xe_event_handle_t event_barrier_to_host = nullptr;
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_event_handle_t event_barrier_to_host = nullptr;
   std::vector<int> inpa = {0, 1, 2,  3,  4,  5,  6,  7,
                            8, 9, 10, 11, 12, 13, 14, 15};
   size_t xfer_size = inpa.size() * sizeof(int);
   void *dev_mem = lzt::allocate_device_memory(xfer_size);
   void *host_mem = lzt::allocate_host_memory(xfer_size);
-  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
-  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
-  ep.create_event(event_barrier_to_host, XE_EVENT_SCOPE_FLAG_HOST,
-                  XE_EVENT_SCOPE_FLAG_HOST);
-  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr, 0,
-                          nullptr);
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  ep.create_event(event_barrier_to_host, ZE_EVENT_SCOPE_FLAG_HOST,
+                  ZE_EVENT_SCOPE_FLAG_HOST);
+  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr);
   lzt::append_barrier(cmd_list, event_barrier_to_host, 0, nullptr);
-  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr);
   lzt::close_command_list(cmd_list);
   lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
   lzt::synchronize(cmd_q, UINT32_MAX);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeEventHostSynchronize(event_barrier_to_host, UINT32_MAX - 1));
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(event_barrier_to_host));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeEventHostSynchronize(event_barrier_to_host, UINT32_MAX - 1));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventQueryStatus(event_barrier_to_host));
 
   lzt::destroy_command_queue(cmd_q);
   lzt::destroy_command_list(cmd_list);
@@ -208,36 +205,34 @@ TEST_F(
 TEST_F(
     xeBarrierEventSignalingTests,
     GivenCommandListAppendingBarrierWaitsForEventsWhenHostAndCommandListSendSignalsThenCommandListExecutesSuccessfully) {
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   uint32_t num_events = 6;
   ASSERT_GE(num_events, 3);
-  std::vector<xe_event_handle_t> events_to_barrier(num_events, nullptr);
+  std::vector<ze_event_handle_t> events_to_barrier(num_events, nullptr);
   std::vector<int> inpa = {0, 1, 2,  3,  4,  5,  6,  7,
                            8, 9, 10, 11, 12, 13, 14, 15};
   size_t xfer_size = inpa.size() * sizeof(int);
   void *dev_mem = lzt::allocate_device_memory(xfer_size);
   void *host_mem = lzt::allocate_host_memory(xfer_size);
-  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
-  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
-  ep.create_events(events_to_barrier, num_events, XE_EVENT_SCOPE_FLAG_HOST,
-                   XE_EVENT_SCOPE_FLAG_HOST);
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  ep.create_events(events_to_barrier, num_events, ZE_EVENT_SCOPE_FLAG_HOST,
+                   ZE_EVENT_SCOPE_FLAG_HOST);
   lzt::append_signal_event(cmd_list, events_to_barrier[0]);
-  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr);
   lzt::append_signal_event(cmd_list, events_to_barrier[1]);
   lzt::append_barrier(cmd_list, nullptr, num_events, events_to_barrier.data());
-  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr);
   lzt::close_command_list(cmd_list);
   lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
   // Note: Current test for Wait Events will hang on Fulsim and Cobalt (ref
   // LOKI-457)
   for (uint32_t i = 2; i < num_events; i++) {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventHostSignal(events_to_barrier[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSignal(events_to_barrier[i]));
   }
   lzt::synchronize(cmd_q, UINT32_MAX);
   for (uint32_t i = 0; i < num_events; i++) {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(events_to_barrier[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventQueryStatus(events_to_barrier[i]));
   }
 
   lzt::destroy_command_queue(cmd_q);
@@ -250,8 +245,8 @@ TEST_F(
 TEST_F(
     xeBarrierEventSignalingTests,
     GivenEventSignaledWhenCommandListAppendingMemoryRangesBarrierThenHostDetectsEventSuccessfully) {
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
-  xe_event_handle_t event_barrier_to_host = nullptr;
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_event_handle_t event_barrier_to_host = nullptr;
   std::vector<int> inpa = {0, 1, 2,  3,  4,  5,  6,  7,
                            8, 9, 10, 11, 12, 13, 14, 15};
   size_t xfer_size = inpa.size() * sizeof(int);
@@ -259,23 +254,21 @@ TEST_F(
   void *dev_mem = lzt::allocate_device_memory(xfer_size);
   void *host_mem = lzt::allocate_host_memory(xfer_size);
   std::vector<const void *> ranges{dev_mem, host_mem};
-  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
-  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
-  ep.create_event(event_barrier_to_host, XE_EVENT_SCOPE_FLAG_HOST,
-                  XE_EVENT_SCOPE_FLAG_HOST);
-  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr, 0,
-                          nullptr);
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  ep.create_event(event_barrier_to_host, ZE_EVENT_SCOPE_FLAG_HOST,
+                  ZE_EVENT_SCOPE_FLAG_HOST);
+  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr);
   lzt::append_memory_ranges_barrier(cmd_list, ranges.size(), range_sizes.data(),
                                     ranges.data(), event_barrier_to_host, 0,
                                     nullptr);
-  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr);
   lzt::close_command_list(cmd_list);
   lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
   lzt::synchronize(cmd_q, UINT32_MAX);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeEventHostSynchronize(event_barrier_to_host, UINT32_MAX - 1));
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(event_barrier_to_host));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeEventHostSynchronize(event_barrier_to_host, UINT32_MAX - 1));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventQueryStatus(event_barrier_to_host));
 
   lzt::destroy_command_queue(cmd_q);
   lzt::destroy_command_list(cmd_list);
@@ -287,10 +280,10 @@ TEST_F(
 TEST_F(
     xeBarrierEventSignalingTests,
     GivenCommandListAppendingMemoryRangesBarrierWaitsForEventsWhenHostAndCommandListSendSignalsThenCommandListExecutesSuccessfully) {
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   uint32_t num_events = 6;
   ASSERT_GE(num_events, 3);
-  std::vector<xe_event_handle_t> events_to_barrier(num_events, nullptr);
+  std::vector<ze_event_handle_t> events_to_barrier(num_events, nullptr);
   std::vector<int> inpa = {0, 1, 2,  3,  4,  5,  6,  7,
                            8, 9, 10, 11, 12, 13, 14, 15};
   size_t xfer_size = inpa.size() * sizeof(int);
@@ -298,30 +291,28 @@ TEST_F(
   void *dev_mem = lzt::allocate_device_memory(xfer_size);
   void *host_mem = lzt::allocate_host_memory(xfer_size);
   std::vector<const void *> ranges{dev_mem, host_mem};
-  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
-  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
-  ep.create_events(events_to_barrier, num_events, XE_EVENT_SCOPE_FLAG_HOST,
-                   XE_EVENT_SCOPE_FLAG_HOST);
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  ep.create_events(events_to_barrier, num_events, ZE_EVENT_SCOPE_FLAG_HOST,
+                   ZE_EVENT_SCOPE_FLAG_HOST);
 
   lzt::append_signal_event(cmd_list, events_to_barrier[0]);
-  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, dev_mem, inpa.data(), xfer_size, nullptr);
   lzt::append_signal_event(cmd_list, events_to_barrier[1]);
   lzt::append_memory_ranges_barrier(cmd_list, ranges.size(), range_sizes.data(),
                                     ranges.data(), nullptr, num_events,
                                     events_to_barrier.data());
-  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr, 0,
-                          nullptr);
+  lzt::append_memory_copy(cmd_list, host_mem, dev_mem, xfer_size, nullptr);
   lzt::close_command_list(cmd_list);
   lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
   // Note: Current test for Wait Events will hang on Fulsim and Cobalt (ref
   // LOKI-457)
   for (uint32_t i = 2; i < num_events; i++) {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventHostSignal(events_to_barrier[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSignal(events_to_barrier[i]));
   }
   lzt::synchronize(cmd_q, UINT32_MAX);
   for (uint32_t i = 0; i < num_events; i++) {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeEventQueryStatus(events_to_barrier[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventQueryStatus(events_to_barrier[i]));
   }
 
   lzt::destroy_command_queue(cmd_q);
@@ -338,15 +329,15 @@ enum BarrierType {
 };
 
 class xeBarrierKernelTests
-    : public lzt::xeEventPoolTests,
+    : public lzt::zeEventPoolTests,
       public ::testing::WithParamInterface<enum BarrierType> {};
 
 TEST_P(
     xeBarrierKernelTests,
     GivenKernelFunctionsAndMemoryCopyWhenBarrierInsertedThenExecutionCompletesSuccesfully) {
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
-  xe_command_list_handle_t cmd_list = lzt::create_command_list(device);
-  xe_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
   size_t num_int = 1000;
   void *dev_buff = lzt::allocate_device_memory(num_int * sizeof(int));
   void *host_buff = lzt::allocate_host_memory(num_int * sizeof(int));
@@ -366,16 +357,16 @@ TEST_P(
   // Setup 2 events if running EVENTS_BARRIER test.  Flags set for coherency
   // between device and host
   const size_t num_event = 2;
-  std::vector<xe_event_handle_t> coherency_event(num_event, nullptr);
+  std::vector<ze_event_handle_t> coherency_event(num_event, nullptr);
   ep.InitEventPool(num_event);
-  ep.create_events(coherency_event, num_event, XE_EVENT_SCOPE_FLAG_HOST,
-                   XE_EVENT_SCOPE_FLAG_HOST);
+  ep.create_events(coherency_event, num_event, ZE_EVENT_SCOPE_FLAG_HOST,
+                   ZE_EVENT_SCOPE_FLAG_HOST);
 
-  xe_event_handle_t signal_event_copy = nullptr;
-  xe_event_handle_t signal_event_func1 = nullptr;
+  ze_event_handle_t signal_event_copy = nullptr;
+  ze_event_handle_t signal_event_func1 = nullptr;
   uint32_t num_wait = 0;
-  xe_event_handle_t *p_wait_event_func1 = nullptr;
-  xe_event_handle_t *p_wait_event_func2 = nullptr;
+  ze_event_handle_t *p_wait_event_func1 = nullptr;
+  ze_event_handle_t *p_wait_event_func2 = nullptr;
 
   // Coherency test:
   // 1) Command list memcopy from Host to Device Buffer.
@@ -393,23 +384,23 @@ TEST_P(
   }
 
   const int addval_2 = 50;
-  xe_module_handle_t module =
+  ze_module_handle_t module =
       lzt::create_module(device, "xe_barrier_add.spv",
-                         XE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
-  xe_function_handle_t function_1 =
+                         ZE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
+  ze_kernel_handle_t function_1 =
       lzt::create_function(module, "xe_barrier_add_constant");
   lzt::set_group_size(function_1, 1, 1, 1);
 
   int *p_dev = static_cast<int *>(dev_buff);
   lzt::set_argument_value(function_1, 0, sizeof(p_dev), &p_dev);
   lzt::set_argument_value(function_1, 1, sizeof(addval_2), &addval_2);
-  xe_thread_group_dimensions_t tg;
+  ze_thread_group_dimensions_t tg;
   tg.groupCountX = num_int;
   tg.groupCountY = 1;
   tg.groupCountZ = 1;
 
   lzt::append_memory_copy(cmd_list, dev_buff, host_buff, num_int * sizeof(int),
-                          signal_event_copy, 0, nullptr);
+                          signal_event_copy);
   // Memory barrier to ensure memory coherency after copy to device memory
   if (barrier_type == BT_MEMORY_RANGES_BARRIER) {
     const std::vector<size_t> range_sizes{num_int * sizeof(int),
@@ -427,8 +418,8 @@ TEST_P(
   if (barrier_type != BT_EVENTS_BARRIER) {
     lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
   }
-  xe_function_handle_t function_2 =
-      lzt::create_function(module, "xe_barrier_add_two_arrays");
+  ze_kernel_handle_t function_2 =
+      lzt::create_function(module, "ze_barrier_add_two_arrays");
   lzt::set_group_size(function_2, 1, 1, 1);
 
   lzt::set_argument_value(function_2, 0, sizeof(p_host), &p_host);

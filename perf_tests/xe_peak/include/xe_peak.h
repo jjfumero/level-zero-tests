@@ -25,15 +25,7 @@
 #include "../include/common.h"
 
 /* xe includes */
-#include "xe_barrier.h"
-#include "xe_cmdlist.h"
-#include "xe_cmdqueue.h"
-#include "xe_copy.h"
-#include "xe_device.h"
-#include "xe_driver.h"
-#include "xe_event.h"
-#include "xe_memory.h"
-#include "xe_module.h"
+#include "ze_api.h"
 
 #define MIN(X, Y) (X < Y) ? X : Y
 
@@ -62,21 +54,21 @@ enum class TimingMeasurement {
 };
 
 struct L0Context {
-    xe_command_queue_handle_t command_queue = nullptr;
-    xe_command_list_handle_t command_list = nullptr;
-    xe_module_handle_t module = nullptr;
-    xe_device_group_handle_t device_group = nullptr;
-    xe_device_handle_t device = nullptr;
+    ze_command_queue_handle_t command_queue = nullptr;
+    ze_command_list_handle_t command_list = nullptr;
+    ze_module_handle_t module = nullptr;
+    ze_driver_handle_t driver = nullptr;
+    ze_device_handle_t device = nullptr;
     uint32_t device_count = 0;
     const uint32_t default_device = 0;
     const uint32_t command_queue_id = 0;
-    xe_device_properties_t device_property;
-    xe_device_compute_properties_t device_compute_property;
+    ze_device_properties_t device_property;
+    ze_device_compute_properties_t device_compute_property;
     bool verbose = false;
 
     void init_xe();
     void clean_xe();
-    void print_xe_device_properties(const xe_device_properties_t &props);
+    void print_ze_device_properties(const ze_device_properties_t &props);
     void reset_commandlist();
     void execute_commandlist_and_sync();
     std::vector<uint8_t> load_binary_file(const std::string &file_path);
@@ -84,7 +76,7 @@ struct L0Context {
 };
 
 struct XeWorkGroups {
-    xe_thread_group_dimensions_t thread_group_dimensions;
+    ze_thread_group_dimensions_t thread_group_dimensions;
     uint32_t group_size_x;
     uint32_t group_size_y;
     uint32_t group_size_z;
@@ -110,11 +102,11 @@ class XePeak {
     int parse_arguments(int argc, char **argv);
 
     /* Helper Functions */
-    float run_kernel(L0Context context, xe_function_handle_t &function,
+    float run_kernel(L0Context context, ze_kernel_handle_t &function,
                      struct XeWorkGroups &workgroup_info, TimingMeasurement type, bool reset_command_list = true);
     uint64_t set_workgroups(L0Context &context,
                             const uint64_t total_work_items_requested, struct XeWorkGroups *workgroup_info);
-    void setup_function(L0Context &context, xe_function_handle_t &function,
+    void setup_function(L0Context &context, ze_kernel_handle_t &function,
                         const char *name, void *input, void *output,
                         size_t outputSize = 0u);
     uint64_t get_max_work_items(L0Context &context);

@@ -30,24 +30,24 @@
 
 namespace lzt = level_zero_tests;
 
-#include "xe_driver.h"
+#include "ze_api.h"
 
 namespace {
 
-class xeCommandListCreateTests
+class zeCommandListCreateTests
     : public ::testing::Test,
-      public ::testing::WithParamInterface<xe_command_list_flag_t> {};
+      public ::testing::WithParamInterface<ze_command_list_flag_t> {};
 
 TEST_P(
-    xeCommandListCreateTests,
+    zeCommandListCreateTests,
     GivenValidDeviceAndCommandListDescriptorWhenCreatingCommandListThenNotNullCommandListIsReturned) {
-  xe_command_list_desc_t descriptor;
-  descriptor.version = XE_COMMAND_LIST_DESC_VERSION_CURRENT;
+  ze_command_list_desc_t descriptor;
+  descriptor.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
   descriptor.flags = GetParam();
 
-  xe_command_list_handle_t command_list = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListCreate(lzt::xeDevice::get_instance()->get_device(),
+  ze_command_list_handle_t command_list = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListCreate(lzt::zeDevice::get_instance()->get_device(),
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
@@ -55,108 +55,85 @@ TEST_P(
 }
 
 INSTANTIATE_TEST_CASE_P(
-    CreateFlagParameterizedTest, xeCommandListCreateTests,
-    ::testing::Values(XE_COMMAND_LIST_FLAG_NONE, XE_COMMAND_LIST_FLAG_COPY_ONLY,
-                      XE_COMMAND_LIST_FLAG_RELAXED_ORDERING));
+    CreateFlagParameterizedTest, zeCommandListCreateTests,
+    ::testing::Values(ZE_COMMAND_LIST_FLAG_NONE, ZE_COMMAND_LIST_FLAG_COPY_ONLY,
+                      ZE_COMMAND_LIST_FLAG_RELAXED_ORDERING));
 
-class xeCommandListDestroyTests : public ::testing::Test {};
+class zeCommandListDestroyTests : public ::testing::Test {};
 
 TEST_F(
-    xeCommandListDestroyTests,
+    zeCommandListDestroyTests,
     GivenValidDeviceAndCommandListDescriptorWhenDestroyingCommandListThenSuccessIsReturned) {
-  xe_command_list_desc_t descriptor;
-  descriptor.version = XE_COMMAND_LIST_DESC_VERSION_CURRENT;
+  ze_command_list_desc_t descriptor;
+  descriptor.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
 
-  xe_command_list_handle_t command_list = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListCreate(lzt::xeDevice::get_instance()->get_device(),
+  ze_command_list_handle_t command_list = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListCreate(lzt::zeDevice::get_instance()->get_device(),
                                 &descriptor, &command_list));
   EXPECT_NE(nullptr, command_list);
 
   lzt::destroy_command_list(command_list);
 }
 
-// xeCommandListCreateImmediateTests currently fail with
-// 'XE_RESULT_ERROR_UNSUPPORTED' LOKI-289 is open for the implementation of the
+// zeCommandListCreateImmediateTests currently fail with
+// 'ZE_RESULT_ERROR_UNSUPPORTED' LOKI-289 is open for the implementation of the
 // API
-class xeCommandListCreateImmediateTests
+class zeCommandListCreateImmediateTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
-          std::tuple<xe_command_queue_flag_t, xe_command_queue_mode_t,
-                     xe_command_queue_priority_t>> {};
+          std::tuple<ze_command_queue_flag_t, ze_command_queue_mode_t,
+                     ze_command_queue_priority_t>> {};
 
-TEST_P(xeCommandListCreateImmediateTests,
+TEST_P(zeCommandListCreateImmediateTests,
        GivenImplicitCommandQueueWhenCreatingCommandListThenSuccessIsReturned) {
 
-  xe_command_queue_desc_t descriptor = {
-      XE_COMMAND_QUEUE_DESC_VERSION_CURRENT, // version
+  ze_command_queue_desc_t descriptor = {
+      ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT, // version
       std::get<0>(GetParam()),               // flags
       std::get<1>(GetParam()),               // mode
       std::get<2>(GetParam())                // priority
   };
 
-  xe_command_list_handle_t command_list = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListCreateImmediate(
-                                   lzt::xeDevice::get_instance()->get_device(),
+  ze_command_list_handle_t command_list = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListCreateImmediate(
+                                   lzt::zeDevice::get_instance()->get_device(),
                                    &descriptor, &command_list));
 
   lzt::destroy_command_list(command_list);
 }
 
 INSTANTIATE_TEST_CASE_P(
-    ImplictCommandQueueParameterizedTest, xeCommandListCreateImmediateTests,
+    ImplictCommandQueueParameterizedTest, zeCommandListCreateImmediateTests,
     ::testing::Combine(
-        ::testing::Values(XE_COMMAND_QUEUE_FLAG_NONE,
-                          XE_COMMAND_QUEUE_FLAG_COPY_ONLY,
-                          XE_COMMAND_QUEUE_FLAG_LOGICAL_ONLY,
-                          XE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY),
-        ::testing::Values(XE_COMMAND_QUEUE_MODE_DEFAULT,
-                          XE_COMMAND_QUEUE_MODE_SYNCHRONOUS,
-                          XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS),
-        ::testing::Values(XE_COMMAND_QUEUE_PRIORITY_NORMAL,
-                          XE_COMMAND_QUEUE_PRIORITY_LOW,
-                          XE_COMMAND_QUEUE_PRIORITY_HIGH)));
+        ::testing::Values(ZE_COMMAND_QUEUE_FLAG_NONE,
+                          ZE_COMMAND_QUEUE_FLAG_COPY_ONLY,
+                          ZE_COMMAND_QUEUE_FLAG_LOGICAL_ONLY,
+                          ZE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY),
+        ::testing::Values(ZE_COMMAND_QUEUE_MODE_DEFAULT,
+                          ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS,
+                          ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS),
+        ::testing::Values(ZE_COMMAND_QUEUE_PRIORITY_NORMAL,
+                          ZE_COMMAND_QUEUE_PRIORITY_LOW,
+                          ZE_COMMAND_QUEUE_PRIORITY_HIGH)));
 
-class xeCommandListCloseTests : public lzt::xeCommandListTests {};
+class zeCommandListCloseTests : public lzt::zeCommandListTests {};
 
-TEST_F(xeCommandListCloseTests,
+TEST_F(zeCommandListCloseTests,
        GivenEmptyCommandListWhenClosingCommandListThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(cl.command_list_));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListClose(cl.command_list_));
 }
 
-class xeCommandListResetTests : public lzt::xeCommandListTests {};
+class zeCommandListResetTests : public lzt::zeCommandListTests {};
 
-TEST_F(xeCommandListResetTests,
+TEST_F(zeCommandListResetTests,
        GivenEmptyCommandListWhenResettingCommandListThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListReset(cl.command_list_));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListReset(cl.command_list_));
 }
 
-class xeCommandListParameterTests : public lzt::xeCommandListTests {};
+class zeCommandListReuseTests : public ::testing::Test {};
 
-TEST_F(xeCommandListParameterTests,
-       GivenEmptyCommandListWhenGettingTbdParameterThenSuccessIsReturned) {
-  uint32_t value;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListGetParameter(cl.command_list_,
-                                      XE_COMMAND_LIST_PARAMETER_TBD, &value));
-}
-
-TEST_F(xeCommandListParameterTests,
-       GivenEmptyCommandListWhenSettingTbdParameterThenSuccessIsReturned) {
-  uint32_t value = 0;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandListSetParameter(cl.command_list_,
-                                      XE_COMMAND_LIST_PARAMETER_TBD, value));
-}
-
-TEST_F(xeCommandListParameterTests,
-       GivenEmptyCommandListWhenResettingParametersThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListResetParameters(cl.command_list_));
-}
-
-class xeCommandListReuseTests : public ::testing::Test {};
-
-TEST(xeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
+TEST(zeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
   auto cmdlist = lzt::create_command_list();
   auto cmdq = lzt::create_command_queue();
   const size_t size = 16;
@@ -186,6 +163,6 @@ TEST(xeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
 
 } // namespace
 
-// TODO: Check memory leaks after call to xeCommandListDestroy
-// TODO: How to verify xeCommanListClose, xeCommandListReset,
+// TODO: Check memory leaks after call to zeCommandListDestroy
+// TODO: How to verify xeCommanListClose, zeCommandListReset,
 // without command list reflection?

@@ -63,11 +63,11 @@ std::vector<uint8_t> L0Context::load_binary_file(const std::string &file_path) {
 // Utility function to reset the Command List.
 //---------------------------------------------------------------------
 void L0Context::reset_commandlist() {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
-  result = xeCommandListReset(command_list);
+  result = zeCommandListReset(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListReset failed: " +
+    throw std::runtime_error("zeCommandListReset failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -81,20 +81,20 @@ void L0Context::reset_commandlist() {
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void L0Context::create_module(std::vector<uint8_t> binary_file) {
-  xe_result_t result = XE_RESULT_SUCCESS;
-  xe_module_desc_t module_description;
+  ze_result_t result = ZE_RESULT_SUCCESS;
+  ze_module_desc_t module_description;
 
-  module_description.version = XE_MODULE_DESC_VERSION_CURRENT;
-  module_description.format = XE_MODULE_FORMAT_IL_SPIRV;
+  module_description.version = ZE_MODULE_DESC_VERSION_CURRENT;
+  module_description.format = ZE_MODULE_FORMAT_IL_SPIRV;
   module_description.inputSize = static_cast<uint32_t>(binary_file.size());
   // TODO: Remove cast when pInputModule will be declared as uint8_t
   module_description.pInputModule =
       reinterpret_cast<const uint8_t *>(binary_file.data());
   module_description.pBuildFlags = nullptr;
 
-  result = xeModuleCreate(device, &module_description, &module, nullptr);
+  result = zeModuleCreate(device, &module_description, &module, nullptr);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateModule failed: " +
+    throw std::runtime_error("zeDeviceCreateModule failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -102,10 +102,10 @@ void L0Context::create_module(std::vector<uint8_t> binary_file) {
 }
 
 //---------------------------------------------------------------------
-// Utility function to print the device properties from xeDeviceGetProperties.
+// Utility function to print the device properties from zeDeviceGetProperties.
 //---------------------------------------------------------------------
-void L0Context::print_xe_device_properties(
-    const xe_device_properties_t &props) {
+void L0Context::print_ze_device_properties(
+    const ze_device_properties_t &props) {
   std::cout << "Device : \n"
             << " * name : " << props.name << "\n"
             << " * vendorId : " << props.vendorId << "\n"
@@ -113,16 +113,10 @@ void L0Context::print_xe_device_properties(
             << " * subdeviceId : " << props.subdeviceId << "\n"
             << " * isSubdevice : " << (props.isSubdevice ? "TRUE" : "FALSE")
             << "\n"
-            << " * numSubDevices : " << props.numSubDevices << "\n"
             << " * coreClockRate : " << props.coreClockRate << "\n"
-            << " * memClockRate : " << props.memClockRate << "\n"
-            << " * memGlobalBusWidth : " << props.memGlobalBusWidth << "\n"
-            << " * totalLocalMemSize : " << props.totalLocalMemSize << "\n"
             << " * numAsyncComputeEngines : " << props.numAsyncComputeEngines
             << "\n"
-            << " * numAsyncCopyEngines  : " << props.numAsyncCopyEngines
-            << "\n"
-            //<< " * numComputeCores : " << props.numComputeCores << "\n"
+            << " * numAsyncCopyEngines  : " << props.numAsyncCopyEngines << "\n"
             << " * maxCommandQueuePriority : " << props.maxCommandQueuePriority
             << std::endl;
 }
@@ -133,91 +127,87 @@ void L0Context::print_xe_device_properties(
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void L0Context::init_xe() {
-  xe_command_list_desc_t command_list_description;
-  xe_command_queue_desc_t command_queue_description;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_command_list_desc_t command_list_description;
+  ze_command_queue_desc_t command_queue_description;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
-  result = xeInit(XE_INIT_FLAG_NONE);
+  result = zeInit(ZE_INIT_FLAG_NONE);
   if (result) {
-    throw std::runtime_error("xeDriverInit failed: " + std::to_string(result));
+    throw std::runtime_error("zeDriverInit failed: " + std::to_string(result));
   }
   if (verbose)
     std::cout << "Driver initialized\n";
 
-  std::cout << "xeDeviceGroupGet...\n";
-  uint32_t device_group_count = 0;
-  result = xeDeviceGroupGet(&device_group_count, nullptr);
-  if (result || device_group_count == 0) {
-    throw std::runtime_error("xeDeviceGroupGet failed: " +
-                             std::to_string(result));
+  std::cout << "zeDriverGet...\n";
+  uint32_t driver_count = 0;
+  result = zeDriverGet(&driver_count, nullptr);
+  if (result || driver_count == 0) {
+    throw std::runtime_error("zeDriverGet failed: " + std::to_string(result));
   }
 
-  /* Retrieve only one device group */
-  device_group_count = 1;
-  result = xeDeviceGroupGet(&device_group_count, &device_group);
+  /* Retrieve only one driver */
+  driver_count = 1;
+  result = zeDriverGet(&driver_count, &driver);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupGet failed: " +
-                             std::to_string(result));
+    throw std::runtime_error("zeDriverGet failed: " + std::to_string(result));
   }
 
   device_count = 0;
-  result = xeDeviceGroupGetDevices(device_group, &device_count, nullptr);
+  result = zeDeviceGet(driver, &device_count, nullptr);
   if (result || device_count == 0) {
-    throw std::runtime_error("xeDeviceGroupGetDevices failed: " +
-                             std::to_string(result));
+    throw std::runtime_error("zeDeviceGet failed: " + std::to_string(result));
   }
   if (verbose)
     std::cout << "Device count retrieved\n";
 
   device_count = 1;
-  result = xeDeviceGroupGetDevices(device_group, &device_count, &device);
+  result = zeDeviceGet(driver, &device_count, &device);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupGetDevices failed: " +
-                             std::to_string(result));
+    throw std::runtime_error("zeDeviceGet failed: " + std::to_string(result));
   }
   if (verbose)
     std::cout << "Device retrieved\n";
 
-  device_property.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-  result = xeDeviceGetProperties(device, &device_property);
+  device_property.version = ZE_DEVICE_PROPERTIES_VERSION_CURRENT;
+  result = zeDeviceGetProperties(device, &device_property);
   if (result) {
-    throw std::runtime_error("xeDeviceGetProperties failed: " +
+    throw std::runtime_error("zeDeviceGetProperties failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Device Properties retrieved\n";
 
-  print_xe_device_properties(device_property);
+  print_ze_device_properties(device_property);
 
   device_compute_property.version =
-      XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
-  result = xeDeviceGetComputeProperties(device, &device_compute_property);
+      ZE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
+  result = zeDeviceGetComputeProperties(device, &device_compute_property);
   if (result) {
-    throw std::runtime_error("xeDeviceGetComputeProperties failed: " +
+    throw std::runtime_error("zeDeviceGetComputeProperties failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Device Compute Properties retrieved\n";
 
-  command_list_description.version = XE_COMMAND_LIST_DESC_VERSION_CURRENT;
+  command_list_description.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
 
   result =
-      xeCommandListCreate(device, &command_list_description, &command_list);
+      zeCommandListCreate(device, &command_list_description, &command_list);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateCommandList failed: " +
+    throw std::runtime_error("zeDeviceCreateCommandList failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "command_list created\n";
 
-  command_queue_description.version = XE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
+  command_queue_description.version = ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
   command_queue_description.ordinal = command_queue_id;
-  command_queue_description.mode = XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS;
+  command_queue_description.mode = ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS;
 
   result =
-      xeCommandQueueCreate(device, &command_queue_description, &command_queue);
+      zeCommandQueueCreate(device, &command_queue_description, &command_queue);
   if (result) {
-    throw std::runtime_error("xeDeviceCreateCommandQueue failed: " +
+    throw std::runtime_error("zeDeviceCreateCommandQueue failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -229,19 +219,19 @@ void L0Context::init_xe() {
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void L0Context::clean_xe() {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
-  result = xeCommandQueueDestroy(command_queue);
+  result = zeCommandQueueDestroy(command_queue);
   if (result) {
-    throw std::runtime_error("xeCommandQueueDestroy failed: " +
+    throw std::runtime_error("zeCommandQueueDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Command queue destroyed\n";
 
-  result = xeCommandListDestroy(command_list);
+  result = zeCommandListDestroy(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListDestroy failed: " +
+    throw std::runtime_error("zeCommandListDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -256,28 +246,28 @@ void L0Context::clean_xe() {
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void L0Context::execute_commandlist_and_sync() {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
-  result = xeCommandListClose(command_list);
+  result = zeCommandListClose(command_list);
   if (result) {
-    throw std::runtime_error("xeCommandListClose failed: " +
+    throw std::runtime_error("zeCommandListClose failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Command list closed\n";
 
-  result = xeCommandQueueExecuteCommandLists(command_queue, 1, &command_list,
+  result = zeCommandQueueExecuteCommandLists(command_queue, 1, &command_list,
                                              nullptr);
   if (result) {
-    throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
+    throw std::runtime_error("zeCommandQueueExecuteCommandLists failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Command list enqueued\n";
 
-  result = xeCommandQueueSynchronize(command_queue, UINT32_MAX);
+  result = zeCommandQueueSynchronize(command_queue, UINT32_MAX);
   if (result) {
-    throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+    throw std::runtime_error("zeCommandQueueSynchronize failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -372,11 +362,11 @@ uint64_t XePeak::set_workgroups(L0Context &context,
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void XePeak::run_command_queue(L0Context &context) {
-  xe_result_t result = XE_RESULT_SUCCESS;
-  result = xeCommandQueueExecuteCommandLists(context.command_queue, 1,
+  ze_result_t result = ZE_RESULT_SUCCESS;
+  result = zeCommandQueueExecuteCommandLists(context.command_queue, 1,
                                              &context.command_list, nullptr);
   if (result) {
-    throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
+    throw std::runtime_error("zeCommandQueueExecuteCommandLists failed: " +
                              std::to_string(result));
   }
 }
@@ -386,43 +376,43 @@ void XePeak::run_command_queue(L0Context &context) {
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
 void XePeak::synchronize_command_queue(L0Context &context) {
-  xe_result_t result = XE_RESULT_SUCCESS;
-  result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
+  ze_result_t result = ZE_RESULT_SUCCESS;
+  result = zeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
   if (result) {
-    throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+    throw std::runtime_error("zeCommandQueueSynchronize failed: " +
                              std::to_string(result));
   }
 }
 
 void single_event_pool_create(
-    L0Context &context, xe_event_pool_handle_t *kernel_launch_event_pool) {
-  xe_result_t result;
-  xe_event_pool_desc_t kernel_launch_event_pool_desc;
+    L0Context &context, ze_event_pool_handle_t *kernel_launch_event_pool) {
+  ze_result_t result;
+  ze_event_pool_desc_t kernel_launch_event_pool_desc;
 
   kernel_launch_event_pool_desc.count = 1;
-  kernel_launch_event_pool_desc.flags = XE_EVENT_POOL_FLAG_HOST_VISIBLE;
-  kernel_launch_event_pool_desc.version = XE_EVENT_POOL_DESC_VERSION_CURRENT;
+  kernel_launch_event_pool_desc.flags = ZE_EVENT_POOL_FLAG_HOST_VISIBLE;
+  kernel_launch_event_pool_desc.version = ZE_EVENT_POOL_DESC_VERSION_CURRENT;
 
-  result = xeEventPoolCreate(context.device, &kernel_launch_event_pool_desc,
-                             kernel_launch_event_pool);
+  result = zeEventPoolCreate(context.driver, &kernel_launch_event_pool_desc, 1,
+                             &context.device, kernel_launch_event_pool);
   if (result) {
-    throw std::runtime_error("xeEventPoolCreate failed: " +
+    throw std::runtime_error("zeEventPoolCreate failed: " +
                              std::to_string(result));
   }
 }
 
-void single_event_create(xe_event_pool_handle_t event_pool,
-                         xe_event_handle_t *event) {
-  xe_result_t result;
-  xe_event_desc_t event_desc;
+void single_event_create(ze_event_pool_handle_t event_pool,
+                         ze_event_handle_t *event) {
+  ze_result_t result;
+  ze_event_desc_t event_desc;
 
   event_desc.index = 0;
-  event_desc.signal = XE_EVENT_SCOPE_FLAG_NONE;
-  event_desc.wait = XE_EVENT_SCOPE_FLAG_NONE;
-  event_desc.version = XE_EVENT_DESC_VERSION_CURRENT;
-  result = xeEventCreate(event_pool, &event_desc, event);
+  event_desc.signal = ZE_EVENT_SCOPE_FLAG_NONE;
+  event_desc.wait = ZE_EVENT_SCOPE_FLAG_NONE;
+  event_desc.version = ZE_EVENT_DESC_VERSION_CURRENT;
+  result = zeEventCreate(event_pool, &event_desc, event);
   if (result) {
-    throw std::runtime_error("xeEventCreate failed: " + std::to_string(result));
+    throw std::runtime_error("zeEventCreate failed: " + std::to_string(result));
   }
 }
 //---------------------------------------------------------------------
@@ -439,17 +429,17 @@ void single_event_create(xe_event_pool_handle_t event_pool,
 // On success, the average time is returned.
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
-float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
+float XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
                          struct XeWorkGroups &workgroup_info,
                          TimingMeasurement type, bool reset_command_list) {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
   float timed = 0;
 
-  result = xeFunctionSetGroupSize(function, workgroup_info.group_size_x,
-                                  workgroup_info.group_size_y,
-                                  workgroup_info.group_size_z);
+  result = zeKernelSetGroupSize(function, workgroup_info.group_size_x,
+                                workgroup_info.group_size_y,
+                                workgroup_info.group_size_z);
   if (result) {
-    throw std::runtime_error("xeFunctionSetGroupSize failed: " +
+    throw std::runtime_error("zeKernelSetGroupSize failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -460,19 +450,19 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
   Timer timer;
 
   if (type == TimingMeasurement::BANDWIDTH) {
-    result = xeCommandListAppendLaunchFunction(
+    result = zeCommandListAppendLaunchKernel(
         context.command_list, function, &workgroup_info.thread_group_dimensions,
         nullptr, 0, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
+      throw std::runtime_error("zeCommandListAppendLaunchKernel failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
-    result = xeCommandListClose(context.command_list);
+    result = zeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " +
+      throw std::runtime_error("zeCommandListClose failed: " +
                                std::to_string(result));
     }
     if (verbose)
@@ -491,8 +481,8 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
     synchronize_command_queue(context);
     timed = timer.stopAndTime();
   } else if (type == TimingMeasurement::BANDWIDTH_EVENT_TIMING) {
-    xe_event_pool_handle_t event_pool;
-    xe_event_handle_t function_event;
+    ze_event_pool_handle_t event_pool;
+    ze_event_handle_t function_event;
 
     single_event_pool_create(context, &event_pool);
     if (verbose)
@@ -502,47 +492,47 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
     if (verbose)
       std::cout << "Event Created\n";
 
-    result = xeCommandListAppendLaunchFunction(
+    result = zeCommandListAppendLaunchKernel(
         context.command_list, function, &workgroup_info.thread_group_dimensions,
         function_event, 0, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
+      throw std::runtime_error("zeCommandListAppendLaunchKernel failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
-    result = xeCommandListClose(context.command_list);
+    result = zeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " +
+      throw std::runtime_error("zeCommandListClose failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Command list closed\n";
 
     for (uint32_t i = 0; i < warmup_iterations; i++) {
-      result = xeCommandQueueExecuteCommandLists(
+      result = zeCommandQueueExecuteCommandLists(
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
-        throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
+        throw std::runtime_error("zeCommandQueueExecuteCommandLists failed: " +
                                  std::to_string(result));
       }
 
-      result = xeEventHostSynchronize(function_event, UINT32_MAX);
+      result = zeEventHostSynchronize(function_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " +
+        throw std::runtime_error("zeEventHostSynchronize failed: " +
                                  std::to_string(result));
       }
 
-      result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
+      result = zeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+        throw std::runtime_error("zeCommandQueueSynchronize failed: " +
                                  std::to_string(result));
       }
 
-      result = xeEventReset(function_event);
+      result = zeEventReset(function_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " +
+        throw std::runtime_error("zeEventReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
@@ -551,40 +541,40 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
 
     for (uint32_t i = 0; i < iters; i++) {
       timer.start();
-      result = xeCommandQueueExecuteCommandLists(
+      result = zeCommandQueueExecuteCommandLists(
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
-        throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
+        throw std::runtime_error("zeCommandQueueExecuteCommandLists failed: " +
                                  std::to_string(result));
       }
 
-      result = xeEventHostSynchronize(function_event, UINT32_MAX);
+      result = zeEventHostSynchronize(function_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " +
+        throw std::runtime_error("zeEventHostSynchronize failed: " +
                                  std::to_string(result));
       }
       timed += timer.stopAndTime();
 
-      result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
+      result = zeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+        throw std::runtime_error("zeCommandQueueSynchronize failed: " +
                                  std::to_string(result));
       }
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
-      result = xeEventReset(function_event);
+      result = zeEventReset(function_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " +
+        throw std::runtime_error("zeEventReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset\n";
     }
-    xeEventDestroy(function_event);
+    zeEventDestroy(function_event);
   } else if (type == TimingMeasurement::KERNEL_LAUNCH_LATENCY) {
-    xe_event_handle_t kernel_launch_event;
-    xe_event_pool_handle_t kernel_launch_event_pool;
+    ze_event_handle_t kernel_launch_event;
+    ze_event_pool_handle_t kernel_launch_event_pool;
 
     single_event_pool_create(context, &kernel_launch_event_pool);
     if (verbose)
@@ -593,28 +583,28 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
     single_event_create(kernel_launch_event_pool, &kernel_launch_event);
     if (verbose)
       std::cout << "Event Created\n";
-    result = xeCommandListAppendSignalEvent(context.command_list,
+    result = zeCommandListAppendSignalEvent(context.command_list,
                                             kernel_launch_event);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendSignalEvent failed: " +
+      throw std::runtime_error("zeCommandListAppendSignalEvent failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Kernel Launch Event signal appended to command list\n";
 
-    result = xeCommandListAppendLaunchFunction(
+    result = zeCommandListAppendLaunchKernel(
         context.command_list, function, &workgroup_info.thread_group_dimensions,
         nullptr, 0, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
+      throw std::runtime_error("zeCommandListAppendLaunchKernel failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
-    result = xeCommandListClose(context.command_list);
+    result = zeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " +
+      throw std::runtime_error("zeCommandListClose failed: " +
                                std::to_string(result));
     }
     if (verbose)
@@ -623,14 +613,14 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
     for (uint32_t i = 0; i < warmup_iterations; i++) {
       run_command_queue(context);
       synchronize_command_queue(context);
-      result = xeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
+      result = zeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " +
+        throw std::runtime_error("zeEventHostSynchronize failed: " +
                                  std::to_string(result));
       }
-      result = xeEventReset(kernel_launch_event);
+      result = zeEventReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " +
+        throw std::runtime_error("zeEventReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
@@ -639,50 +629,50 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
 
     for (uint32_t i = 0; i < iters; i++) {
       timer.start();
-      result = xeCommandQueueExecuteCommandLists(
+      result = zeCommandQueueExecuteCommandLists(
           context.command_queue, 1, &context.command_list, nullptr);
       if (result) {
-        throw std::runtime_error("xeCommandQueueExecuteCommandLists failed: " +
+        throw std::runtime_error("zeCommandQueueExecuteCommandLists failed: " +
                                  std::to_string(result));
       }
 
-      result = xeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
+      result = zeEventHostSynchronize(kernel_launch_event, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeEventHostSynchronize failed: " +
+        throw std::runtime_error("zeEventHostSynchronize failed: " +
                                  std::to_string(result));
       }
       timed += timer.stopAndTime();
 
-      result = xeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
+      result = zeCommandQueueSynchronize(context.command_queue, UINT32_MAX);
       if (result) {
-        throw std::runtime_error("xeCommandQueueSynchronize failed: " +
+        throw std::runtime_error("zeCommandQueueSynchronize failed: " +
                                  std::to_string(result));
       }
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
-      result = xeEventReset(kernel_launch_event);
+      result = zeEventReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("xeEventReset failed: " +
+        throw std::runtime_error("zeEventReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
         std::cout << "Event Reset\n";
     }
   } else if (type == TimingMeasurement::KERNEL_COMPLETE_LATENCY) {
-    result = xeCommandListAppendLaunchFunction(
+    result = zeCommandListAppendLaunchKernel(
         context.command_list, function, &workgroup_info.thread_group_dimensions,
         nullptr, 0, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendLaunchFunction failed: " +
+      throw std::runtime_error("zeCommandListAppendLaunchKernel failed: " +
                                std::to_string(result));
     }
     if (verbose)
       std::cout << "Function launch appended\n";
 
-    result = xeCommandListClose(context.command_list);
+    result = zeCommandListClose(context.command_list);
     if (result) {
-      throw std::runtime_error("xeCommandListClose failed: " +
+      throw std::runtime_error("zeCommandListClose failed: " +
                                std::to_string(result));
     }
     if (verbose)
@@ -712,27 +702,27 @@ float XePeak::run_kernel(L0Context context, xe_function_handle_t &function,
 // Utility function to setup a kernel function with an input & output argument.
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
-void XePeak::setup_function(L0Context &context, xe_function_handle_t &function,
+void XePeak::setup_function(L0Context &context, ze_kernel_handle_t &function,
                             const char *name, void *input, void *output,
                             size_t outputSize) {
-  xe_function_desc_t function_description;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_kernel_desc_t function_description;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
-  function_description.version = XE_FUNCTION_DESC_VERSION_CURRENT;
-  function_description.flags = XE_FUNCTION_FLAG_NONE;
-  function_description.pFunctionName = name;
+  function_description.version = ZE_KERNEL_DESC_VERSION_CURRENT;
+  function_description.flags = ZE_KERNEL_FLAG_NONE;
+  function_description.pKernelName = name;
 
-  result = xeFunctionCreate(context.module, &function_description, &function);
+  result = zeKernelCreate(context.module, &function_description, &function);
   if (result) {
-    throw std::runtime_error("xeModuleCreateFunction failed: " +
+    throw std::runtime_error("zeModuleCreateFunction failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Function created\n";
 
-  result = xeFunctionSetArgumentValue(function, 0, sizeof(input), &input);
+  result = zeKernelSetArgumentValue(function, 0, sizeof(input), &input);
   if (result) {
-    throw std::runtime_error("xeFunctionSetArgumentValue failed: " +
+    throw std::runtime_error("zeKernelSetArgumentValue failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -740,13 +730,13 @@ void XePeak::setup_function(L0Context &context, xe_function_handle_t &function,
 
   // some kernels require scalar to be used on argument 1
   if (outputSize) {
-    result = xeFunctionSetArgumentValue(function, 1, outputSize, output);
+    result = zeKernelSetArgumentValue(function, 1, outputSize, output);
   } else {
-    result = xeFunctionSetArgumentValue(function, 1, sizeof(output), &output);
+    result = zeKernelSetArgumentValue(function, 1, sizeof(output), &output);
   }
 
   if (result) {
-    throw std::runtime_error("xeFunctionSetArgumentValue failed: " +
+    throw std::runtime_error("zeKernelSetArgumentValue failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -841,23 +831,26 @@ unsigned long long int total_available_memory() {
 
 #endif
 
-inline bool is_integrated_gpu(xe_device_properties_t &device_properties) {
-  return (device_properties.totalLocalMemSize == 0);
+inline bool
+is_integrated_gpu(ze_device_memory_properties_t &device_memory_properties) {
+  return (device_memory_properties.totalSize == 0);
 }
 
 uint64_t max_device_object_size(L0Context &context) {
-  xe_result_t result;
+  ze_result_t result;
 
-  xe_device_properties_t device_properties = {
-      XE_DEVICE_PROPERTIES_VERSION_CURRENT};
+  ze_device_memory_properties_t device_memory_properties = {
+      ZE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT};
 
-  result = xeDeviceGetProperties(context.device, &device_properties);
+  uint32_t device_count = 1;
+  result = zeDeviceGetMemoryProperties(context.device, &device_count,
+                                       &device_memory_properties);
   if (result) {
-    throw std::runtime_error("xeDeviceGetProperties failed: " +
+    throw std::runtime_error("zeDeviceGetMemoryProperties failed: " +
                              std::to_string(result));
   }
 
-  if (is_integrated_gpu(device_properties)) {
+  if (is_integrated_gpu(device_memory_properties)) {
     unsigned long long int total_memory = total_available_memory();
     if (total_memory > FOUR_GB) {
       return FOUR_GB - EIGHT_KB;
@@ -865,7 +858,7 @@ uint64_t max_device_object_size(L0Context &context) {
       return std::max(total_memory / 4, 128 * ONE_MB);
     }
   } else {
-    return device_properties.totalLocalMemSize;
+    return device_memory_properties.totalSize;
   }
 }
 

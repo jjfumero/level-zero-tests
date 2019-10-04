@@ -25,7 +25,7 @@
 #include "gtest/gtest.h"
 
 #include "logging/logging.hpp"
-#include "xe_driver.h"
+#include "ze_api.h"
 #include "xe_test_harness/xe_test_harness.hpp"
 
 namespace lzt = level_zero_tests;
@@ -33,22 +33,43 @@ namespace lzt = level_zero_tests;
 namespace {
 
 TEST(
-    xeInitTests,
+    zeInitTests,
     GivenDriverWasAlreadyInitializedWhenInitializingDriverThenSuccessIsReturned) {
   for (int i = 0; i < 5; ++i) {
-    lzt::xe_init();
+    lzt::ze_init();
   }
 }
 
-TEST(xeDeviceGroupGetDriverVersionTests,
+TEST(zeDriverGetDriverVersionTests,
      GivenZeroVersionWhenGettingDriverVersionThenNonZeroVersionIsReturned) {
 
-  lzt::xe_init();
+  lzt::ze_init();
 
-  auto device_groups = lzt::get_xe_device_groups();
-  for (auto device_group : device_groups) {
-    uint32_t version = lzt::get_driver_version(device_group);
+  auto drivers = lzt::get_all_driver_handles();
+  for (auto driver : drivers) {
+    uint32_t version = lzt::get_driver_version(driver);
     LOG_INFO << "Driver version: " << version;
+  }
+}
+
+TEST(zeDriverGetApiVersionTests,
+     GivenValidDriverWhenRetrievingApiVersionThenValidApiVersionIsReturned) {
+  lzt::ze_init();
+
+  auto drivers = lzt::get_all_driver_handles();
+  for (auto driver : drivers) {
+    ze_api_version_t api_version = lzt::get_api_version(driver);
+    LOG_INFO << "API version: " << api_version;
+  }
+}
+
+TEST(zeDriverGetIPCPropertiesTests,
+     GivenValidDriverWhenRetrievingIPCPropertiesThenValidPropertiesAreRetured) {
+
+  auto drivers = lzt::get_all_driver_handles();
+  ASSERT_GT(drivers.size(), 0);
+  for (auto driver : drivers) {
+    lzt::get_ipc_properties(driver);
   }
 }
 

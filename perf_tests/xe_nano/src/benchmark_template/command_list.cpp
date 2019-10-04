@@ -21,25 +21,25 @@
 
 void launch_function_no_parameter(XeApp *benchmark,
                                   probe_config_t &probe_setting) {
-  xe_function_handle_t function;
-  xe_command_list_handle_t command_list;
+  ze_kernel_handle_t function;
+  ze_command_list_handle_t command_list;
   benchmark->commandListCreate(&command_list);
 
   benchmark->functionCreate(&function, "function_no_parameter");
 
-  xe_thread_group_dimensions_t thread_group_dimensions;
+  ze_thread_group_dimensions_t thread_group_dimensions;
   thread_group_dimensions.groupCountX = 1;
   thread_group_dimensions.groupCountY = 1;
   thread_group_dimensions.groupCountZ = 1;
 
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-    xeCommandListAppendLaunchFunction(
+    zeCommandListAppendLaunchKernel(
         command_list, function, &thread_group_dimensions, nullptr, 0, nullptr);
   }
 
   NANO_PROBE(" Function with no parameters\t", probe_setting,
-             xeCommandListAppendLaunchFunction, command_list, function,
+             zeCommandListAppendLaunchKernel, command_list, function,
              &thread_group_dimensions, nullptr, 0, nullptr);
 
   benchmark->functionDestroy(function);
@@ -48,8 +48,8 @@ void launch_function_no_parameter(XeApp *benchmark,
 
 void command_list_empty_execute(XeApp *benchmark,
                                 probe_config_t &probe_setting) {
-  xe_command_list_handle_t command_list;
-  xe_command_queue_handle_t command_queue;
+  ze_command_list_handle_t command_list;
+  ze_command_queue_handle_t command_queue;
 
   benchmark->commandQueueCreate(0, /*command_queue_id */
                                 &command_queue);
@@ -58,11 +58,11 @@ void command_list_empty_execute(XeApp *benchmark,
 
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-    xeCommandQueueExecuteCommandLists(command_queue, 1, &command_list, nullptr);
+    zeCommandQueueExecuteCommandLists(command_queue, 1, &command_list, nullptr);
   }
 
   NANO_PROBE(" Empty command list\t", probe_setting,
-             xeCommandQueueExecuteCommandLists, command_queue, 1, &command_list,
+             zeCommandQueueExecuteCommandLists, command_queue, 1, &command_list,
              nullptr);
 
   benchmark->commandListDestroy(command_list);

@@ -31,8 +31,7 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 #include "logging/logging.hpp"
 
-#include "xe_driver.h"
-#include "xe_memory.h"
+#include "ze_api.h"
 
 namespace lzt = level_zero_tests;
 
@@ -41,7 +40,7 @@ namespace {
 class xeIpcMemHandleTests : public ::testing::Test {
 protected:
   void *memory_ = nullptr;
-  xe_ipc_mem_handle_t ipc_mem_handle_;
+  ze_ipc_mem_handle_t ipc_mem_handle_;
 };
 
 TEST_F(
@@ -49,9 +48,9 @@ TEST_F(
     GivenDeviceMemoryAllocationWhenGettingIpcMemHandleThenSuccessIsReturned) {
   memory_ = lzt::allocate_device_memory(1);
 
-  const xe_device_group_handle_t device_group = lzt::get_default_device_group();
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemIpcHandle(
-                                   device_group, memory_, &ipc_mem_handle_));
+  const ze_driver_handle_t driver = lzt::get_default_driver();
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDriverGetMemIpcHandle(driver, memory_, &ipc_mem_handle_));
 
   lzt::free_memory(memory_);
 }
@@ -82,23 +81,23 @@ protected:
   }
 
   void TearDown() override {
-    EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
-                                     lzt::get_default_device_group(), memory_));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeDriverCloseMemIpcHandle(lzt::get_default_driver(), memory_));
     lzt::free_memory(memory_);
   }
 
   void *memory_ = nullptr;
-  xe_ipc_mem_handle_t ipc_mem_handle_;
+  ze_ipc_mem_handle_t ipc_mem_handle_;
 };
 
 TEST_F(xeIpcMemHandleOpenTests,
        GivenValidIpcMemoryHandleWhenOpeningIpcMemHandleThenSuccessIsReturned) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupOpenMemIpcHandle(
-                lzt::get_default_device_group(),
-                lzt::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
-                XE_IPC_MEMORY_FLAG_NONE, &memory_));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDriverOpenMemIpcHandle(
+                lzt::get_default_driver(),
+                lzt::zeDevice::get_instance()->get_device(), ipc_mem_handle_,
+                ZE_IPC_MEMORY_FLAG_NONE, &memory_));
 }
 #endif
 
@@ -106,14 +105,14 @@ class xeIpcMemHandleCloseTests : public xeIpcMemHandleTests {
 protected:
   void SetUp() override {
     lzt::allocate_mem_and_get_ipc_handle(&ipc_mem_handle_, &memory_,
-                                         XE_MEMORY_TYPE_DEVICE);
+                                         ZE_MEMORY_TYPE_DEVICE);
 
-    xe_ipc_memory_flag_t flags = XE_IPC_MEMORY_FLAG_NONE;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeDeviceGroupOpenMemIpcHandle(
-                  lzt::get_default_device_group(),
-                  lzt::xeDevice::get_instance()->get_device(), ipc_mem_handle_,
-                  flags, &memory_));
+    ze_ipc_memory_flag_t flags = ZE_IPC_MEMORY_FLAG_NONE;
+    EXPECT_EQ(
+        ZE_RESULT_SUCCESS,
+        zeDriverOpenMemIpcHandle(lzt::get_default_driver(),
+                                 lzt::zeDevice::get_instance()->get_device(),
+                                 ipc_mem_handle_, flags, &memory_));
   }
 
   void TearDown() { lzt::free_memory(memory_); }
@@ -122,8 +121,8 @@ protected:
 TEST_F(
     xeIpcMemHandleCloseTests,
     GivenValidPointerToDeviceMemoryAllocationWhenClosingIpcHandleThenSuccessIsReturned) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupCloseMemIpcHandle(
-                                   lzt::get_default_device_group(), memory_));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDriverCloseMemIpcHandle(lzt::get_default_driver(), memory_));
 }
 
 } // namespace

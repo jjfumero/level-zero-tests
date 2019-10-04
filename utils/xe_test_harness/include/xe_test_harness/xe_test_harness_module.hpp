@@ -20,42 +20,42 @@
  * SOFTWARE.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_MODULE_HPP
-#define level_zero_tests_XE_TEST_HARNESS_MODULE_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_MODULE_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_MODULE_HPP
 
-#include "xe_module.h"
+#include "ze_api.h"
 #include <string>
 
 namespace level_zero_tests {
 
-xe_module_handle_t create_module(xe_device_handle_t device,
+ze_module_handle_t create_module(ze_device_handle_t device,
                                  const std::string filename);
-xe_module_handle_t create_module(xe_device_handle_t device,
+ze_module_handle_t create_module(ze_device_handle_t device,
                                  const std::string filename,
-                                 const xe_module_format_t format,
+                                 const ze_module_format_t format,
                                  const char *build_flags,
-                                 xe_module_build_log_handle_t *phBuildLog);
-void destroy_module(xe_module_handle_t module);
-size_t get_build_log_size(const xe_module_build_log_handle_t build_log);
-std::string get_build_log_string(const xe_module_build_log_handle_t build_log);
-size_t get_native_binary_size(const xe_module_handle_t module);
-void save_native_binary_file(const xe_module_handle_t module,
+                                 ze_module_build_log_handle_t *phBuildLog);
+void destroy_module(ze_module_handle_t module);
+size_t get_build_log_size(const ze_module_build_log_handle_t build_log);
+std::string get_build_log_string(const ze_module_build_log_handle_t build_log);
+size_t get_native_binary_size(const ze_module_handle_t module);
+void save_native_binary_file(const ze_module_handle_t module,
                              const std::string filename);
-void destroy_build_log(const xe_module_build_log_handle_t build_log);
-void set_argument_value(xe_function_handle_t hFunction, uint32_t argIndex,
+void destroy_build_log(const ze_module_build_log_handle_t build_log);
+void set_argument_value(ze_kernel_handle_t hFunction, uint32_t argIndex,
                         size_t argSize, const void *pArgValue);
-void set_group_size(xe_function_handle_t hFunction, uint32_t groupSizeX,
+void set_group_size(ze_kernel_handle_t hFunction, uint32_t groupSizeX,
                     uint32_t groupSizeY, uint32_t groupSizeZ);
-xe_function_handle_t create_function(xe_module_handle_t module,
-                                     std::string func_name);
-xe_function_handle_t create_function(xe_module_handle_t module,
-                                     xe_function_flag_t flag,
-                                     std::string func_name);
-void destroy_function(xe_function_handle_t function);
+ze_kernel_handle_t create_function(ze_module_handle_t module,
+                                   std::string func_name);
+ze_kernel_handle_t create_function(ze_module_handle_t module,
+                                   ze_kernel_flag_t flag,
+                                   std::string func_name);
+void destroy_function(ze_kernel_handle_t function);
 
 // This function is useful when only a single argument is needed.
-void create_and_execute_function(xe_device_handle_t device,
-                                 xe_module_handle_t module,
+void create_and_execute_function(ze_device_handle_t device,
+                                 ze_module_handle_t module,
                                  std::string func_name, int group_size,
                                  void *arg);
 
@@ -66,8 +66,8 @@ struct FunctionArg {
 
 // Group size can only be set in x dimension
 // Accepts arbitrary amounts of function arguments
-void create_and_execute_function(xe_device_handle_t device,
-                                 xe_module_handle_t module,
+void create_and_execute_function(ze_device_handle_t device,
+                                 ze_module_handle_t module,
                                  std::string func_name, int group_size,
                                  const std::vector<FunctionArg> &args);
 } // namespace level_zero_tests

@@ -23,7 +23,7 @@
 
 void XePeak::xe_peak_global_bw(L0Context &context) {
   float timed_lo, timed_go, timed, gbps;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
   uint64_t temp_global_size, max_total_work_items;
   struct XeWorkGroups workgroup_info;
   TimingMeasurement type = is_bandwidth_with_event_timer();
@@ -47,41 +47,41 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   }
 
   void *inputBuf;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>((numItems * sizeof(float))), 1, &inputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "inputBuf device buffer allocated\n";
 
   void *outputBuf;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>((numItems * sizeof(float))), 1, &outputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "outputBuf device buffer allocated\n";
 
-  result = xeCommandListAppendMemoryCopy(
-      context.command_list, inputBuf, arr.data(), (arr.size() * sizeof(float)),
-      nullptr, 0, nullptr);
+  result =
+      zeCommandListAppendMemoryCopy(context.command_list, inputBuf, arr.data(),
+                                    (arr.size() * sizeof(float)), nullptr);
   if (result) {
-    throw std::runtime_error("xeCommandListAppendMemoryCopy failed: " +
+    throw std::runtime_error("zeCommandListAppendMemoryCopy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Input buffer copy encoded\n";
 
   result =
-      xeCommandListAppendBarrier(context.command_list, nullptr, 0, nullptr);
+      zeCommandListAppendBarrier(context.command_list, nullptr, 0, nullptr);
   if (result) {
-    throw std::runtime_error("xeCommandListAppendExecutionBarrier failed: " +
+    throw std::runtime_error("zeCommandListAppendExecutionBarrier failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -91,34 +91,34 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
 
   /*Begin setup of Function*/
 
-  xe_function_handle_t local_offset_v1;
+  ze_kernel_handle_t local_offset_v1;
   setup_function(context, local_offset_v1, "global_bandwidth_v1_local_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t global_offset_v1;
+  ze_kernel_handle_t global_offset_v1;
   setup_function(context, global_offset_v1, "global_bandwidth_v1_global_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t local_offset_v2;
+  ze_kernel_handle_t local_offset_v2;
   setup_function(context, local_offset_v2, "global_bandwidth_v2_local_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t global_offset_v2;
+  ze_kernel_handle_t global_offset_v2;
   setup_function(context, global_offset_v2, "global_bandwidth_v2_global_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t local_offset_v4;
+  ze_kernel_handle_t local_offset_v4;
   setup_function(context, local_offset_v4, "global_bandwidth_v4_local_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t global_offset_v4;
+  ze_kernel_handle_t global_offset_v4;
   setup_function(context, global_offset_v4, "global_bandwidth_v4_global_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t local_offset_v8;
+  ze_kernel_handle_t local_offset_v8;
   setup_function(context, local_offset_v8, "global_bandwidth_v8_local_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t global_offset_v8;
+  ze_kernel_handle_t global_offset_v8;
   setup_function(context, global_offset_v8, "global_bandwidth_v8_global_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t local_offset_v16;
+  ze_kernel_handle_t local_offset_v16;
   setup_function(context, local_offset_v16, "global_bandwidth_v16_local_offset",
                  inputBuf, outputBuf);
-  xe_function_handle_t global_offset_v16;
+  ze_kernel_handle_t global_offset_v16;
   setup_function(context, global_offset_v16,
                  "global_bandwidth_v16_global_offset", inputBuf, outputBuf);
 
@@ -211,105 +211,105 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
 
   std::cout << gbps << " GBPS\n";
 
-  result = xeFunctionDestroy(local_offset_v1);
+  result = zeKernelDestroy(local_offset_v1);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v1 Function Destroyed\n";
 
-  result = xeFunctionDestroy(global_offset_v1);
+  result = zeKernelDestroy(global_offset_v1);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "global_offset_v1 Function Destroyed\n";
 
-  result = xeFunctionDestroy(local_offset_v2);
+  result = zeKernelDestroy(local_offset_v2);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v2 Function Destroyed\n";
 
-  result = xeFunctionDestroy(global_offset_v2);
+  result = zeKernelDestroy(global_offset_v2);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "global_offset_v2 Function Destroyed\n";
 
-  result = xeFunctionDestroy(local_offset_v4);
+  result = zeKernelDestroy(local_offset_v4);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v4 Function Destroyed\n";
 
-  result = xeFunctionDestroy(global_offset_v4);
+  result = zeKernelDestroy(global_offset_v4);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "global_offset_v4 Function Destroyed\n";
 
-  result = xeFunctionDestroy(local_offset_v8);
+  result = zeKernelDestroy(local_offset_v8);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v8 Function Destroyed\n";
 
-  result = xeFunctionDestroy(global_offset_v8);
+  result = zeKernelDestroy(global_offset_v8);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "global_offset_v8 Function Destroyed\n";
 
-  result = xeFunctionDestroy(local_offset_v16);
+  result = zeKernelDestroy(local_offset_v16);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v16 Function Destroyed\n";
 
-  result = xeFunctionDestroy(global_offset_v16);
+  result = zeKernelDestroy(global_offset_v16);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "global_offset_v16 Function Destroyed\n";
 
-  result = xeDeviceGroupFreeMem(context.device_group, inputBuf);
+  result = zeDriverFreeMem(context.driver, inputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Input Buffer freed\n";
 
-  result = xeDeviceGroupFreeMem(context.device_group, outputBuf);
+  result = zeDriverFreeMem(context.driver, outputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Output Buffer freed\n";
 
-  result = xeModuleDestroy(context.module);
+  result = zeModuleDestroy(context.module);
   if (result) {
-    throw std::runtime_error("xeModuleDestroy failed: " +
+    throw std::runtime_error("zeModuleDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)

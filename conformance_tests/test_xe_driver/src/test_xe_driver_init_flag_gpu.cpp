@@ -25,15 +25,15 @@
 #include "gtest/gtest.h"
 
 #include "logging/logging.hpp"
-#include "xe_driver.h"
+#include "ze_api.h"
 #include "xe_test_harness/xe_test_harness.hpp"
 
 namespace lzt = level_zero_tests;
 
 namespace {
 
-TEST(xeInitTests, GivenGPUFlagWhenInitializingGPUDriverThenSuccessIsReturned) {
-  lzt::xe_init(XE_INIT_FLAG_GPU_ONLY);
+TEST(zeInitTests, GivenGPUFlagWhenInitializingGPUDriverThenSuccessIsReturned) {
+  lzt::ze_init(ZE_INIT_FLAG_GPU_ONLY);
 }
 
 } // namespace

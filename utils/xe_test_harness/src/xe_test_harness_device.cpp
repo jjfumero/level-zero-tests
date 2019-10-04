@@ -23,223 +23,176 @@
  */
 
 #include "xe_test_harness/xe_test_harness_device.hpp"
-#include "xe_driver.h"
+#include "ze_api.h"
 #include "xe_utils/xe_utils.hpp"
 
 namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
 
-xeDevice *xeDevice::instance_ = nullptr;
+zeDevice *zeDevice::instance_ = nullptr;
 
-xeDevice *xeDevice::get_instance() {
+zeDevice *zeDevice::get_instance() {
   if (instance_)
     return instance_;
-  instance_ = new xeDevice;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(XE_INIT_FLAG_NONE));
-  instance_->device_ = level_zero_tests::get_default_device();
+  instance_ = new zeDevice;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeInit(ZE_INIT_FLAG_NONE));
+
+  instance_->device_ = lzt::get_default_device();
   return instance_;
 }
 
-xe_device_handle_t xeDevice::get_device() { return get_instance()->device_; }
+ze_device_handle_t zeDevice::get_device() { return get_instance()->device_; }
 
-xeDevice::xeDevice() { device_ = nullptr; }
+zeDevice::zeDevice() { device_ = nullptr; }
 
-uint32_t get_xe_device_group_count() {
+uint32_t get_ze_device_count() {
+  return get_ze_device_count(lzt::get_default_driver());
+}
+
+uint32_t get_ze_device_count(ze_driver_handle_t driver) {
   uint32_t count = 0;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGet(&count, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGet(driver, &count, nullptr));
 
   return count;
 }
 
-std::vector<xe_device_group_handle_t> get_xe_device_groups() {
-  return get_xe_device_groups(get_xe_device_group_count());
+std::vector<ze_device_handle_t> get_ze_devices() {
+  return get_ze_devices(get_ze_device_count());
 }
 
-std::vector<xe_device_group_handle_t> get_xe_device_groups(uint32_t count) {
-  uint32_t count_out = count;
-  std::vector<xe_device_group_handle_t> device_groups(count);
+std::vector<ze_device_handle_t> get_ze_devices(uint32_t count) {
+  return get_ze_devices(count, lzt::get_default_driver());
+}
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGet(&count_out, device_groups.data()));
-  if (count == get_xe_device_group_count())
+std::vector<ze_device_handle_t> get_ze_devices(ze_driver_handle_t driver) {
+  return get_ze_devices(get_ze_device_count(), driver);
+}
+
+std::vector<ze_device_handle_t> get_ze_devices(uint32_t count,
+                                               ze_driver_handle_t driver) {
+  uint32_t count_out = count;
+  std::vector<ze_device_handle_t> devices(count);
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGet(driver, &count_out, devices.data()));
+  if (count == get_ze_device_count())
     EXPECT_EQ(count_out, count);
 
-  return device_groups;
-}
-
-uint32_t get_xe_device_count(xe_device_group_handle_t device_group) {
-  uint32_t count = 0;
-
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDevices(device_group, &count, nullptr));
-  return count;
-}
-
-std::vector<xe_device_handle_t>
-get_xe_devices(xe_device_group_handle_t device_group) {
-  return get_xe_devices(device_group, get_xe_device_count(device_group));
-}
-
-std::vector<xe_device_handle_t>
-get_xe_devices(xe_device_group_handle_t device_group, uint32_t count) {
-  uint32_t count_out = count;
-  std::vector<xe_device_handle_t> devices(count);
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDevices(device_group, &count_out, devices.data()));
-
-  if (count == get_xe_device_count(device_group))
-    EXPECT_EQ(count_out, count);
   return devices;
 }
 
-uint32_t get_xe_sub_device_count(xe_device_handle_t device) {
+uint32_t get_ze_sub_device_count(ze_device_handle_t device) {
   uint32_t count = 0;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGetSubDevices(device, &count, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetSubDevices(device, &count, nullptr));
   return count;
 }
 
-std::vector<xe_device_handle_t> get_xe_sub_devices(xe_device_handle_t device) {
-  return get_xe_sub_devices(device, get_xe_sub_device_count(device));
+std::vector<ze_device_handle_t> get_ze_sub_devices(ze_device_handle_t device) {
+  return get_ze_sub_devices(device, get_ze_sub_device_count(device));
 }
 
-std::vector<xe_device_handle_t> get_xe_sub_devices(xe_device_handle_t device,
+std::vector<ze_device_handle_t> get_ze_sub_devices(ze_device_handle_t device,
                                                    uint32_t count) {
-  std::vector<xe_device_handle_t> sub_devices(count);
+  std::vector<ze_device_handle_t> sub_devices(count);
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGetSubDevices(device, &count, sub_devices.data()));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetSubDevices(device, &count, sub_devices.data()));
   return sub_devices;
 }
 
-xe_api_version_t get_api_version(xe_device_group_handle_t device_group) {
-  xe_api_version_t api_version;
+ze_device_properties_t get_device_properties(ze_device_handle_t device) {
+  ze_device_properties_t properties;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetApiVersion(device_group, &api_version));
-  return api_version;
-}
-
-std::vector<xe_device_properties_t>
-get_device_properties(xe_device_group_handle_t device_group) {
-  std::vector<xe_device_properties_t> properties(
-      lzt::get_xe_device_count(device_group));
-
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDeviceProperties(device_group, properties.data()));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetProperties(device, &properties));
   return properties;
 }
 
-xe_device_compute_properties_t
-get_compute_properties(xe_device_group_handle_t device_group) {
-  xe_device_compute_properties_t properties = {
-      XE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT};
+ze_device_compute_properties_t
+get_compute_properties(ze_device_handle_t device) {
+  ze_device_compute_properties_t properties = {
+      ZE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetComputeProperties(device_group, &properties));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetComputeProperties(device, &properties));
   return properties;
 }
 
-uint32_t get_memory_properties_count(xe_device_group_handle_t device_group) {
+uint32_t get_memory_properties_count(ze_device_handle_t device) {
   uint32_t count = 0;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetMemoryProperties(device_group, &count, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetMemoryProperties(device, &count, nullptr));
   return count;
 }
 
-std::vector<xe_device_memory_properties_t>
-get_memory_properties(xe_device_group_handle_t device_group) {
-  auto count = get_memory_properties_count(device_group);
-  std::vector<xe_device_memory_properties_t> properties(
-      count, {XE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT});
+std::vector<ze_device_memory_properties_t>
+get_memory_properties(ze_device_handle_t device) {
+  return get_memory_properties(device, get_memory_properties_count(device));
+}
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemoryProperties(
-                                   device_group, &count, properties.data()));
+std::vector<ze_device_memory_properties_t>
+get_memory_properties(ze_device_handle_t device, uint32_t count) {
+  std::vector<ze_device_memory_properties_t> properties(
+      count, {ZE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT});
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetMemoryProperties(device, &count, properties.data()));
   return properties;
 }
 
-std::vector<xe_device_memory_properties_t>
-get_memory_properties(xe_device_group_handle_t device_group, uint32_t count) {
-  std::vector<xe_device_memory_properties_t> properties(
-      count, {XE_DEVICE_MEMORY_PROPERTIES_VERSION_CURRENT});
+ze_device_memory_access_properties_t
+get_memory_access_properties(ze_device_handle_t device) {
+  ze_device_memory_access_properties_t properties = {
+      ZE_DEVICE_MEMORY_ACCESS_PROPERTIES_VERSION_CURRENT};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupGetMemoryProperties(
-                                   device_group, &count, properties.data()));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetMemoryAccessProperties(device, &properties));
   return properties;
 }
 
-xe_device_memory_access_properties_t
-get_memory_access_properties(xe_device_group_handle_t device_group) {
-  xe_device_memory_access_properties_t properties = {
-      XE_DEVICE_MEMORY_ACCESS_PROPERTIES_VERSION_CURRENT};
+ze_device_cache_properties_t get_cache_properties(ze_device_handle_t device) {
+  ze_device_cache_properties_t properties = {
+      ZE_DEVICE_CACHE_PROPERTIES_VERSION_CURRENT};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetMemoryAccessProperties(device_group, &properties));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetCacheProperties(device, &properties));
   return properties;
 }
 
-xe_device_cache_properties_t
-get_cache_properties(xe_device_group_handle_t device_group) {
-  xe_device_cache_properties_t properties = {
-      XE_DEVICE_CACHE_PROPERTIES_VERSION_CURRENT};
+ze_device_image_properties_t get_image_properties(ze_device_handle_t device) {
+  ze_device_image_properties_t properties = {
+      ZE_DEVICE_IMAGE_PROPERTIES_VERSION_CURRENT};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetCacheProperties(device_group, &properties));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetImageProperties(device, &properties));
   return properties;
 }
 
-xe_device_image_properties_t
-get_image_properties(xe_device_group_handle_t device_group) {
-  xe_device_image_properties_t properties = {
-      XE_DEVICE_IMAGE_PROPERTIES_VERSION_CURRENT};
+ze_device_p2p_properties_t get_p2p_properties(ze_device_handle_t dev1,
+                                              ze_device_handle_t dev2) {
+  ze_device_p2p_properties_t properties = {
+      ZE_DEVICE_P2P_PROPERTIES_VERSION_CURRENT};
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetImageProperties(device_group, &properties));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetP2PProperties(dev1, dev2, &properties));
   return properties;
 }
 
-#if 0
- TODO: enable when this API is available
-xe_device_ipc_properties_t get_ipc_properties (xe_device_group_handle_t device_group)
-{
-  xe_device_ipc_properties_t properties =
-     {XE_DEVICE_IPC_PROPERTIES_VERSION_CURRENT};
+ze_bool_t can_access_peer(ze_device_handle_t dev1, ze_device_handle_t dev2) {
+  ze_bool_t can_access;
 
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetIPCProperties(device_group, &properties));
-
-  return properties;
-}
-#endif
-
-xe_device_p2p_properties_t get_p2p_properties(xe_device_handle_t dev1,
-                                              xe_device_handle_t dev2) {
-  xe_device_p2p_properties_t properties = {
-      XE_DEVICE_P2P_PROPERTIES_VERSION_CURRENT};
-
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGetP2PProperties(dev1, dev2, &properties));
-  return properties;
-}
-
-xe_bool_t can_access_peer(xe_device_handle_t dev1, xe_device_handle_t dev2) {
-  xe_bool_t can_access;
-
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceCanAccessPeer(dev1, dev2, &can_access));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceCanAccessPeer(dev1, dev2, &can_access));
   return can_access;
 }
 
-void set_intermediate_cache_config(xe_device_handle_t device,
-                                   xe_cache_config_t config) {
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceSetIntermediateCacheConfig(device, config));
+void set_intermediate_cache_config(ze_device_handle_t device,
+                                   ze_cache_config_t config) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceSetIntermediateCacheConfig(device, config));
 }
 
-void set_last_level_cache_config(xe_device_handle_t device,
-                                 xe_cache_config_t config) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceSetLastLevelCacheConfig(device, config));
+void set_last_level_cache_config(ze_device_handle_t device,
+                                 ze_cache_config_t config) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceSetLastLevelCacheConfig(device, config));
 }
 
 }; // namespace level_zero_tests

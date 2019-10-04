@@ -23,26 +23,41 @@
  */
 
 #include "xe_test_harness/xe_test_harness_driver.hpp"
-#include "xe_driver.h"
+#include "ze_api.h"
 
 #include "gtest/gtest.h"
 
 namespace level_zero_tests {
 
-void xe_init() { xe_init(XE_INIT_FLAG_NONE); }
+void ze_init() { ze_init(ZE_INIT_FLAG_NONE); }
 
-void xe_init(xe_init_flag_t init_flag) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeInit(init_flag));
+void ze_init(ze_init_flag_t init_flag) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeInit(init_flag));
 }
 
-uint32_t get_driver_version(xe_device_group_handle_t device_group) {
+uint32_t get_driver_version(ze_driver_handle_t driver) {
 
   uint32_t version = 0;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDriverVersion(device_group, &version));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGetDriverVersion(driver, &version));
   EXPECT_NE(version, 0);
 
   return version;
+}
+
+ze_api_version_t get_api_version(ze_driver_handle_t driver) {
+  ze_api_version_t api_version;
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGetApiVersion(driver, &api_version));
+  return api_version;
+}
+
+ze_driver_ipc_properties_t get_ipc_properties(ze_driver_handle_t driver) {
+  ze_driver_ipc_properties_t properties = {
+      ZE_DRIVER_IPC_PROPERTIES_VERSION_CURRENT};
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGetIPCProperties(driver, &properties));
+
+  return properties;
 }
 
 }; // namespace level_zero_tests

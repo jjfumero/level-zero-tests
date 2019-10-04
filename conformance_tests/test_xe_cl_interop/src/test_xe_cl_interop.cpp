@@ -33,8 +33,7 @@
 
 namespace lzt = level_zero_tests;
 
-#include "xe_driver.h"
-#include "xe_cl_interop.h"
+#include "ze_api.h"
 
 #include "boost/compute/system.hpp"
 namespace compute = boost::compute;
@@ -81,39 +80,39 @@ protected:
   cl_program cl_program_;
 };
 
-class xeDeviceRegisterCLCommandQueueTests : public xeCLInteropTests {};
+class zeDeviceRegisterCLCommandQueueTests : public xeCLInteropTests {};
 
 TEST_F(
-    xeDeviceRegisterCLCommandQueueTests,
+    zeDeviceRegisterCLCommandQueueTests,
     GivenOpenCLContextAndOpenCLCommandQueueWhenRegisteringOpenCLCommandQueueThenNotNullCommandQueueIsReturned) {
-  xe_command_queue_handle_t command_queue = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceRegisterCLCommandQueue(
-                lzt::xeDevice::get_instance()->get_device(), cl_context_.get(),
+  ze_command_queue_handle_t command_queue = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceRegisterCLCommandQueue(
+                lzt::zeDevice::get_instance()->get_device(), cl_context_.get(),
                 cl_command_queue_.get(), &command_queue));
   EXPECT_NE(nullptr, command_queue);
 }
 
-class xeDeviceRegisterCLProgramTests : public xeCLInteropTests {};
+class zeDeviceRegisterCLProgramTests : public xeCLInteropTests {};
 
 TEST_F(
-    xeDeviceRegisterCLProgramTests,
+    zeDeviceRegisterCLProgramTests,
     GivenOpenCLContextAndOpenCLProgramWhenRegisteringOpenCLProgramThenNotNullModuleHandleIsReturned) {
-  xe_module_handle_t module_handle = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceRegisterCLProgram(
-                                   lzt::xeDevice::get_instance()->get_device(),
+  ze_module_handle_t module_handle = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceRegisterCLProgram(
+                                   lzt::zeDevice::get_instance()->get_device(),
                                    cl_context_, cl_program_, &module_handle));
   EXPECT_NE(nullptr, module_handle);
 }
 
-class xeDeviceRegisterCLMemoryTests : public xeCLInteropTests {};
+class zeDeviceRegisterCLMemoryTests : public xeCLInteropTests {};
 
 TEST_F(
-    xeDeviceRegisterCLMemoryTests,
+    zeDeviceRegisterCLMemoryTests,
     GivenOpenCLContextAndCLDeviceMemoryWhenRegisteringCLMemoryThenNotNullMemoryIsReturned) {
   void *ptr = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceRegisterCLMemory(
-                                   lzt::xeDevice::get_instance()->get_device(),
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceRegisterCLMemory(
+                                   lzt::zeDevice::get_instance()->get_device(),
                                    cl_context_.get(), cl_memory_, &ptr));
   EXPECT_NE(nullptr, ptr);
 }

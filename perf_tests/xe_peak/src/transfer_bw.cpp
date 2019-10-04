@@ -25,14 +25,14 @@ void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
                                    void *source_buffer, size_t buffer_size) {
   Timer timer;
   float gbps, timed;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
   for (uint32_t i = 0; i < warmup_iterations; i++) {
-    result = xeCommandListAppendMemoryCopy(context.command_list,
-                                           destination_buffer, source_buffer,
-                                           buffer_size, nullptr, 0, nullptr);
+    result =
+        zeCommandListAppendMemoryCopy(context.command_list, destination_buffer,
+                                      source_buffer, buffer_size, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendMemoryCopy failed: " +
+      throw std::runtime_error("zeCommandListAppendMemoryCopy failed: " +
                                std::to_string(result));
     }
   }
@@ -40,11 +40,11 @@ void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
 
   timer.start();
   for (uint32_t i = 0; i < iters; i++) {
-    result = xeCommandListAppendMemoryCopy(context.command_list,
-                                           destination_buffer, source_buffer,
-                                           buffer_size, nullptr, 0, nullptr);
+    result =
+        zeCommandListAppendMemoryCopy(context.command_list, destination_buffer,
+                                      source_buffer, buffer_size, nullptr);
     if (result) {
-      throw std::runtime_error("xeCommandListAppendMemoryCopy failed: " +
+      throw std::runtime_error("zeCommandListAppendMemoryCopy failed: " +
                                std::to_string(result));
     }
   }
@@ -81,18 +81,18 @@ void XePeak::_transfer_bw_host_copy(void *destination_buffer,
 
 void XePeak::_transfer_bw_shared_memory(L0Context &context,
                                         std::vector<float> local_memory) {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
   void *shared_memory_buffer = nullptr;
   uint64_t number_of_items = local_memory.size();
   size_t local_memory_size =
       static_cast<size_t>(number_of_items * sizeof(float));
 
-  result = xeDeviceGroupAllocSharedMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-      XE_HOST_MEM_ALLOC_FLAG_DEFAULT, local_memory_size, 1,
-      &shared_memory_buffer);
+  result = zeDriverAllocSharedMem(context.driver, context.device,
+                                  ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+                                  ZE_HOST_MEM_ALLOC_FLAG_DEFAULT,
+                                  local_memory_size, 1, &shared_memory_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocSharedMem failed: " +
+    throw std::runtime_error("zeDriverAllocSharedMem failed: " +
                              std::to_string(result));
   }
 
@@ -110,15 +110,15 @@ void XePeak::_transfer_bw_shared_memory(L0Context &context,
   _transfer_bw_host_copy(local_memory.data(), shared_memory_buffer,
                          local_memory_size);
 
-  result = xeDeviceGroupFreeMem(context.device_group, shared_memory_buffer);
+  result = zeDriverFreeMem(context.driver, shared_memory_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
 }
 
 void XePeak::xe_peak_transfer_bw(L0Context &context) {
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
   uint64_t max_number_of_allocated_items =
       max_device_object_size(context) / sizeof(float) / 2;
   uint64_t number_of_items = roundToMultipleOf(
@@ -133,11 +133,11 @@ void XePeak::xe_peak_transfer_bw(L0Context &context) {
   size_t local_memory_size = (local_memory.size() * sizeof(float));
 
   void *device_buffer;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>(sizeof(float) * number_of_items), 1, &device_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -156,9 +156,9 @@ void XePeak::xe_peak_transfer_bw(L0Context &context) {
 
   _transfer_bw_shared_memory(context, local_memory);
 
-  result = xeDeviceGroupFreeMem(context.device_group, device_buffer);
+  result = zeDriverFreeMem(context.driver, device_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)

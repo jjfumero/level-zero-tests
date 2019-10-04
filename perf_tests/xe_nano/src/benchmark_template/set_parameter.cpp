@@ -24,7 +24,7 @@
  * needs to be updated.
  */
 void parameter_buffer(XeApp *benchmark, probe_config_t &probe_setting) {
-  xe_function_handle_t function;
+  ze_kernel_handle_t function;
   void *input_buffer = nullptr;
   const std::vector<int8_t> input = {72, 101, 108, 108, 111, 32,
                                      87, 111, 114, 108, 100, 33};
@@ -34,24 +34,24 @@ void parameter_buffer(XeApp *benchmark, probe_config_t &probe_setting) {
 
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 0, sizeof(input_buffer), &input_buffer));
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 1, sizeof(input_buffer), &input_buffer));
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 2, sizeof(input_buffer), &input_buffer));
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 3, sizeof(input_buffer), &input_buffer));
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 4, sizeof(input_buffer), &input_buffer));
-    SUCCESS_OR_TERMINATE(xeFunctionSetArgumentValue(
+    SUCCESS_OR_TERMINATE(zeKernelSetArgumentValue(
         function, 5, sizeof(input_buffer), &input_buffer));
   }
 
-  NANO_PROBE(" Argument index 0\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 0\t", probe_setting, zeKernelSetArgumentValue,
              function, 0, sizeof(input_buffer), &input_buffer);
 
-  NANO_PROBE(" Argument index 5\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 5\t", probe_setting, zeKernelSetArgumentValue,
              function, 5, sizeof(input_buffer), &input_buffer);
 
   benchmark->functionDestroy(function);
@@ -59,7 +59,7 @@ void parameter_buffer(XeApp *benchmark, probe_config_t &probe_setting) {
 }
 
 void parameter_integer(XeApp *benchmark, probe_config_t &probe_setting) {
-  xe_function_handle_t function;
+  ze_kernel_handle_t function;
   int input_a = 1;
 
   benchmark->functionCreate(&function, "function_parameter_integer");
@@ -67,31 +67,31 @@ void parameter_integer(XeApp *benchmark, probe_config_t &probe_setting) {
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 0, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 0, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 1, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 1, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 2, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 2, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 3, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 3, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 4, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 4, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 5, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 5, sizeof(input_a), &input_a));
   }
 
-  NANO_PROBE(" Argument index 0\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 0\t", probe_setting, zeKernelSetArgumentValue,
              function, 0, sizeof(input_a), &input_a);
 
-  NANO_PROBE(" Argument index 5\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 5\t", probe_setting, zeKernelSetArgumentValue,
              function, 5, sizeof(input_a), &input_a);
 
   benchmark->functionDestroy(function);
 }
 
 void parameter_image(XeApp *benchmark, probe_config_t &probe_setting) {
-  xe_function_handle_t function;
-  xe_image_handle_t input_a;
+  ze_kernel_handle_t function;
+  ze_image_handle_t input_a;
 
   benchmark->functionCreate(&function, "function_parameter_image");
   benchmark->imageCreate(&input_a);
@@ -99,23 +99,23 @@ void parameter_image(XeApp *benchmark, probe_config_t &probe_setting) {
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 0, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 0, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 1, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 1, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 2, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 2, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 3, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 3, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 4, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 4, sizeof(input_a), &input_a));
     SUCCESS_OR_TERMINATE(
-        xeFunctionSetArgumentValue(function, 5, sizeof(input_a), &input_a));
+        zeKernelSetArgumentValue(function, 5, sizeof(input_a), &input_a));
   }
 
-  NANO_PROBE(" Argument index 0\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 0\t", probe_setting, zeKernelSetArgumentValue,
              function, 0, sizeof(input_a), &input_a);
 
-  NANO_PROBE(" Argument index 5\t", probe_setting, xeFunctionSetArgumentValue,
+  NANO_PROBE(" Argument index 5\t", probe_setting, zeKernelSetArgumentValue,
              function, 5, sizeof(input_a), &input_a);
 
   benchmark->functionDestroy(function);

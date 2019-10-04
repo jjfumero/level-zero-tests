@@ -25,7 +25,7 @@
 #include "api_static_probe.hpp"
 #include "xe_app.hpp"
 
-namespace xe_api_benchmarks {
+namespace ze_api_benchmarks {
 inline void init() { api_static_probe_init(); }
 inline void cleanup() { api_static_probe_cleanup(); }
 
@@ -44,6 +44,6 @@ namespace fuction_call_rate {
 #include "benchmark_template/ipc.hpp"
 #include "benchmark_template/set_parameter.hpp"
 } /* namespace fuction_call_rate */
-} /* namespace xe_api_benchmarks */
+} /* namespace ze_api_benchmarks */
 
 #endif /* _BENCHMARK_HPP_ */

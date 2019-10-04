@@ -24,7 +24,7 @@
 
 #include "common.hpp"
 #include "hardware_counter.hpp"
-#include "xe_api.h"
+#include "ze_api.h"
 
 #include <assert.h>
 #include <iomanip>
@@ -77,7 +77,7 @@ int64_t _function_call_iter_measure_latency(
     const std::string filename, const int line_number,
     const std::string function_name, const std::string prefix,
     const probe_config_t &probe_setting,
-    xe_result_t (*api_function)(Params... params), Args... args) {
+    ze_result_t (*api_function)(Params... params), Args... args) {
   int iteration_number = probe_setting.measure_iteration;
   Timer<std::chrono::nanoseconds> timer;
 
@@ -105,7 +105,7 @@ void _function_call_iter_hardware_counters(
     const std::string filename, const int line_number,
     const std::string function_name, const std::string prefix,
     const probe_config_t &probe_setting,
-    xe_result_t (*api_function)(Params... params), Args... args) {
+    ze_result_t (*api_function)(Params... params), Args... args) {
   int iteration_number = probe_setting.measure_iteration;
 
   assert(api_static_probe_is_init());
@@ -156,7 +156,7 @@ template <typename... Params, typename... Args>
 void _function_call_rate_iter(const std::string filename, const int line_number,
                               const std::string function_name,
                               const std::string prefix,
-                              xe_result_t (*api_function)(Params... params),
+                              ze_result_t (*api_function)(Params... params),
                               Args... args) {
   Timer<std::chrono::nanoseconds> timer;
   const int one_second_in_nano = 1000000000;

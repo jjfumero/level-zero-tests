@@ -1,7 +1,7 @@
 include(FindPackageHandleStandardArgs)
 
 find_path(LevelZero_INCLUDE_DIR
-  NAMES xe_api.h
+  NAMES ze_api.h
   PATHS
     ${L0_ROOT}
     "/usr/local/"

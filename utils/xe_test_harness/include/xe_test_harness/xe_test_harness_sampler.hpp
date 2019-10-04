@@ -22,20 +22,20 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_SAMPLER_HPP
-#define level_zero_tests_XE_TEST_HARNESS_SAMPLER_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_SAMPLER_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_SAMPLER_HPP
 
-#include "xe_sampler.h"
+#include "ze_api.h"
 
 namespace level_zero_tests {
 
-xe_sampler_handle_t create_sampler();
+ze_sampler_handle_t create_sampler();
 
-xe_sampler_handle_t create_sampler(xe_sampler_address_mode_t addrmode,
-                                   xe_sampler_filter_mode_t filtmode,
-                                   xe_bool_t normalized);
+ze_sampler_handle_t create_sampler(ze_sampler_address_mode_t addrmode,
+                                   ze_sampler_filter_mode_t filtmode,
+                                   ze_bool_t normalized);
 
-void destroy_sampler(xe_sampler_handle_t sampler);
+void destroy_sampler(ze_sampler_handle_t sampler);
 
 }; // namespace level_zero_tests
 

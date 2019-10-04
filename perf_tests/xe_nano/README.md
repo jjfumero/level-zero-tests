@@ -27,14 +27,14 @@ To run all tests, use the following command. Options for filtering tests are bel
 * To look up tests available:
 ```
       $ ./xe_nano --gtest_list_tests
-        xeFunctionSetArgumentValue_Buffer
-        xeFunctionSetArgumentValue_Immediate
-        xeFunctionSetArgumentValue_Image
-        xeCommandListAppendLaunchFunction
+        xeKernelSetArgumentValue_Buffer
+        xeKernelSetArgumentValue_Immediate
+        xeKernelSetArgumentValue_Image
+        xeCommandListAppendLaunchKernel
         xeCommandQueueExecuteCommandLists
 ```
 
 * To filter tests available:
 ```
-      $ ./xe_nano --gtest_filter=*xeFunctionSetArgumentValue*
+      $ ./xe_nano --gtest_filter=*xeKernelSetArgumentValue*
 ```

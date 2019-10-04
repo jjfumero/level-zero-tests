@@ -25,35 +25,35 @@
 
 namespace level_zero_tests {
 
-xe_fence_handle_t create_fence(xe_command_queue_handle_t cmd_queue) {
-  xe_fence_handle_t fence;
-  xe_fence_desc_t desc;
-  desc.version = XE_FENCE_DESC_VERSION_CURRENT;
-  desc.flags = XE_FENCE_FLAG_NONE;
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceCreate(cmd_queue, &desc, &fence));
+ze_fence_handle_t create_fence(ze_command_queue_handle_t cmd_queue) {
+  ze_fence_handle_t fence;
+  ze_fence_desc_t desc;
+  desc.version = ZE_FENCE_DESC_VERSION_CURRENT;
+  desc.flags = ZE_FENCE_FLAG_NONE;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeFenceCreate(cmd_queue, &desc, &fence));
   return fence;
 }
 
-void destroy_fence(xe_fence_handle_t fence) {
+void destroy_fence(ze_fence_handle_t fence) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceDestroy(fence));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeFenceDestroy(fence));
 }
 
-void reset_fence(xe_fence_handle_t fence) {
+void reset_fence(ze_fence_handle_t fence) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceReset(fence));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeFenceReset(fence));
 }
 
-xe_result_t query_fence(xe_fence_handle_t fence) {
-  xe_result_t result;
-  EXPECT_EQ(XE_RESULT_SUCCESS, result = xeFenceQueryStatus(fence));
+ze_result_t query_fence(ze_fence_handle_t fence) {
+  ze_result_t result;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, result = zeFenceQueryStatus(fence));
   return result;
 }
 
-xe_result_t sync_fence(xe_fence_handle_t fence, uint32_t timeout) {
+ze_result_t sync_fence(ze_fence_handle_t fence, uint32_t timeout) {
 
-  xe_result_t result;
-  EXPECT_EQ(XE_RESULT_SUCCESS, result = xeFenceHostSynchronize(fence, timeout));
+  ze_result_t result;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, result = zeFenceHostSynchronize(fence, timeout));
   return result;
 }
 

@@ -24,7 +24,7 @@
 
 #include <iomanip>
 
-using namespace xe_api_benchmarks;
+using namespace ze_api_benchmarks;
 
 namespace {
 class XeNano : public ::testing::Test {
@@ -58,7 +58,7 @@ protected:
   probe_config_t probe_setting;
 };
 
-TEST_F(XeNano, xeFunctionSetArgumentValue_Buffer) {
+TEST_F(XeNano, zeKernelSetArgumentValue_Buffer) {
   probe_setting.warm_up_iteration = 1000;
   probe_setting.measure_iteration = 9000;
 
@@ -69,7 +69,7 @@ TEST_F(XeNano, xeFunctionSetArgumentValue_Buffer) {
   std::cout << std::endl;
 }
 
-TEST_F(XeNano, xeFunctionSetArgumentValue_Immediate) {
+TEST_F(XeNano, zeKernelSetArgumentValue_Immediate) {
   probe_setting.warm_up_iteration = 1000;
   probe_setting.measure_iteration = 9000;
 
@@ -80,7 +80,7 @@ TEST_F(XeNano, xeFunctionSetArgumentValue_Immediate) {
   std::cout << std::endl;
 }
 
-TEST_F(XeNano, xeFunctionSetArgumentValue_Image) {
+TEST_F(XeNano, zeKernelSetArgumentValue_Image) {
   probe_setting.warm_up_iteration = 1000;
   probe_setting.measure_iteration = 9000;
 
@@ -91,7 +91,7 @@ TEST_F(XeNano, xeFunctionSetArgumentValue_Image) {
   std::cout << std::endl;
 }
 
-TEST_F(XeNano, xeCommandListAppendLaunchFunction) {
+TEST_F(XeNano, zeCommandListAppendLaunchKernel) {
   probe_setting.warm_up_iteration = 500;
   probe_setting.measure_iteration = 2500;
 
@@ -101,7 +101,7 @@ TEST_F(XeNano, xeCommandListAppendLaunchFunction) {
   std::cout << std::endl;
 }
 
-TEST_F(XeNano, xeCommandQueueExecuteCommandLists) {
+TEST_F(XeNano, zeCommandQueueExecuteCommandLists) {
   probe_setting.warm_up_iteration = 5;
   probe_setting.measure_iteration = 10;
   header_print_iteration("", probe_setting);
@@ -111,7 +111,7 @@ TEST_F(XeNano, xeCommandQueueExecuteCommandLists) {
   std::cout << std::endl;
 }
 
-TEST_F(XeNano, xeDeviceGroupGetMemIpcHandle) {
+TEST_F(XeNano, zeDeviceGroupGetMemIpcHandle) {
   probe_setting.warm_up_iteration = 1000;
   probe_setting.measure_iteration = 9000;
   header_print_iteration("", probe_setting);

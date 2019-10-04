@@ -25,7 +25,7 @@
 #include "gtest/gtest.h"
 
 #include "logging/logging.hpp"
-#include "xe_driver.h"
+#include "ze_api.h"
 
 namespace {
 

@@ -37,7 +37,7 @@
 
 #include "api_static_probe.hpp"
 
-namespace xe_api_benchmarks {
+namespace ze_api_benchmarks {
 /*
  * For each test case created, the NANO_PROBE macro needs to be redefined to
  * generate code with the specific probe.
@@ -65,4 +65,4 @@ namespace fuction_call_rate {
 #include "benchmark_template/ipc.cpp"
 #include "benchmark_template/set_parameter.cpp"
 } /* namespace fuction_call_rate */
-} /* namespace xe_api_benchmarks */
+} /* namespace ze_api_benchmarks */

@@ -29,18 +29,11 @@
 #include "logging/logging.hpp"
 #include <chrono>
 namespace lzt = level_zero_tests;
-#include "xe_cmdqueue.h"
-#include "xe_cmdlist.h"
-#include "xe_device.h"
-#include "xe_driver.h"
-#include "xe_memory.h"
-#include "xe_copy.h"
-#include "xe_fence.h"
-#include "xe_barrier.h"
+#include "ze_api.h"
 
 namespace {
 
-void print_cmdqueue_descriptor(const xe_command_queue_desc_t descriptor) {
+void print_cmdqueue_descriptor(const ze_command_queue_desc_t descriptor) {
   LOG_INFO << "VERSION = " << descriptor.version
            << "   FLAG = " << descriptor.flags
            << "   MODE = " << descriptor.mode
@@ -54,74 +47,73 @@ void print_cmdqueue_exec(const uint32_t num_command_lists,
            << " sync_timeout = " << sync_timeout;
 }
 
-class xeCommandQueueCreateTests
+class zeCommandQueueCreateTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<
-          std::tuple<xe_command_queue_flag_t, xe_command_queue_mode_t,
-                     xe_command_queue_priority_t>> {};
+          std::tuple<ze_command_queue_flag_t, ze_command_queue_mode_t,
+                     ze_command_queue_priority_t>> {};
 
-TEST_P(xeCommandQueueCreateTests,
+TEST_P(zeCommandQueueCreateTests,
        GivenValidDescriptorWhenCreatingCommandQueueThenSuccessIsReturned) {
 
-  xe_command_queue_desc_t descriptor = {
-      XE_COMMAND_QUEUE_DESC_VERSION_CURRENT, // version
+  ze_command_queue_desc_t descriptor = {
+      ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT, // version
       std::get<0>(GetParam()),               // flags
       std::get<1>(GetParam()),               // mode
       std::get<2>(GetParam())                // priority
   };
-  const xe_device_handle_t device = lzt::xeDevice::get_instance()->get_device();
-  const xe_device_group_handle_t device_group = lzt::get_default_device_group();
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  const ze_driver_handle_t driver = lzt::get_default_driver();
 
-  xe_device_properties_t properties;
-  properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeDeviceGroupGetDeviceProperties(device_group, &properties));
+  ze_device_properties_t properties;
+  properties.version = ZE_DEVICE_PROPERTIES_VERSION_CURRENT;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetProperties(device, &properties));
 
-  if ((descriptor.flags == XE_COMMAND_QUEUE_FLAG_NONE) ||
-      (descriptor.flags == XE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY)) {
+  if ((descriptor.flags == ZE_COMMAND_QUEUE_FLAG_NONE) ||
+      (descriptor.flags == ZE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY)) {
     EXPECT_GT(static_cast<uint32_t>(properties.numAsyncComputeEngines), 0);
     descriptor.ordinal =
         static_cast<uint32_t>(properties.numAsyncComputeEngines - 1);
-  } else if (descriptor.flags == XE_COMMAND_QUEUE_FLAG_COPY_ONLY) {
+  } else if (descriptor.flags == ZE_COMMAND_QUEUE_FLAG_COPY_ONLY) {
     EXPECT_GT(static_cast<uint32_t>(properties.numAsyncCopyEngines), 0);
     descriptor.ordinal =
         static_cast<uint32_t>(properties.numAsyncCopyEngines - 1);
   }
   print_cmdqueue_descriptor(descriptor);
 
-  xe_command_queue_handle_t command_queue = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandQueueCreate(device, &descriptor, &command_queue));
+  ze_command_queue_handle_t command_queue = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandQueueCreate(device, &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
   lzt::destroy_command_queue(command_queue);
 }
 
 INSTANTIATE_TEST_CASE_P(
-    TestAllInputPermuations, xeCommandQueueCreateTests,
+    TestAllInputPermuations, zeCommandQueueCreateTests,
     ::testing::Combine(
-        ::testing::Values(XE_COMMAND_QUEUE_FLAG_NONE,
-                          XE_COMMAND_QUEUE_FLAG_COPY_ONLY,
-                          XE_COMMAND_QUEUE_FLAG_LOGICAL_ONLY,
-                          XE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY),
-        ::testing::Values(XE_COMMAND_QUEUE_MODE_DEFAULT,
-                          XE_COMMAND_QUEUE_MODE_SYNCHRONOUS,
-                          XE_COMMAND_QUEUE_MODE_ASYNCHRONOUS),
-        ::testing::Values(XE_COMMAND_QUEUE_PRIORITY_NORMAL,
-                          XE_COMMAND_QUEUE_PRIORITY_LOW,
-                          XE_COMMAND_QUEUE_PRIORITY_HIGH)));
+        ::testing::Values(ZE_COMMAND_QUEUE_FLAG_NONE,
+                          ZE_COMMAND_QUEUE_FLAG_COPY_ONLY,
+                          ZE_COMMAND_QUEUE_FLAG_LOGICAL_ONLY,
+                          ZE_COMMAND_QUEUE_FLAG_SINGLE_SLICE_ONLY),
+        ::testing::Values(ZE_COMMAND_QUEUE_MODE_DEFAULT,
+                          ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS,
+                          ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS),
+        ::testing::Values(ZE_COMMAND_QUEUE_PRIORITY_NORMAL,
+                          ZE_COMMAND_QUEUE_PRIORITY_LOW,
+                          ZE_COMMAND_QUEUE_PRIORITY_HIGH)));
 
-class xeCommandQueueDestroyTests : public ::testing::Test {};
+class zeCommandQueueDestroyTests : public ::testing::Test {};
 
 TEST_F(
-    xeCommandQueueDestroyTests,
+    zeCommandQueueDestroyTests,
     GivenValidDeviceAndNonNullCommandQueueWhenDestroyingCommandQueueThenSuccessIsReturned) {
-  xe_command_queue_desc_t descriptor;
-  descriptor.version = XE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
+  ze_command_queue_desc_t descriptor;
+  descriptor.version = ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
 
-  xe_command_queue_handle_t command_queue = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeCommandQueueCreate(lzt::xeDevice::get_instance()->get_device(),
+  ze_command_queue_handle_t command_queue = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandQueueCreate(lzt::zeDevice::get_instance()->get_device(),
                                  &descriptor, &command_queue));
   EXPECT_NE(nullptr, command_queue);
 
@@ -133,43 +125,42 @@ struct CustomExecuteParams {
   uint32_t sync_timeout;
 };
 
-class xeCommandQueueExecuteCommandListTests
+class zeCommandQueueExecuteCommandListTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<CustomExecuteParams> {
 protected:
   void SetUp() override {
-    const xe_device_handle_t device =
-        lzt::xeDevice::get_instance()->get_device();
-    const xe_device_group_handle_t device_group =
-        lzt::get_default_device_group();
+    const ze_device_handle_t device =
+        lzt::zeDevice::get_instance()->get_device();
+    const ze_driver_handle_t driver = lzt::get_default_driver();
     EXPECT_GT(params.num_command_lists, 0);
 
     print_cmdqueue_exec(params.num_command_lists, params.sync_timeout);
-    xe_command_list_desc_t list_descriptor;
-    list_descriptor.version = XE_COMMAND_LIST_DESC_VERSION_CURRENT;
+    ze_command_list_desc_t list_descriptor;
+    list_descriptor.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
 
     for (uint32_t i = 0; i < params.num_command_lists; i++) {
       void *host_shared = nullptr;
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
-                                       device_group, device,
-                                       XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       1, XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+      EXPECT_EQ(ZE_RESULT_SUCCESS,
+                zeDriverAllocSharedMem(driver, device,
+                                       ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       1, ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
                                        buff_size_bytes, 1, &host_shared));
 
       EXPECT_NE(nullptr, host_shared);
       host_buffer.push_back(static_cast<uint8_t *>(host_shared));
       void *device_shared = nullptr;
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeDeviceGroupAllocSharedMem(
-                                       device_group, device,
-                                       XE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       1, XE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+      EXPECT_EQ(ZE_RESULT_SUCCESS,
+                zeDriverAllocSharedMem(driver, device,
+                                       ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
+                                       1, ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
                                        buff_size_bytes, 1, &device_shared));
 
       EXPECT_NE(nullptr, device_shared);
       device_buffer.push_back(static_cast<uint8_t *>(device_shared));
-      xe_command_list_handle_t command_list;
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListCreate(device, &list_descriptor, &command_list));
+      ze_command_list_handle_t command_list;
+      EXPECT_EQ(ZE_RESULT_SUCCESS,
+                zeCommandListCreate(device, &list_descriptor, &command_list));
       EXPECT_NE(nullptr, command_list);
 
       uint8_t *char_input = static_cast<uint8_t *>(host_shared);
@@ -177,31 +168,29 @@ protected:
         char_input[j] = lzt::generate_value<uint8_t>(0, 255, 0);
       }
       lzt::append_memory_copy(command_list, device_buffer.at(i),
-                              host_buffer.at(i), buff_size_bytes, nullptr, 0,
-                              nullptr);
+                              host_buffer.at(i), buff_size_bytes, nullptr);
       // Current synchronization tests randomly fail on Gen9HW (JIRA LOKI-301).
       // Only way to guarantee copy has occurred is to use barrier
-      //         EXPECT_EQ(XE_RESULT_SUCCESS,
-      //            xeCommandListAppendBarrier(command_list, nullptr, 0,
+      //         EXPECT_EQ(ZE_RESULT_SUCCESS,
+      //            zeCommandListAppendBarrier(command_list, nullptr, 0,
       //            nullptr));
-      EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListClose(command_list));
+      EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListClose(command_list));
       list_of_command_lists.push_back(command_list);
     }
 
-    xe_command_queue_desc_t queue_descriptor;
-    queue_descriptor.version = XE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
-    queue_descriptor.flags = XE_COMMAND_QUEUE_FLAG_COPY_ONLY;
-    queue_descriptor.mode = XE_COMMAND_QUEUE_MODE_DEFAULT;
-    queue_descriptor.priority = XE_COMMAND_QUEUE_PRIORITY_NORMAL;
+    ze_command_queue_desc_t queue_descriptor;
+    queue_descriptor.version = ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
+    queue_descriptor.flags = ZE_COMMAND_QUEUE_FLAG_COPY_ONLY;
+    queue_descriptor.mode = ZE_COMMAND_QUEUE_MODE_DEFAULT;
+    queue_descriptor.priority = ZE_COMMAND_QUEUE_PRIORITY_NORMAL;
 
-    xe_device_properties_t properties;
-    properties.version = XE_DEVICE_PROPERTIES_VERSION_CURRENT;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeDeviceGroupGetDeviceProperties(device_group, &properties));
+    ze_device_properties_t properties;
+    properties.version = ZE_DEVICE_PROPERTIES_VERSION_CURRENT;
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetProperties(device, &properties));
     EXPECT_GT((uint32_t)properties.numAsyncCopyEngines, 0);
     queue_descriptor.ordinal = (uint32_t)properties.numAsyncCopyEngines - 1;
-    EXPECT_EQ(XE_RESULT_SUCCESS,
-              xeCommandQueueCreate(device, &queue_descriptor, &command_queue));
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandQueueCreate(device, &queue_descriptor, &command_queue));
     EXPECT_NE(nullptr, command_queue);
   }
 
@@ -209,8 +198,8 @@ protected:
     for (uint32_t i = 0; i < params.num_command_lists; i++) {
       EXPECT_EQ(
           0, memcmp(host_buffer.at(i), device_buffer.at(i), buff_size_bytes));
-      EXPECT_EQ(XE_RESULT_SUCCESS,
-                xeCommandListDestroy(list_of_command_lists.at(i)));
+      EXPECT_EQ(ZE_RESULT_SUCCESS,
+                zeCommandListDestroy(list_of_command_lists.at(i)));
       lzt::free_memory(host_buffer.at(i));
       lzt::free_memory(device_buffer.at(i));
     }
@@ -220,31 +209,31 @@ protected:
   const uint32_t buff_size_bytes = 12;
   CustomExecuteParams params = GetParam();
 
-  xe_command_queue_handle_t command_queue = nullptr;
-  std::vector<xe_command_list_handle_t> list_of_command_lists;
+  ze_command_queue_handle_t command_queue = nullptr;
+  std::vector<ze_command_list_handle_t> list_of_command_lists;
   std::vector<uint8_t *> host_buffer;
   std::vector<uint8_t *> device_buffer;
 };
 
-class xeCommandQueueExecuteCommandListTestsSynchronize
-    : public xeCommandQueueExecuteCommandListTests {};
+class zeCommandQueueExecuteCommandListTestsSynchronize
+    : public zeCommandQueueExecuteCommandListTests {};
 
 TEST_P(
-    xeCommandQueueExecuteCommandListTestsSynchronize,
+    zeCommandQueueExecuteCommandListTestsSynchronize,
     GivenCommandQueueSynchronizationWhenExecutingCommandListsThenSuccessIsReturned) {
 
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandQueueExecuteCommandLists(
                                    command_queue, params.num_command_lists,
                                    list_of_command_lists.data(), nullptr));
-  xe_result_t sync_status = XE_RESULT_NOT_READY;
+  ze_result_t sync_status = ZE_RESULT_NOT_READY;
   auto start = std::chrono::high_resolution_clock::now();
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> realtime = end - start;
   double test_timeout = 10.0; // seconds
-  while ((sync_status != XE_RESULT_SUCCESS) &&
+  while ((sync_status != ZE_RESULT_SUCCESS) &&
          (realtime.count() < test_timeout)) {
-    EXPECT_EQ(sync_status, XE_RESULT_NOT_READY);
-    sync_status = xeCommandQueueSynchronize(command_queue, params.sync_timeout);
+    EXPECT_EQ(sync_status, ZE_RESULT_NOT_READY);
+    sync_status = zeCommandQueueSynchronize(command_queue, params.sync_timeout);
     end = std::chrono::high_resolution_clock::now();
     realtime = end - start;
   }
@@ -267,28 +256,28 @@ CustomExecuteParams synchronize_test_input[] = {{1, 0},
                                                 {100, UINT32_MAX}};
 
 INSTANTIATE_TEST_CASE_P(TestIncreasingNumberCommandListsWithSynchronize,
-                        xeCommandQueueExecuteCommandListTestsSynchronize,
+                        zeCommandQueueExecuteCommandListTestsSynchronize,
                         testing::ValuesIn(synchronize_test_input));
 
-class xeCommandQueueExecuteCommandListTestsFence
-    : public xeCommandQueueExecuteCommandListTests {};
+class zeCommandQueueExecuteCommandListTestsFence
+    : public zeCommandQueueExecuteCommandListTests {};
 
 TEST_P(
-    xeCommandQueueExecuteCommandListTestsFence,
+    zeCommandQueueExecuteCommandListTestsFence,
     GivenFenceSynchronizationWhenExecutingCommandListsThenSuccessIsReturned) {
 
-  xe_fence_desc_t fence_descriptor;
-  fence_descriptor.version = XE_FENCE_DESC_VERSION_CURRENT;
-  xe_fence_handle_t hFence = nullptr;
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeFenceCreate(command_queue, &fence_descriptor, &hFence));
+  ze_fence_desc_t fence_descriptor;
+  fence_descriptor.version = ZE_FENCE_DESC_VERSION_CURRENT;
+  ze_fence_handle_t hFence = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeFenceCreate(command_queue, &fence_descriptor, &hFence));
   EXPECT_NE(nullptr, hFence);
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandQueueExecuteCommandLists(
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandQueueExecuteCommandLists(
                                    command_queue, params.num_command_lists,
                                    list_of_command_lists.data(), hFence));
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeFenceHostSynchronize(hFence, params.sync_timeout));
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeFenceDestroy(hFence));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeFenceHostSynchronize(hFence, params.sync_timeout));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeFenceDestroy(hFence));
 }
 
 CustomExecuteParams fence_test_input[] = {
@@ -298,7 +287,7 @@ CustomExecuteParams fence_test_input[] = {
     {50, UINT32_MAX}, {100, UINT32_MAX}};
 
 INSTANTIATE_TEST_CASE_P(TestIncreasingNumberCommandListsWithCommandQueueFence,
-                        xeCommandQueueExecuteCommandListTestsFence,
+                        zeCommandQueueExecuteCommandListTestsFence,
                         testing::ValuesIn(fence_test_input));
 
 } // namespace

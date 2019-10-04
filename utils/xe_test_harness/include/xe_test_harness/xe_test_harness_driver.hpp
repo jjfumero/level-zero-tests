@@ -21,17 +21,19 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-#ifndef level_zero_tests_XE_TEST_HARNESS_DRIVER_HPP
-#define level_zero_tests_XE_TEST_HARNESS_DRIVER_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_DRIVER_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_DRIVER_HPP
 
-#include "xe_driver.h"
+#include "ze_api.h"
 
 namespace level_zero_tests {
 
-void xe_init();
-void xe_init(xe_init_flag_t init_flag);
+void ze_init();
+void ze_init(ze_init_flag_t init_flag);
 
-uint32_t get_driver_version(xe_device_group_handle_t device_group);
+uint32_t get_driver_version(ze_driver_handle_t driver);
+ze_api_version_t get_api_version(ze_driver_handle_t driver);
+ze_driver_ipc_properties_t get_ipc_properties(ze_driver_handle_t driver);
 
 }; // namespace level_zero_tests
 

@@ -26,18 +26,18 @@
 #include "gtest/gtest.h"
 #include "logging/logging.hpp"
 #include "xe_utils/xe_utils.hpp"
-#include "xe_api.h"
+#include "ze_api.h"
 
 namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
 
-void copy_image_from_mem(lzt::ImagePNG32Bit input, xe_image_handle_t output) {
+void copy_image_from_mem(lzt::ImagePNG32Bit input, ze_image_handle_t output) {
 
   auto command_list = lzt::create_command_list();
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopyFromMemory(
-                                   command_list, output, input.raw_data(),
-                                   nullptr, nullptr, 0, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendImageCopyFromMemory(
+                command_list, output, input.raw_data(), nullptr, nullptr));
   lzt::append_barrier(command_list, nullptr, 0, nullptr);
   lzt::close_command_list(command_list);
   auto command_queue = lzt::create_command_queue();
@@ -47,12 +47,12 @@ void copy_image_from_mem(lzt::ImagePNG32Bit input, xe_image_handle_t output) {
   lzt::destroy_command_list(command_list);
 }
 
-void copy_image_to_mem(xe_image_handle_t input, lzt::ImagePNG32Bit output) {
+void copy_image_to_mem(ze_image_handle_t input, lzt::ImagePNG32Bit output) {
 
   auto command_list = lzt::create_command_list();
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeCommandListAppendImageCopyToMemory(
-                                   command_list, output.raw_data(), input,
-                                   nullptr, nullptr, 0, nullptr));
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendImageCopyToMemory(
+                command_list, output.raw_data(), input, nullptr, nullptr));
   lzt::append_barrier(command_list, nullptr, 0, nullptr);
   lzt::close_command_list(command_list);
   auto command_queue = lzt::create_command_queue();
@@ -62,32 +62,32 @@ void copy_image_to_mem(xe_image_handle_t input, lzt::ImagePNG32Bit output) {
   lzt::destroy_command_list(command_list);
 }
 
-void create_xe_image(xe_image_handle_t &image,
-                     xe_image_desc_t *image_descriptor) {
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeImageCreate(lzt::xeDevice::get_instance()->get_device(),
+void create_ze_image(ze_image_handle_t &image,
+                     ze_image_desc_t *image_descriptor) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeImageCreate(lzt::zeDevice::get_instance()->get_device(),
                           image_descriptor, &image));
   EXPECT_NE(nullptr, image);
 }
 
-void create_xe_image(xe_image_handle_t &image) {
-  xe_image_desc_t descriptor;
-  descriptor.version = XE_IMAGE_DESC_VERSION_CURRENT;
+void create_ze_image(ze_image_handle_t &image) {
+  ze_image_desc_t descriptor;
+  descriptor.version = ZE_IMAGE_DESC_VERSION_CURRENT;
 
-  create_xe_image(image, &descriptor);
+  create_ze_image(image, &descriptor);
 }
 
-void destroy_xe_image(xe_image_handle_t image) {
-  EXPECT_EQ(XE_RESULT_SUCCESS, xeImageDestroy(image));
+void destroy_ze_image(ze_image_handle_t image) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeImageDestroy(image));
 }
 
-void generate_xe_image_creation_flags_list(
-    std::vector<xe_image_flag_t> &image_creation_flags_list) {
+void generate_ze_image_creation_flags_list(
+    std::vector<ze_image_flag_t> &image_creation_flags_list) {
   for (auto image_rw_flag_a : lzt::image_creation_rw_flags) {
     for (auto image_rw_flag_b : lzt::image_creation_rw_flags) {
       for (auto image_cached_flag : lzt::image_creation_cached_flags) {
-        xe_image_flag_t image_creation_flags =
-            static_cast<xe_image_flag_t>(static_cast<int>(image_rw_flag_a) |
+        ze_image_flag_t image_creation_flags =
+            static_cast<ze_image_flag_t>(static_cast<int>(image_rw_flag_a) |
                                          static_cast<int>(image_rw_flag_b) |
                                          static_cast<int>(image_cached_flag));
         image_creation_flags_list.push_back(image_creation_flags);
@@ -96,39 +96,39 @@ void generate_xe_image_creation_flags_list(
   }
 }
 
-xeImageCreateCommon::xeImageCreateCommon() : dflt_host_image_(128, 128) {
-  lzt::generate_xe_image_creation_flags_list(image_creation_flags_list_);
-  xe_image_desc_t image_desc;
-  image_desc.version = XE_IMAGE_DESC_VERSION_CURRENT;
-  image_desc.format.layout = XE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
-  image_desc.flags = XE_IMAGE_FLAG_PROGRAM_READ;
-  image_desc.type = XE_IMAGE_TYPE_2D;
-  image_desc.format.type = XE_IMAGE_FORMAT_TYPE_UNORM;
-  image_desc.format.x = XE_IMAGE_FORMAT_SWIZZLE_R;
-  image_desc.format.y = XE_IMAGE_FORMAT_SWIZZLE_G;
-  image_desc.format.z = XE_IMAGE_FORMAT_SWIZZLE_B;
-  image_desc.format.w = XE_IMAGE_FORMAT_SWIZZLE_A;
+zeImageCreateCommon::zeImageCreateCommon() : dflt_host_image_(128, 128) {
+  lzt::generate_ze_image_creation_flags_list(image_creation_flags_list_);
+  ze_image_desc_t image_desc;
+  image_desc.version = ZE_IMAGE_DESC_VERSION_CURRENT;
+  image_desc.format.layout = ZE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
+  image_desc.flags = ZE_IMAGE_FLAG_PROGRAM_READ;
+  image_desc.type = ZE_IMAGE_TYPE_2D;
+  image_desc.format.type = ZE_IMAGE_FORMAT_TYPE_UNORM;
+  image_desc.format.x = ZE_IMAGE_FORMAT_SWIZZLE_R;
+  image_desc.format.y = ZE_IMAGE_FORMAT_SWIZZLE_G;
+  image_desc.format.z = ZE_IMAGE_FORMAT_SWIZZLE_B;
+  image_desc.format.w = ZE_IMAGE_FORMAT_SWIZZLE_A;
   image_desc.width = dflt_host_image_.width();
   image_desc.height = dflt_host_image_.height();
   image_desc.depth = 1;
 
-  create_xe_image(dflt_device_image_, &image_desc);
-  create_xe_image(dflt_device_image_2_, &image_desc);
+  create_ze_image(dflt_device_image_, &image_desc);
+  create_ze_image(dflt_device_image_2_, &image_desc);
 }
 
-xeImageCreateCommon::~xeImageCreateCommon() {
-  destroy_xe_image(dflt_device_image_);
-  destroy_xe_image(dflt_device_image_2_);
+zeImageCreateCommon::~zeImageCreateCommon() {
+  destroy_ze_image(dflt_device_image_);
+  destroy_ze_image(dflt_device_image_2_);
 }
 
-void print_image_format_descriptor(const xe_image_format_desc_t descriptor) {
+void print_image_format_descriptor(const ze_image_format_desc_t descriptor) {
   LOG_DEBUG << "   LAYOUT = " << descriptor.layout
             << "   TYPE = " << descriptor.type << "   X = " << descriptor.x
             << "   Y = " << descriptor.y << "   Z = " << descriptor.z
             << "   w = " << descriptor.w;
 }
 
-void print_image_descriptor(const xe_image_desc_t descriptor) {
+void print_image_descriptor(const ze_image_desc_t descriptor) {
   LOG_DEBUG << "VERSION = " << descriptor.version
             << "   FLAGS = " << descriptor.flags
             << "   TYPE = " << descriptor.type;
@@ -140,21 +140,21 @@ void print_image_descriptor(const xe_image_desc_t descriptor) {
             << "   MIPLEVELS = " << descriptor.miplevels;
 }
 
-xe_image_properties_t
-get_xe_image_properties(xe_image_desc_t image_descriptor) {
+ze_image_properties_t
+get_ze_image_properties(ze_image_desc_t image_descriptor) {
 
-  xe_image_properties_t image_properties = {
-      XE_IMAGE_PROPERTIES_VERSION_CURRENT};
-  EXPECT_EQ(XE_RESULT_SUCCESS,
-            xeImageGetProperties(lzt::xeDevice::get_instance()->get_device(),
+  ze_image_properties_t image_properties = {
+      ZE_IMAGE_PROPERTIES_VERSION_CURRENT};
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeImageGetProperties(lzt::zeDevice::get_instance()->get_device(),
                                  &image_descriptor, &image_properties));
 
   auto samplerFilterFlagsValid = (image_properties.samplerFilterFlags ==
-                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_NONE) ||
+                                  ZE_IMAGE_SAMPLER_FILTER_FLAGS_NONE) ||
                                  (image_properties.samplerFilterFlags ==
-                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_POINT) ||
+                                  ZE_IMAGE_SAMPLER_FILTER_FLAGS_POINT) ||
                                  (image_properties.samplerFilterFlags ==
-                                  XE_IMAGE_SAMPLER_FILTER_FLAGS_LINEAR);
+                                  ZE_IMAGE_SAMPLER_FILTER_FLAGS_LINEAR);
   EXPECT_TRUE(samplerFilterFlagsValid);
 
   return image_properties;

@@ -20,18 +20,18 @@
  * SOFTWARE.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_FENCE_HPP
-#define level_zero_tests_XE_TEST_HARNESS_FENCE_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_FENCE_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_FENCE_HPP
 
-#include "xe_fence.h"
+#include "ze_api.h"
 
 namespace level_zero_tests {
 
-xe_fence_handle_t create_fence(xe_command_queue_handle_t cmd_queue);
-void destroy_fence(xe_fence_handle_t fence);
-void reset_fence(xe_fence_handle_t fence);
-xe_result_t query_fence(xe_fence_handle_t fence);
-xe_result_t sync_fence(xe_fence_handle_t fence, uint32_t timeout);
+ze_fence_handle_t create_fence(ze_command_queue_handle_t cmd_queue);
+void destroy_fence(ze_fence_handle_t fence);
+void reset_fence(ze_fence_handle_t fence);
+ze_result_t query_fence(ze_fence_handle_t fence);
+ze_result_t sync_fence(ze_fence_handle_t fence, uint32_t timeout);
 
 }; // namespace level_zero_tests
 

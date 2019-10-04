@@ -19,10 +19,10 @@
  * express and approved by Intel in writing.
  */
 
-#ifndef _XE_APP_HPP_
-#define _XE_APP_HPP_
+#ifndef _ZE_APP_HPP_
+#define _ZE_APP_HPP_
 
-#include "xe_api.h"
+#include "ze_api.h"
 
 #include <fstream>
 #include <iostream>
@@ -35,55 +35,52 @@ public:
   ~XeApp();
 
   void memoryAlloc(size_t size, void **ptr);
-  void memoryAlloc(xe_device_group_handle_t device_group,
-                   xe_device_handle_t device, size_t size, void **ptr);
+  void memoryAlloc(ze_driver_handle_t driver, ze_device_handle_t device,
+                   size_t size, void **ptr);
   void memoryFree(const void *ptr);
-  void memoryFree(xe_device_group_handle_t device_group, const void *ptr);
-  void functionCreate(xe_function_handle_t *function,
+  void memoryFree(ze_driver_handle_t driver, const void *ptr);
+  void functionCreate(ze_kernel_handle_t *function, const char *pFunctionName);
+  void functionCreate(ze_module_handle_t module, ze_kernel_handle_t *function,
                       const char *pFunctionName);
-  void functionCreate(xe_module_handle_t module, xe_function_handle_t *function,
-                      const char *pFunctionName);
-  void functionDestroy(xe_function_handle_t function);
-  void imageCreate(xe_image_handle_t *image);
-  void imageCreate(xe_device_handle_t device, xe_image_handle_t *image);
-  void imageDestroy(xe_image_handle_t image);
-  void commandListCreate(xe_command_list_handle_t *phCommandList);
-  void commandListCreate(xe_device_handle_t device,
-                         xe_command_list_handle_t *phCommandList);
-  void commandListDestroy(xe_command_list_handle_t phCommandList);
-  void commandListClose(xe_command_list_handle_t phCommandList);
+  void functionDestroy(ze_kernel_handle_t function);
+  void imageCreate(ze_image_handle_t *image);
+  void imageCreate(ze_device_handle_t device, ze_image_handle_t *image);
+  void imageDestroy(ze_image_handle_t image);
+  void commandListCreate(ze_command_list_handle_t *phCommandList);
+  void commandListCreate(ze_device_handle_t device,
+                         ze_command_list_handle_t *phCommandList);
+  void commandListDestroy(ze_command_list_handle_t phCommandList);
+  void commandListClose(ze_command_list_handle_t phCommandList);
 
   void commandQueueCreate(const uint32_t command_queue_id,
-                          xe_command_queue_handle_t *command_queue);
-  void commandQueueCreate(xe_device_handle_t device,
+                          ze_command_queue_handle_t *command_queue);
+  void commandQueueCreate(ze_device_handle_t device,
                           const uint32_t command_queue_id,
-                          xe_command_queue_handle_t *command_queue);
-  void commandQueueDestroy(xe_command_queue_handle_t command_queue);
-  void commandQueueExecuteCommandList(xe_command_queue_handle_t command_queue,
+                          ze_command_queue_handle_t *command_queue);
+  void commandQueueDestroy(ze_command_queue_handle_t command_queue);
+  void commandQueueExecuteCommandList(ze_command_queue_handle_t command_queue,
                                       uint32_t numCommandLists,
-                                      xe_command_list_handle_t *command_lists);
-  void commandQueueSynchronize(xe_command_queue_handle_t command_queue);
-  void moduleCreate(xe_device_handle_t device, xe_module_handle_t *module);
-  void moduleDestroy(xe_module_handle_t module);
+                                      ze_command_list_handle_t *command_lists);
+  void commandQueueSynchronize(ze_command_queue_handle_t command_queue);
+  void moduleCreate(ze_device_handle_t device, ze_module_handle_t *module);
+  void moduleDestroy(ze_module_handle_t module);
 
   void singleDeviceInit(void);
   void singleDeviceCleanup(void);
 
-  uint32_t deviceGroupCount(void);
-  void deviceGroupGet(uint32_t *device_group_count,
-                      xe_device_group_handle_t *device_group);
-  void deviceGroupGetDevices(xe_device_group_handle_t device_group,
-                             uint32_t device_count,
-                             xe_device_handle_t *devices);
-  uint32_t deviceCount(xe_device_group_handle_t device_group);
+  uint32_t driverCount(void);
+  void driverGet(uint32_t *driver_count, ze_driver_handle_t *driver);
+  void driverGetDevices(ze_driver_handle_t driver, uint32_t device_count,
+                        ze_device_handle_t *devices);
+  uint32_t deviceCount(ze_driver_handle_t driver);
 
-  xe_device_group_handle_t device_group;
-  xe_device_handle_t device;
-  xe_module_handle_t module;
+  ze_driver_handle_t driver;
+  ze_device_handle_t device;
+  ze_module_handle_t module;
 
 private:
   std::string module_path;
   std::vector<uint8_t> binary_file;
   std::vector<uint8_t> load_binary_file(const std::string &file_path);
 };
-#endif /* _XE_APP_HPP_*/
+#endif /* _ZE_APP_HPP_*/

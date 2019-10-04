@@ -30,9 +30,7 @@
 
 namespace lzt = level_zero_tests;
 
-#include "xe_driver.h"
-#include "xe_memory.h"
-#include "xe_copy.h"
+#include "ze_api.h"
 
 namespace {
 
@@ -55,8 +53,8 @@ TEST_F(
 
 class xeHostMemAccessCommandListTests : public xeHostMemAccessTests {
 protected:
-  lzt::xeCommandList cmdlist_;
-  lzt::xeCommandQueue cmdqueue_;
+  lzt::zeCommandList cmdlist_;
+  lzt::zeCommandQueue cmdqueue_;
 };
 
 TEST_F(
@@ -66,7 +64,7 @@ TEST_F(
   void *other_host_memory = lzt::allocate_host_memory(size_);
 
   lzt::append_memory_copy(cmdlist_.command_list_, other_host_memory, memory_,
-                          size_, nullptr, 0, nullptr);
+                          size_, nullptr);
   lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
   lzt::close_command_list(cmdlist_.command_list_);
   lzt::execute_command_lists(cmdqueue_.command_queue_, 1,
@@ -99,8 +97,8 @@ TEST_F(
     GivenHostAllocationWhenWritingAndReadingBackOnDeviceThenCorrectDataIsRead) {
   lzt::write_data_pattern(memory_, size_, 1);
   std::string module_name = "xe_unified_mem_test.spv";
-  xe_module_handle_t module = lzt::create_module(
-      lzt::xeDevice::get_instance()->get_device(), module_name);
+  ze_module_handle_t module = lzt::create_module(
+      lzt::zeDevice::get_instance()->get_device(), module_name);
   std::string func_name = "xe_unified_mem_test";
 
   lzt::FunctionArg arg;
@@ -113,7 +111,7 @@ TEST_F(
   int size = static_cast<int>(size_);
   arg.arg_value = &size;
   args.push_back(arg);
-  lzt::create_and_execute_function(lzt::xeDevice::get_instance()->get_device(),
+  lzt::create_and_execute_function(lzt::zeDevice::get_instance()->get_device(),
                                    module, func_name, 1, args);
   lzt::validate_data_pattern(memory_, size_, -1);
   lzt::destroy_module(module);
@@ -140,8 +138,8 @@ protected:
   ~xeHostSystemMemoryDeviceTests() { delete[] memory_; }
   const size_t size_ = 4 * 1024;
   uint8_t *memory_ = nullptr;
-  lzt::xeCommandList cmdlist_;
-  lzt::xeCommandQueue cmdqueue_;
+  lzt::zeCommandList cmdlist_;
+  lzt::zeCommandQueue cmdqueue_;
 };
 
 TEST_F(
@@ -152,8 +150,8 @@ TEST_F(
       << "Fail due to Abort when accessing system memory allocation: LOKI-488";
   lzt::write_data_pattern(memory_, size_, 1);
   std::string module_name = "xe_unified_mem_test.spv";
-  xe_module_handle_t module = lzt::create_module(
-      lzt::xeDevice::get_instance()->get_device(), module_name);
+  ze_module_handle_t module = lzt::create_module(
+      lzt::zeDevice::get_instance()->get_device(), module_name);
   std::string func_name = "xe_unified_mem_test";
 
   lzt::FunctionArg arg;
@@ -166,7 +164,7 @@ TEST_F(
   int size = static_cast<int>(size_);
   arg.arg_value = &size;
   args.push_back(arg);
-  lzt::create_and_execute_function(lzt::xeDevice::get_instance()->get_device(),
+  lzt::create_and_execute_function(lzt::zeDevice::get_instance()->get_device(),
                                    module, func_name, 1, args);
   lzt::validate_data_pattern(memory_, size_, -1);
   lzt::destroy_module(module);
@@ -179,7 +177,7 @@ TEST_F(
   uint8_t *other_system_memory = new uint8_t[size_];
 
   lzt::append_memory_copy(cmdlist_.command_list_, other_system_memory, memory_,
-                          size_, nullptr, 0, nullptr);
+                          size_, nullptr);
   lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
   lzt::close_command_list(cmdlist_.command_list_);
   lzt::execute_command_lists(cmdqueue_.command_queue_, 1,

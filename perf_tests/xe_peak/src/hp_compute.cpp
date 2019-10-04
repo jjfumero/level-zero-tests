@@ -28,7 +28,7 @@
 
 void XePeak::xe_peak_hp_compute(L0Context &context) {
   float gflops, timed;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
   TimingMeasurement type = is_bandwidth_with_event_timer();
   float flops_per_work_item = 4096;
   struct XeWorkGroups workgroup_info;
@@ -49,21 +49,21 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
       set_workgroups(context, number_of_work_items, &workgroup_info);
 
   void *device_output_buffer;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>((number_of_work_items * sizeof(cl_half))), 1,
       &device_output_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "device output buffer allocated\n";
 
   result =
-      xeCommandListAppendBarrier(context.command_list, nullptr, 0, nullptr);
+      zeCommandListAppendBarrier(context.command_list, nullptr, 0, nullptr);
   if (result) {
-    throw std::runtime_error("xeCommandListAppendExecutionBarrier failed: " +
+    throw std::runtime_error("zeCommandListAppendExecutionBarrier failed: " +
                              std::to_string(result));
   }
   if (verbose)
@@ -73,19 +73,19 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
 
   /*Begin setup of Function*/
 
-  xe_function_handle_t compute_hp_v1;
+  ze_kernel_handle_t compute_hp_v1;
   setup_function(context, compute_hp_v1, "compute_hp_v1", device_output_buffer,
                  &input_value, sizeof(float));
-  xe_function_handle_t compute_hp_v2;
+  ze_kernel_handle_t compute_hp_v2;
   setup_function(context, compute_hp_v2, "compute_hp_v2", device_output_buffer,
                  &input_value, sizeof(float));
-  xe_function_handle_t compute_hp_v4;
+  ze_kernel_handle_t compute_hp_v4;
   setup_function(context, compute_hp_v4, "compute_hp_v4", device_output_buffer,
                  &input_value, sizeof(float));
-  xe_function_handle_t compute_hp_v8;
+  ze_kernel_handle_t compute_hp_v8;
   setup_function(context, compute_hp_v8, "compute_hp_v8", device_output_buffer,
                  &input_value, sizeof(float));
-  xe_function_handle_t compute_hp_v16;
+  ze_kernel_handle_t compute_hp_v16;
   setup_function(context, compute_hp_v16, "compute_hp_v16",
                  device_output_buffer, &input_value, sizeof(float));
 
@@ -126,57 +126,57 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
   gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
   std::cout << gflops << " GFLOPS\n";
 
-  result = xeFunctionDestroy(compute_hp_v1);
+  result = zeKernelDestroy(compute_hp_v1);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v1 Function Destroyed\n";
 
-  result = xeFunctionDestroy(compute_hp_v2);
+  result = zeKernelDestroy(compute_hp_v2);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v2 Function Destroyed\n";
 
-  result = xeFunctionDestroy(compute_hp_v4);
+  result = zeKernelDestroy(compute_hp_v4);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v4 Function Destroyed\n";
 
-  result = xeFunctionDestroy(compute_hp_v8);
+  result = zeKernelDestroy(compute_hp_v8);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v8 Function Destroyed\n";
 
-  result = xeFunctionDestroy(compute_hp_v16);
+  result = zeKernelDestroy(compute_hp_v16);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "compute_hp_v16 Function Destroyed\n";
 
-  result = xeDeviceGroupFreeMem(context.device_group, device_output_buffer);
+  result = zeDriverFreeMem(context.driver, device_output_buffer);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Output Buffer freed\n";
 
-  result = xeModuleDestroy(context.module);
+  result = zeModuleDestroy(context.module);
   if (result) {
-    throw std::runtime_error("xeModuleDestroy failed: " +
+    throw std::runtime_error("zeModuleDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)

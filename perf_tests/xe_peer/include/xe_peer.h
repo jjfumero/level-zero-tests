@@ -19,7 +19,7 @@
  * express and approved by Intel in writing.
  */
 
-#include "xe_api.h"
+#include "ze_api.h"
 
 enum peer_transfer_t {
     PEER_NONE,
@@ -28,8 +28,8 @@ enum peer_transfer_t {
 };
 
 struct device_context_t {
-    xe_device_handle_t device;
-    xe_module_handle_t module;
-    xe_command_queue_handle_t command_queue;
-    xe_command_list_handle_t command_list;
+    ze_device_handle_t device;
+    ze_module_handle_t module;
+    ze_command_queue_handle_t command_queue;
+    ze_command_list_handle_t command_list;
 };

@@ -22,20 +22,20 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_XE_TEST_HARNESS_EVENT_HPP
-#define level_zero_tests_XE_TEST_HARNESS_EVENT_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_EVENT_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_EVENT_HPP
 
 #include "xe_test_harness/xe_test_harness.hpp"
-#include "xe_event.h"
+#include "ze_api.h"
 
 namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
 
-class xeEventPool {
+class zeEventPool {
 public:
-  xeEventPool();
-  ~xeEventPool();
+  zeEventPool();
+  ~zeEventPool();
 
   // By default, an event pool is created with 32 events and default flags
   // during the first call to create_events().  To change the default behavior
@@ -43,32 +43,32 @@ public:
   // create_events().
   void InitEventPool();
   void InitEventPool(uint32_t count);
-  void InitEventPool(uint32_t count, xe_event_pool_flag_t flags);
+  void InitEventPool(uint32_t count, ze_event_pool_flag_t flags);
 
-  void create_event(xe_event_handle_t &event);
-  void create_event(xe_event_handle_t &event, xe_event_scope_flag_t signal,
-                    xe_event_scope_flag_t wait);
-  void create_events(std::vector<xe_event_handle_t> &events,
+  void create_event(ze_event_handle_t &event);
+  void create_event(ze_event_handle_t &event, ze_event_scope_flag_t signal,
+                    ze_event_scope_flag_t wait);
+  void create_events(std::vector<ze_event_handle_t> &events,
                      size_t event_count);
-  void create_events(std::vector<xe_event_handle_t> &events, size_t event_count,
-                     xe_event_scope_flag_t signal, xe_event_scope_flag_t wait);
+  void create_events(std::vector<ze_event_handle_t> &events, size_t event_count,
+                     ze_event_scope_flag_t signal, ze_event_scope_flag_t wait);
 
-  void destroy_event(xe_event_handle_t event);
-  void destroy_events(std::vector<xe_event_handle_t> &events);
+  void destroy_event(ze_event_handle_t event);
+  void destroy_events(std::vector<ze_event_handle_t> &events);
 
-  void get_ipc_handle(xe_ipc_event_pool_handle_t *hIpc);
-  void open_ipc_handle(xe_ipc_event_pool_handle_t &hIpc,
-                       xe_event_pool_handle_t *eventPool);
-  void close_ipc_handle_pool(xe_event_pool_handle_t &eventPool);
+  void get_ipc_handle(ze_ipc_event_pool_handle_t *hIpc);
+  void open_ipc_handle(ze_ipc_event_pool_handle_t &hIpc,
+                       ze_event_pool_handle_t *eventPool);
+  void close_ipc_handle_pool(ze_event_pool_handle_t &eventPool);
 
-  xe_event_pool_handle_t event_pool_ = nullptr;
+  ze_event_pool_handle_t event_pool_ = nullptr;
   std::vector<bool> pool_indexes_available_;
-  std::map<xe_event_handle_t, uint32_t> handle_to_index_map_;
+  std::map<ze_event_handle_t, uint32_t> handle_to_index_map_;
 };
 
-class xeEventPoolTests : public ::testing::Test {
+class zeEventPoolTests : public ::testing::Test {
 protected:
-  xeEventPool ep;
+  zeEventPool ep;
 };
 
 }; // namespace level_zero_tests

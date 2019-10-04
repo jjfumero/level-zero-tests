@@ -28,7 +28,7 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
   struct XeWorkGroups workgroup_info;
   set_workgroups(context, global_size, &workgroup_info);
   float latency = 0;
-  xe_result_t result = XE_RESULT_SUCCESS;
+  ze_result_t result = ZE_RESULT_SUCCESS;
 
   std::vector<uint8_t> binary_file =
       context.load_binary_file("xe_global_bw.spv");
@@ -36,28 +36,28 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
   context.create_module(binary_file);
 
   void *inputBuf;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>((num_items * sizeof(float))), 1, &inputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "inputBuf device buffer allocated\n";
 
   void *outputBuf;
-  result = xeDeviceGroupAllocDeviceMem(
-      context.device_group, context.device, XE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+  result = zeDriverAllocDeviceMem(
+      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
       static_cast<size_t>((num_items * sizeof(float))), 1, &outputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupAllocDeviceMem failed: " +
+    throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "outputBuf device buffer allocated\n";
 
-  xe_function_handle_t local_offset_v1;
+  ze_kernel_handle_t local_offset_v1;
   setup_function(context, local_offset_v1, "global_bandwidth_v1_local_offset",
                  inputBuf, outputBuf);
 
@@ -73,33 +73,33 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
                        TimingMeasurement::KERNEL_COMPLETE_LATENCY, false);
   std::cout << latency << " (uS)\n";
 
-  result = xeFunctionDestroy(local_offset_v1);
+  result = zeKernelDestroy(local_offset_v1);
   if (result) {
-    throw std::runtime_error("xeFunctionDestroy failed: " +
+    throw std::runtime_error("zeKernelDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "local_offset_v1 Function Destroyed\n";
 
-  result = xeDeviceGroupFreeMem(context.device_group, inputBuf);
+  result = zeDriverFreeMem(context.driver, inputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Input Buffer freed\n";
 
-  result = xeDeviceGroupFreeMem(context.device_group, outputBuf);
+  result = zeDriverFreeMem(context.driver, outputBuf);
   if (result) {
-    throw std::runtime_error("xeDeviceGroupFreeMem failed: " +
+    throw std::runtime_error("zeDriverFreeMem failed: " +
                              std::to_string(result));
   }
   if (verbose)
     std::cout << "Output Buffer freed\n";
 
-  result = xeModuleDestroy(context.module);
+  result = zeModuleDestroy(context.module);
   if (result) {
-    throw std::runtime_error("xeModuleDestroy failed: " +
+    throw std::runtime_error("zeModuleDestroy failed: " +
                              std::to_string(result));
   }
   if (verbose)

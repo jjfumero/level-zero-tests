@@ -19,11 +19,11 @@
  * express and approved by Intel in writing.
  */
 
-#include "xe_peer.h"
+#include "ze_api.h"
 
 #include "common.hpp"
-#include "xe_api.h"
 #include "xe_app.hpp"
+#include "xe_peer.h"
 
 #include <assert.h>
 #include <iomanip>
@@ -34,27 +34,26 @@ public:
   XePeer() {
     benchmark = new XeApp("xe_peer_benchmarks.spv");
 
-    device_group_count = benchmark->deviceGroupCount();
-    assert(device_group_count > 0);
+    driver_count = benchmark->driverCount();
+    assert(driver_count > 0);
 
-    /* Retrieve device group number 1 */
-    device_group_count = 1;
-    benchmark->deviceGroupGet(&device_group_count, &device_group);
+    /* Retrieve driver number 1 */
+    driver_count = 1;
+    benchmark->driverGet(&driver_count, &driver);
 
     /* Obtain device count */
-    device_count = benchmark->deviceCount(device_group);
-    devices = new std::vector<xe_device_handle_t>(device_count);
+    device_count = benchmark->deviceCount(driver);
+    devices = new std::vector<ze_device_handle_t>(device_count);
 
-    /* Retrieve array of devices in device group */
-    benchmark->deviceGroupGetDevices(device_group, device_count,
-                                     devices->data());
+    /* Retrieve array of devices in driver */
+    benchmark->driverGetDevices(driver, device_count, devices->data());
 
     device_contexts = new std::vector<device_context_t>(device_count);
 
     for (uint32_t i = 0; i < device_count; i++) {
-      xe_device_handle_t device;
-      xe_module_handle_t module;
-      xe_command_queue_handle_t command_queue;
+      ze_device_handle_t device;
+      ze_module_handle_t module;
+      ze_command_queue_handle_t command_queue;
       device_context_t *device_context = &device_contexts->at(i);
 
       device = devices->at(i);
@@ -86,23 +85,23 @@ public:
 
 private:
   XeApp *benchmark;
-  xe_device_group_handle_t device_group;
-  uint32_t device_group_count;
+  ze_driver_handle_t driver;
+  uint32_t driver_count;
   uint32_t device_count;
   std::vector<device_context_t> *device_contexts;
-  std::vector<xe_device_handle_t> *devices;
+  std::vector<ze_device_handle_t> *devices;
 
-  void _copy_function_setup(xe_module_handle_t module,
-                            xe_function_handle_t &function,
+  void _copy_function_setup(ze_module_handle_t module,
+                            ze_kernel_handle_t &function,
                             const char *function_name, uint32_t globalSizeX,
                             uint32_t globalSizeY, uint32_t globalSizeZ,
                             uint32_t &group_size_x, uint32_t &group_size_y,
                             uint32_t &group_size_z);
-  void _copy_function_cleanup(xe_function_handle_t function);
+  void _copy_function_cleanup(ze_kernel_handle_t function);
 };
 
-void XePeer::_copy_function_setup(xe_module_handle_t module,
-                                  xe_function_handle_t &function,
+void XePeer::_copy_function_setup(ze_module_handle_t module,
+                                  ze_kernel_handle_t &function,
                                   const char *function_name,
                                   uint32_t globalSizeX, uint32_t globalSizeY,
                                   uint32_t globalSizeZ, uint32_t &group_size_x,
@@ -114,14 +113,14 @@ void XePeer::_copy_function_setup(xe_module_handle_t module,
 
   benchmark->functionCreate(module, &function, function_name);
 
-  SUCCESS_OR_TERMINATE(xeFunctionSuggestGroupSize(
-      function, globalSizeX, globalSizeY, globalSizeZ, &group_size_x,
-      &group_size_y, &group_size_z));
-  SUCCESS_OR_TERMINATE(xeFunctionSetGroupSize(function, group_size_x,
-                                              group_size_y, group_size_z));
+  SUCCESS_OR_TERMINATE(
+      zeKernelSuggestGroupSize(function, globalSizeX, globalSizeY, globalSizeZ,
+                               &group_size_x, &group_size_y, &group_size_z));
+  SUCCESS_OR_TERMINATE(
+      zeKernelSetGroupSize(function, group_size_x, group_size_y, group_size_z));
 }
 
-void XePeer::_copy_function_cleanup(xe_function_handle_t function) {
+void XePeer::_copy_function_cleanup(ze_kernel_handle_t function) {
   benchmark->functionDestroy(function);
 }
 
@@ -136,18 +135,18 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
   for (uint32_t i = 0; i < device_count; i++) {
     device_context_t *device_context = &device_contexts->at(i);
 
-    benchmark->memoryAlloc(device_group, device_context->device, buffer_size,
+    benchmark->memoryAlloc(driver, device_context->device, buffer_size,
                            &buffers[i]);
   }
 
   for (uint32_t i = 0; i < device_count; i++) {
     device_context_t *device_context_i = &device_contexts->at(i);
-    xe_function_handle_t function_a = nullptr;
-    xe_function_handle_t function_b = nullptr;
+    ze_kernel_handle_t function_a = nullptr;
+    ze_kernel_handle_t function_b = nullptr;
     void *buffer_i = buffers.at(i);
-    xe_command_list_handle_t command_list_a = device_context_i->command_list;
-    xe_command_queue_handle_t command_queue_a = device_context_i->command_queue;
-    xe_thread_group_dimensions_t thread_group_dimensions;
+    ze_command_list_handle_t command_list_a = device_context_i->command_list;
+    ze_command_queue_handle_t command_queue_a = device_context_i->command_queue;
+    ze_thread_group_dimensions_t thread_group_dimensions;
     uint32_t group_size_x;
     uint32_t group_size_y;
     uint32_t group_size_z;
@@ -177,40 +176,40 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
       if (bidirectional) {
         /* PEER_WRITE */
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                       sizeof(buffer_j), &buffer_j));
+            zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                     sizeof(buffer_j), &buffer_j));
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                       sizeof(buffer_i), &buffer_i));
+            zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                     sizeof(buffer_i), &buffer_i));
         /* PEER_READ */
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_b, 0, /* Destination buffer*/
-                                       sizeof(buffer_i), &buffer_i));
+            zeKernelSetArgumentValue(function_b, 0, /* Destination buffer*/
+                                     sizeof(buffer_i), &buffer_i));
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_b, 1, /* Source buffer */
-                                       sizeof(buffer_j), &buffer_j));
+            zeKernelSetArgumentValue(function_b, 1, /* Source buffer */
+                                     sizeof(buffer_j), &buffer_j));
 
-        xeCommandListAppendLaunchFunction(command_list_a, function_a,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
-        xeCommandListAppendLaunchFunction(command_list_a, function_b,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_a,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_b,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
       } else { /* unidirectional */
         if (transfer_type == PEER_WRITE) {
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                         sizeof(buffer_j), &buffer_j));
+              zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                       sizeof(buffer_j), &buffer_j));
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                         sizeof(buffer_i), &buffer_i));
+              zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                       sizeof(buffer_i), &buffer_i));
         } else if (transfer_type == PEER_READ) {
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                         sizeof(buffer_i), &buffer_i));
+              zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                       sizeof(buffer_i), &buffer_i));
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                         sizeof(buffer_j), &buffer_j));
+              zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                       sizeof(buffer_j), &buffer_j));
         } else {
           std::cerr
               << "ERROR: Bandwidth test - transfer type parameter is invalid"
@@ -218,9 +217,9 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
           std::terminate();
         }
 
-        xeCommandListAppendLaunchFunction(command_list_a, function_a,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_a,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
       }
       benchmark->commandListClose(command_list_a);
 
@@ -272,7 +271,7 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
   }
 
   for (void *buffer : buffers) {
-    benchmark->memoryFree(device_group, buffer);
+    benchmark->memoryFree(driver, buffer);
   }
 }
 
@@ -287,18 +286,18 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
   for (uint32_t i = 0; i < device_count; i++) {
     device_context_t *device_context = &device_contexts->at(i);
 
-    benchmark->memoryAlloc(device_group, device_context->device, buffer_size,
+    benchmark->memoryAlloc(driver, device_context->device, buffer_size,
                            &buffers[i]);
   }
 
   for (uint32_t i = 0; i < device_count; i++) {
     device_context_t *device_context_i = &device_contexts->at(i);
-    xe_function_handle_t function_a = nullptr;
-    xe_function_handle_t function_b = nullptr;
+    ze_kernel_handle_t function_a = nullptr;
+    ze_kernel_handle_t function_b = nullptr;
     void *buffer_i = buffers.at(i);
-    xe_command_list_handle_t command_list_a = device_context_i->command_list;
-    xe_command_queue_handle_t command_queue_a = device_context_i->command_queue;
-    xe_thread_group_dimensions_t thread_group_dimensions;
+    ze_command_list_handle_t command_list_a = device_context_i->command_list;
+    ze_command_queue_handle_t command_queue_a = device_context_i->command_queue;
+    ze_thread_group_dimensions_t thread_group_dimensions;
     uint32_t group_size_x;
     uint32_t group_size_y;
     uint32_t group_size_z;
@@ -325,40 +324,40 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
       if (bidirectional) {
         /* PEER_WRITE */
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                       sizeof(buffer_j), &buffer_j));
+            zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                     sizeof(buffer_j), &buffer_j));
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                       sizeof(buffer_i), &buffer_i));
+            zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                     sizeof(buffer_i), &buffer_i));
         /* PEER_READ */
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_b, 0, /* Destination buffer*/
-                                       sizeof(buffer_i), &buffer_i));
+            zeKernelSetArgumentValue(function_b, 0, /* Destination buffer*/
+                                     sizeof(buffer_i), &buffer_i));
         SUCCESS_OR_TERMINATE(
-            xeFunctionSetArgumentValue(function_b, 1, /* Source buffer */
-                                       sizeof(buffer_j), &buffer_j));
+            zeKernelSetArgumentValue(function_b, 1, /* Source buffer */
+                                     sizeof(buffer_j), &buffer_j));
 
-        xeCommandListAppendLaunchFunction(command_list_a, function_a,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
-        xeCommandListAppendLaunchFunction(command_list_a, function_b,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_a,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_b,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
       } else { /* unidirectional */
         if (transfer_type == PEER_WRITE) {
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                         sizeof(buffer_j), &buffer_j));
+              zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                       sizeof(buffer_j), &buffer_j));
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                         sizeof(buffer_i), &buffer_i));
+              zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                       sizeof(buffer_i), &buffer_i));
         } else if (transfer_type == PEER_READ) {
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 0, /* Destination buffer*/
-                                         sizeof(buffer_i), &buffer_i));
+              zeKernelSetArgumentValue(function_a, 0, /* Destination buffer*/
+                                       sizeof(buffer_i), &buffer_i));
           SUCCESS_OR_TERMINATE(
-              xeFunctionSetArgumentValue(function_a, 1, /* Source buffer */
-                                         sizeof(buffer_j), &buffer_j));
+              zeKernelSetArgumentValue(function_a, 1, /* Source buffer */
+                                       sizeof(buffer_j), &buffer_j));
         } else {
           std::cerr
               << "ERROR: Latency test - transfer type parameter is invalid"
@@ -366,9 +365,9 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
           std::terminate();
         }
 
-        xeCommandListAppendLaunchFunction(command_list_a, function_a,
-                                          &thread_group_dimensions, nullptr, 0,
-                                          nullptr);
+        zeCommandListAppendLaunchKernel(command_list_a, function_a,
+                                        &thread_group_dimensions, nullptr, 0,
+                                        nullptr);
       }
       benchmark->commandListClose(command_list_a);
 
@@ -413,7 +412,7 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
   }
 
   for (void *buffer : buffers) {
-    benchmark->memoryFree(device_group, buffer);
+    benchmark->memoryFree(driver, buffer);
   }
 }
 
