@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project(intel-level-zero-tests
-    VERSION 0.2.2  # corresponds to level-zero release
+    VERSION 0.3.0  # corresponds to level-zero release
 )
 
 # Generate VERSION and VERSION_SUFFIX (if building in tree) files to facilitate
