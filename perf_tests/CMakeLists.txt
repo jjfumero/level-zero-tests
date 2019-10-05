@@ -18,13 +18,21 @@
 # express and approved by Intel in writing.
 
 function(add_perf_test)
-    set(options "")
+    set(options REQUIRES_OPENCL_INTEROP)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS)
     cmake_parse_arguments(ADD_PERF_TEST
       "${options}" "${oneValueArgs}" "${multiValueArgs}"
       ${ARGN}
     )
+
+    if(
+      ADD_PERF_TEST_REQUIRES_OPENCL_INTEROP AND
+      NOT LevelZero_OpenCL_INTEROP
+    )
+        message(STATUS "Disabling build of ${ADD_PERF_TEST_NAME} since Level-Zero OpenCL interop is not available")
+        return()
+    endif()
 
     add_executable(${ADD_PERF_TEST_NAME} ${ADD_PERF_TEST_SOURCES})
 
@@ -37,7 +45,7 @@ function(add_perf_test)
 
     target_link_libraries(${ADD_PERF_TEST_NAME}
       PRIVATE
-        ${LevelZero_LIBRARIES}
+        LevelZero::LevelZero
         ${ADD_PERF_TEST_LINK_LIBRARIES}
     )
 
@@ -45,7 +53,6 @@ function(add_perf_test)
       PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/perf_tests/common/include
-        ${LevelZero_INCLUDE_DIRS}
         ${ADD_PERF_TEST_INCLUDE_DIRECTORIES}
     )
 

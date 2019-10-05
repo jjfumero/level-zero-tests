@@ -42,8 +42,6 @@ find_library(PNG_LIBRARY
 )
 find_package(PNG REQUIRED)
 
-find_package(LevelZero REQUIRED)
-
 if(NOT TARGET GTest::GTest AND NOT TARGET GMock::GMock)
     if(NOT DEFINED GTEST_ROOT)
         set(GTEST_ROOT "${CMAKE_SOURCE_DIR}/third_party/googletest")
@@ -63,13 +61,15 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.65 REQUIRED COMPONENTS log program_options timer chrono system)
 
-# test_xe_cl_interop requires OpenCL
-# FindOpenCL doesn't listen to OPENCL_ROOT, so use CMAKE_PREFIX_PATH for it
-set(CMAKE_PREFIX_PATH "${OPENCL_ROOT}")
-find_package(OpenCL REQUIRED)
-set_target_properties(OpenCL::OpenCL
-  PROPERTIES INTERFACE_COMPILE_DEFINITIONS CL_TARGET_OPENCL_VERSION=210
+option(REQUIRE_LEVELZERO_OPENCL_INTEROP
+  "Enables OpenCL interop testing with Level-Zero (requires OpenCL)"
+  NO
 )
+if(REQUIRE_LEVELZERO_OPENCL_INTEROP)
+    list(APPEND LevelZero_COMPONENTS "OpenCL")
+endif()
+
+find_package(LevelZero REQUIRED COMPONENTS ${LevelZero_COMPONENTS})
 
 set(MEDIA_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/mediadata")
 set(MEDIA_DIRECTORY "${MEDIA_ROOT_DIRECTORY}/merged")

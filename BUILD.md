@@ -13,6 +13,12 @@ For building against level-zero, you can either build against the version you
 have installed on your system (automatic, Linux only), or specify an install
 prefix with the `L0_ROOT` cmake flag during configuration.
 
+Some tests depend on level-zero's OpenCL interop functionality in order to work.
+If OpenCL is available on the system (specify a non-standard path with
+`OPENCL_ROOT`), then the interop support will be enabled automatically. To
+require the interop support, set the `REQUIRE_LEVELZERO_OPENCL_INTEROP` cmake
+flag to `YES`.
+
 ## Building
 
 This project uses cmake to configure the build. The `install` target will create

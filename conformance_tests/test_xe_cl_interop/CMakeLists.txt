@@ -33,4 +33,5 @@ add_conformance_test(
     level_zero_tests::ocl_utils
     OpenCL::OpenCL
     Boost::boost
+  REQUIRES_OPENCL_INTEROP
 )

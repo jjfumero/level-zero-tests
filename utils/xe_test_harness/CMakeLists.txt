@@ -52,11 +52,10 @@ target_link_libraries(xe_test_harness
     level_zero_tests::logging
     level_zero_tests::xe_utils
     level_zero_tests::utils
-    ${LevelZero_LIBRARIES}
+    LevelZero::LevelZero
 )
 target_include_directories(xe_test_harness
     PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    ${LevelZero_INCLUDE_DIRS}
 )

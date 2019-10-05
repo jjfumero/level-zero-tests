@@ -14,6 +14,7 @@ cd build
 cmake \
   -G Ninja \
   -DL0_ROOT=$PWD/../third_party/level_zero_linux \
+  -DREQUIRE_LEVELZERO_OPENCL_INTEROP=YES \
   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DCMAKE_BUILD_TYPE=Release \

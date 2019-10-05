@@ -20,13 +20,16 @@
 # SOFTWARE.
 #
 
+if(LevelZero_OpenCL_INTEROP)
+  add_subdirectory(ocl_entrypoints)
+  add_subdirectory(ocl_utils)
+endif()
+
 add_subdirectory(align_utils)
 add_subdirectory(boost_intel)
-add_subdirectory(ocl_entrypoints)
 add_subdirectory(timer)
 add_subdirectory(image)
 add_subdirectory(logging)
-add_subdirectory(ocl_utils)
 add_subdirectory(random)
 add_subdirectory(utils)
 add_subdirectory(yuv_utils)

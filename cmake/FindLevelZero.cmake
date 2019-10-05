@@ -9,13 +9,13 @@ find_path(LevelZero_INCLUDE_DIR
   NO_DEFAULT_PATH
 )
 
-# Level-Zero headers depend on the OpenCL headers... temporary
-find_path(OpenCLHeaders_INCLUDE_DIR
-  NAMES CL/cl.h
-  PATHS "${OPENCL_ROOT}" "/usr"
-  PATH_SUFFIXES "include"
-  NO_DEFAULT_PATH
-)
+# If OpenCL is available, we can enable interop support
+set(LevelZero_OpenCL_INTEROP FALSE)
+set(CMAKE_PREFIX_PATH "${OPENCL_ROOT}")
+find_package(OpenCL)
+if (OpenCL_FOUND)
+    set(LevelZero_OpenCL_FOUND TRUE)
+endif()
 
 find_library(LevelZero_LIBRARY
   NAMES level_zero level_zero32 level_zero64
@@ -27,19 +27,42 @@ find_library(LevelZero_LIBRARY
 )
 
 find_package_handle_standard_args(LevelZero
-  DEFAULT_MSG
+  REQUIRED_VARS
     LevelZero_INCLUDE_DIR
-    OpenCLHeaders_INCLUDE_DIR
     LevelZero_LIBRARY
+  HANDLE_COMPONENTS
 )
-
-mark_as_advanced(LevelZero_LIBRARY LevelZero_INCLUDE_DIR OpenCLHeaders_INCLUDE_DIR)
+mark_as_advanced(LevelZero_LIBRARY LevelZero_INCLUDE_DIR)
 
 if(LevelZero_FOUND)
-    set(LevelZero_LIBRARIES ${LevelZero_LIBRARY})
-    set(LevelZero_INCLUDE_DIRS ${LevelZero_INCLUDE_DIR} ${OpenCLHeaders_INCLUDE_DIR})
+    list(APPEND LevelZero_LIBRARIES ${LevelZero_LIBRARY})
+    list(APPEND LevelZero_INCLUDE_DIRS ${LevelZero_INCLUDE_DIR})
+    if(OpenCL_FOUND)
+        list(APPEND LevelZero_INCLUDE_DIRS ${OpenCL_INCLUDE_DIRS})
+    endif()
 endif()
 
-MESSAGE(STATUS "LevelZero_LIBRARIES: " ${LevelZero_LIBRARY})
-MESSAGE(STATUS "LevelZero_INCLUDE_DIRS: " ${LevelZero_INCLUDE_DIR})
-MESSAGE(STATUS "OpenCLHeaders_INCLUDE_DIRS: " ${OpenCLHeaders_INCLUDE_DIR})
+if(LevelZero_FOUND AND NOT TARGET LevelZero::LevelZero)
+    add_library(LevelZero::LevelZero INTERFACE IMPORTED)
+    set_target_properties(LevelZero::LevelZero
+      PROPERTIES INTERFACE_LINK_LIBRARIES "${LevelZero_LIBRARIES}"
+    )
+    set_target_properties(LevelZero::LevelZero
+      PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LevelZero_INCLUDE_DIRS}"
+    )
+endif()
+
+if (LevelZero_OpenCL_FOUND)
+    set(LevelZero_OpenCL_INTEROP TRUE)
+    set_target_properties(OpenCL::OpenCL
+      PROPERTIES INTERFACE_COMPILE_DEFINITIONS CL_TARGET_OPENCL_VERSION=210
+    )
+    set_target_properties(LevelZero::LevelZero
+      PROPERTIES INTERFACE_COMPILE_DEFINITIONS ZE_ENABLE_OCL_INTEROP
+    )
+    message(STATUS "Found OpenCL, enabling Level-Zero OpenCL interop support")
+endif()
+
+
+MESSAGE(STATUS "LevelZero_LIBRARIES: " ${LevelZero_LIBRARIES})
+MESSAGE(STATUS "LevelZero_INCLUDE_DIRS: " ${LevelZero_INCLUDE_DIRS})

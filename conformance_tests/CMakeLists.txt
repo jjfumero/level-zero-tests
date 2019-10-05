@@ -22,13 +22,21 @@
 #
 
 function(add_conformance_test)
-    set(options "")
+    set(options REQUIRES_OPENCL_INTEROP)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS MEDIA)
     cmake_parse_arguments(ADD_CONFORMANCE_TEST
       "${options}" "${oneValueArgs}" "${multiValueArgs}"
       ${ARGN}
     )
+
+    if(
+      ADD_CONFORMANCE_TEST_REQUIRES_OPENCL_INTEROP AND
+      NOT LevelZero_OpenCL_INTEROP
+    )
+        message(STATUS "Disabling build of ${ADD_CONFORMANCE_TEST_NAME} since Level-Zero OpenCL interop is not available")
+        return()
+    endif()
 
     add_executable(${ADD_CONFORMANCE_TEST_NAME} ${ADD_CONFORMANCE_TEST_SOURCES})
 
@@ -41,7 +49,7 @@ function(add_conformance_test)
 
     target_link_libraries(${ADD_CONFORMANCE_TEST_NAME}
       PRIVATE
-        ${LevelZero_LIBRARIES}
+        LevelZero::LevelZero
         level_zero_tests::xe_test_harness
         GMock::GMock
         GTest::GTest
@@ -51,7 +59,6 @@ function(add_conformance_test)
     target_include_directories(${ADD_CONFORMANCE_TEST_NAME}
       PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${LevelZero_INCLUDE_DIRS}
         ${ADD_CONFORMANCE_TEST_INCLUDE_DIRECTORIES}
     )
 

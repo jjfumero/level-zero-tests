@@ -30,15 +30,11 @@ add_core_xe_library(xe_utils
 target_link_libraries(xe_utils
     PUBLIC
     level_zero_tests::logging
-    ${LevelZero_LIBRARIES}
+    LevelZero::LevelZero
 )
 
 add_core_xe_library_test(xe_utils
     SOURCE
     "test/main.cpp"
     "test/xe_utils_unit_tests.cpp"
-)
-target_include_directories(xe_utils
-  PRIVATE
-    ${LevelZero_INCLUDE_DIRS}
 )
