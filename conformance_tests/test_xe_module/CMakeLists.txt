@@ -36,4 +36,5 @@ add_conformance_test(
     multiple_global_variables
     update_variable_on_device
     xe_module_add
+    xe_module_build_error
 )
