@@ -9,7 +9,6 @@ build-windows:
   tags:
     - ilab
     - win
-    - l0win-0  # lock to single VM for caching purposes
   only:
     - merge_requests
     - master
