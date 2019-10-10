@@ -52,8 +52,12 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = 3072 -bor 768 -bor 192 
 RUN Remove-Item -Force 'C:\ProgramData\chocolatey\bin\cpack.exe'
 
 # install devtool and gta-asset tools
-RUN git clone https://github.intel.com/vpgsw/devtool C:\devtool; `
+# TODO: using a patched version that fixes several issues for now, waiting for
+# the fixes to get merged to master.
+RUN git clone https://gitlab.devtools.intel.com/ledettwy/devtool.git C:\devtool; `
     cd C:\devtool; `
+    git fetch origin ledettwy/mount_as_root_dir; `
+    git checkout f7390409fe05e4a3f201ffb876aaf34555113314; `
     cmd /c dt self-install; `
     [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\devtool;C:\devtool\.deps\tools\gta-asset', [EnvironmentVariableTarget]::Machine)
 
