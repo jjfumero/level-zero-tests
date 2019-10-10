@@ -51,11 +51,11 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = 3072 -bor 768 -bor 192 
 # cpack (an alias from chocolatey) and cmake's cpack conflict.
 RUN Remove-Item -Force 'C:\ProgramData\chocolatey\bin\cpack.exe'
 
-# install irepo and gta-asset tools
-RUN git clone https://github.intel.com/GSDI/irepo C:\irepo; `
-    cd C:\irepo; `
-    .\irepo.bat download_tools; `
-    [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\irepo;C:\irepo\.irepo\tools\gta-asset', [EnvironmentVariableTarget]::Machine);
+# install devtool and gta-asset tools
+RUN git clone https://github.intel.com/vpgsw/devtool C:\devtool; `
+    cd C:\devtool; `
+    cmd /c dt self-install; `
+    [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\devtool;C:\devtool\.deps\tools\gta-asset', [EnvironmentVariableTarget]::Machine)
 
 FROM toolchain AS build_deps
 

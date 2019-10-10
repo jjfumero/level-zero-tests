@@ -1,9 +1,9 @@
 @echo on
 
-call irepo select .\dependencies.yml || exit /b
-call irepo sync -c googletest || exit /b
-call irepo sync -c level_zero_windows || exit /b
-call irepo sync -c yuv_samples || exit /b
+call dt workspace select .\dependencies.yml || exit /b
+call dt workspace sync -c googletest || exit /b
+call dt workspace sync -c level_zero_windows || exit /b
+call dt workspace sync -c yuv_samples || exit /b
 
 mkdir build
 cd build

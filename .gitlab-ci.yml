@@ -36,8 +36,8 @@ build-windows:
         -w C:\project
         -v C:\clcache:C:\clcache
         -e CLCACHE_DIR=C:\clcache
-        -v C:\irepo-cache:C:\irepo-cache
-        -e IREPO_CACHE_DIR=C:\irepo-cache
+        -v C:\devtool-cache:C:\devtool-cache
+        -e DEVTOOL_CACHE_DIR=C:\devtool-cache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
         .\ci-build-windows.bat
     # Can't use wildcards for matching subdirerctories in windows...
