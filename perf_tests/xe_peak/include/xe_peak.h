@@ -50,7 +50,7 @@ enum class TimingMeasurement {
     BANDWIDTH = 0,
     BANDWIDTH_EVENT_TIMING,
     KERNEL_LAUNCH_LATENCY,
-    KERNEL_COMPLETE_LATENCY
+    KERNEL_COMPLETE_RUNTIME
 };
 
 struct L0Context {

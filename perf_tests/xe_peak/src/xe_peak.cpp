@@ -659,7 +659,7 @@ float XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
       if (verbose)
         std::cout << "Event Reset\n";
     }
-  } else if (type == TimingMeasurement::KERNEL_COMPLETE_LATENCY) {
+  } else if (type == TimingMeasurement::KERNEL_COMPLETE_RUNTIME) {
     result = zeCommandListAppendLaunchKernel(
         context.command_list, function, &workgroup_info.thread_group_dimensions,
         nullptr, 0, nullptr);

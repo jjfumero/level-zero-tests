@@ -103,10 +103,10 @@ void XePeak::_transfer_bw_shared_memory(L0Context &context,
   std::cout << "GPU Copy Shared Memory to Host : ";
   _transfer_bw_gpu_copy(context, local_memory.data(), shared_memory_buffer,
                         local_memory_size);
-  std::cout << "Memcpy Host to Shared Memory : ";
+  std::cout << "memcpy to mapped ptr : ";
   _transfer_bw_host_copy(shared_memory_buffer, local_memory.data(),
                          local_memory_size);
-  std::cout << "Memcpy Shared Memory to Host : ";
+  std::cout << "memcpy from mapped ptr : ";
   _transfer_bw_host_copy(local_memory.data(), shared_memory_buffer,
                          local_memory_size);
 
@@ -145,11 +145,11 @@ void XePeak::xe_peak_transfer_bw(L0Context &context) {
 
   std::cout << "Transfer Bandwidth (GBPS)\n";
 
-  std::cout << "GPU Copy Host to Device : ";
+  std::cout << "enqueueWriteBuffer : ";
   _transfer_bw_gpu_copy(context, device_buffer, local_memory.data(),
                         local_memory_size);
 
-  std::cout << "GPU Copy Device to Host : ";
+  std::cout << "enqueueReadBuffer : ";
   /*TODO: Add support for timing the enqueue using event timers*/
   _transfer_bw_gpu_copy(context, local_memory.data(), device_buffer,
                         local_memory_size);

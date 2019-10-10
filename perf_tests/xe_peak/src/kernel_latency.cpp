@@ -62,15 +62,15 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
                  inputBuf, outputBuf);
 
   ///////////////////////////////////////////////////////////////////////////
-  std::cout << "Kernel Launch Latency : ";
+  std::cout << "Kernel launch latency : ";
   latency = run_kernel(context, local_offset_v1, workgroup_info,
                        TimingMeasurement::KERNEL_LAUNCH_LATENCY, false);
   std::cout << latency << " (uS)\n";
 
   ///////////////////////////////////////////////////////////////////////////
-  std::cout << "Kernel Latency : ";
+  std::cout << "Kernel duration : ";
   latency = run_kernel(context, local_offset_v1, workgroup_info,
-                       TimingMeasurement::KERNEL_COMPLETE_LATENCY, false);
+                       TimingMeasurement::KERNEL_COMPLETE_RUNTIME, false);
   std::cout << latency << " (uS)\n";
 
   result = zeKernelDestroy(local_offset_v1);

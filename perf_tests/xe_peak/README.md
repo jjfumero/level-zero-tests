@@ -11,7 +11,7 @@ xe_peak measures the following:
 * Integer Compute in GigaInteger Flops
 * Memory Transfer Bandwidth in GigaBytes Per Second
 * Kernel Launch Latency in micro seconds
-* Kernel Latency in micro seconds
+* Kernel Duration in micro seconds
 
 # Prerequisites
 * Requires:
