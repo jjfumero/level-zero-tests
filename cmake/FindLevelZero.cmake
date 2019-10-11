@@ -12,7 +12,7 @@ find_path(LevelZero_INCLUDE_DIR
 # If OpenCL is available, we can enable interop support
 set(LevelZero_OpenCL_INTEROP FALSE)
 set(CMAKE_PREFIX_PATH "${OPENCL_ROOT}")
-find_package(OpenCL)
+find_package(OpenCL 2.1)
 if (OpenCL_FOUND)
     set(LevelZero_OpenCL_FOUND TRUE)
 endif()
