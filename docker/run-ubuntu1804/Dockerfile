@@ -19,7 +19,7 @@ RUN curl -sSL \
     chmod +x /usr/local/bin/yq
 
 # Setup irepo
-RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
+# RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
 
 # Setup qb-asset
 # RUN chmod +x ~/.irepo/.irepo/tools/gta-asset/qb-asset
