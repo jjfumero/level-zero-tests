@@ -22,7 +22,14 @@ RUN apt-get update && apt-get install -y \
         opencl-headers \
     && rm -rf /var/lib/apt/lists/*
 
-# Setup irepo
-RUN curl -sSL https://github.intel.com/raw/GSDI/irepo/master/install.sh | bash
+# install devtool and gta-asset tools
+# TODO: using a patched version that fixes several issues for now, waiting for
+# the fixes to get merged to master.
+RUN git clone https://gitlab.devtools.intel.com/ledettwy/devtool.git ~/.devtool && \
+    cd ~/.devtool && \
+    git fetch origin ledettwy/mount_as_root_dir && \
+    git checkout f7390409fe05e4a3f201ffb876aaf34555113314 && \
+    ./dt download_tools
+ENV PATH "$PATH:~/.devtool:~/.devtool/.deps/tools/gta-asset"
 
 CMD ["/bin/bash"]

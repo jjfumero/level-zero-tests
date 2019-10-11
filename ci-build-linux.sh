@@ -3,11 +3,10 @@
 set -eu
 set -o pipefail
 
-# Synchronize third-party assets with irepo
-~/.irepo/irepo select ./dependencies.yml
-~/.irepo/irepo sync -c googletest
-~/.irepo/irepo sync -c level_zero_linux
-~/.irepo/irepo sync -c yuv_samples
+dt workspace select ./dependencies.yml
+dt workspace sync -c googletest
+dt workspace sync -c level_zero_linux
+dt workspace sync -c yuv_samples
 
 mkdir build
 cd build
