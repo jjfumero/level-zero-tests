@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
         curl \
         git \
         libpng16-16 \
+        ocl-icd-opencl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install yq, a command-line YAML parser (required for parsing test_config.yml)
