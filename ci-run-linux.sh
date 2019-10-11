@@ -18,7 +18,7 @@ export LD_LIBRARY_PATH=$PWD/third_party/level_zero_linux/lib/level_zero
 export SetCommandStreamReceiver=2
 export ProductFamilyOverride=skl
 cd $test_dir
-./$test --logging-level=error | tee $results_dir/$test || true  # why isn't --logging-level=error the default?!
+./$test --logging-level=error 2>&1 | tee $results_dir/$test || true  # why isn't --logging-level=error the default?!
 touch $results_dir/$test-done
 ) &
 
