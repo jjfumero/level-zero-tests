@@ -146,13 +146,13 @@ TEST(zeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
   for (int i = 0; i < num_execute; i++) {
     memset(buffer, 0x0, size);
     for (int j = 0; j < size; j++)
-      ASSERT_EQ(static_cast<uint8_t *>(buffer)[i], 0x0)
+      ASSERT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0)
           << "Memory Set did not match.";
 
     lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
     lzt::synchronize(cmdq, UINT32_MAX);
     for (int j = 0; j < size; j++)
-      ASSERT_EQ(static_cast<uint8_t *>(buffer)[i], 0x1)
+      ASSERT_EQ(static_cast<uint8_t *>(buffer)[j], 0x1)
           << "Memory Set did not match.";
   }
 
@@ -161,6 +161,150 @@ TEST(zeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
   lzt::free_memory(buffer);
 }
 
+class zeCommandListCloseAndResetTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<ze_command_list_flag_t> {};
+
+TEST_P(zeCommandListCloseAndResetTests,
+       GivenClosedCommandListWhenAppendAttemptedThenNotSuccessful) {
+  ze_command_list_flag_t flags = GetParam();
+  ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_command_list_handle_t cmdlist = lzt::create_command_list(device, flags);
+  ze_command_queue_handle_t cmdq;
+  if (flags == ZE_COMMAND_LIST_FLAG_COPY_ONLY) {
+    cmdq = lzt::create_command_queue(device, ZE_COMMAND_QUEUE_FLAG_COPY_ONLY,
+                                     ZE_COMMAND_QUEUE_MODE_DEFAULT,
+                                     ZE_COMMAND_QUEUE_PRIORITY_NORMAL, 0);
+  } else {
+    cmdq = lzt::create_command_queue(device);
+  }
+  const size_t size = 16;
+  auto buffer = lzt::allocate_shared_memory(size);
+  const uint8_t set_succeed_1 = 0x1;
+  const uint8_t set_fail_2 = 0x2;
+  const uint8_t set_fail_3 = 0x3;
+
+  memset(buffer, 0x0, size);
+  for (size_t j = 0; j < size; j++) {
+    EXPECT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0);
+  }
+  // Command list setup with only memory set and barrier
+  lzt::append_memory_set(cmdlist, buffer, set_succeed_1, size);
+  lzt::append_barrier(cmdlist, nullptr, 0, nullptr);
+  lzt::close_command_list(cmdlist);
+  // Attempt to append command list after close should fail
+  lzt::append_memory_set(cmdlist, buffer, set_fail_2, size);
+  lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+  lzt::synchronize(cmdq, UINT32_MAX);
+  for (size_t j = 0; j < size; j++) {
+    EXPECT_EQ(static_cast<uint8_t *>(buffer)[j], set_succeed_1);
+  }
+
+  memset(buffer, 0x0, size);
+  for (size_t j = 0; j < size; j++) {
+    EXPECT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0);
+  }
+  // Reset command list and immediately close
+  lzt::reset_command_list(cmdlist);
+  lzt::close_command_list(cmdlist);
+  // Attempt to append command list after close should fail
+  lzt::append_memory_set(cmdlist, buffer, set_fail_3, size);
+  lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+  lzt::synchronize(cmdq, UINT32_MAX);
+  // No commands should be executed by command queue
+  // This test fails for fulsim/cobalt, and passes for Gen9HW
+  // (It will NOT fail, if the append_memory_set, 5 lines above, is commented
+  // out)
+  for (size_t j = 0; j < size; j++) {
+    EXPECT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0);
+  }
+  lzt::destroy_command_list(cmdlist);
+  lzt::destroy_command_queue(cmdq);
+  lzt::free_memory(buffer);
+}
+
+TEST_P(zeCommandListCloseAndResetTests,
+       GivenCommandListWhenResetThenVerifyOnlySubsequentInstructionsExecuted) {
+  ze_command_list_flag_t flags = GetParam();
+  ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_command_list_handle_t cmdlist = lzt::create_command_list(device, flags);
+  ze_command_queue_handle_t cmdq;
+  if (flags == ZE_COMMAND_LIST_FLAG_COPY_ONLY) {
+    cmdq = lzt::create_command_queue(device, ZE_COMMAND_QUEUE_FLAG_COPY_ONLY,
+                                     ZE_COMMAND_QUEUE_MODE_DEFAULT,
+                                     ZE_COMMAND_QUEUE_PRIORITY_NORMAL, 0);
+  } else {
+    cmdq = lzt::create_command_queue(device);
+  }
+  const size_t num_instr = 8;
+  const size_t size = 16;
+
+  std::vector<void *> buffer;
+  std::vector<uint8_t> val;
+  for (size_t i = 0; i < num_instr; i++) {
+    buffer.push_back(lzt::allocate_shared_memory(size));
+    val.push_back(static_cast<uint8_t>(i + 1));
+  }
+
+  // Begin with num_instr command list instructions, reset and reduce by one
+  // each time.
+  size_t test_instr = num_instr;
+
+  while (test_instr) {
+    for (auto buf : buffer) {
+      memset(buf, 0x0, size);
+    }
+    for (size_t i = 0; i < test_instr; i++) {
+      lzt::append_memory_set(cmdlist, buffer[i], val[test_instr - (i + 1)],
+                             size);
+    }
+    lzt::append_barrier(cmdlist, nullptr, 0, nullptr);
+    lzt::close_command_list(cmdlist);
+    lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+    lzt::synchronize(cmdq, UINT32_MAX);
+    for (size_t i = 0; i < test_instr; i++) {
+      for (size_t j = 0; j < size; j++) {
+        EXPECT_EQ(static_cast<uint8_t *>(buffer[i])[j],
+                  val[test_instr - (i + 1)]);
+      }
+    }
+    for (size_t i = test_instr; i < num_instr; i++) {
+      for (size_t j = 0; j < size; j++) {
+        EXPECT_EQ(static_cast<uint8_t *>(buffer[i])[j], 0x0);
+      }
+    }
+    lzt::reset_command_list(cmdlist);
+    test_instr--;
+  }
+  // Last check:  no instructions should be executed
+  for (auto buf : buffer) {
+    memset(buf, 0x0, size);
+  }
+  lzt::close_command_list(cmdlist);
+  lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+  lzt::synchronize(cmdq, UINT32_MAX);
+  for (size_t i = 0; i < num_instr; i++) {
+    for (size_t j = 0; j < size; j++) {
+      EXPECT_EQ(static_cast<uint8_t *>(buffer[i])[j], 0x0);
+    }
+  }
+
+  // Command list setup with only memory set and barrier
+
+  lzt::destroy_command_list(cmdlist);
+  lzt::destroy_command_queue(cmdq);
+  for (auto buf : buffer) {
+    lzt::free_memory(buf);
+  }
+}
+
+INSTANTIATE_TEST_CASE_P(
+    TestCasesforCommandListCloseAndCommandListReset,
+    zeCommandListCloseAndResetTests,
+    testing::Values(ZE_COMMAND_LIST_FLAG_NONE, ZE_COMMAND_LIST_FLAG_COPY_ONLY,
+                    ZE_COMMAND_LIST_FLAG_RELAXED_ORDERING,
+                    ZE_COMMAND_LIST_FLAG_MAXIMIZE_THROUGHPUT,
+                    ZE_COMMAND_LIST_FLAG_EXPLICIT_ONLY));
 } // namespace
 
 // TODO: Check memory leaks after call to zeCommandListDestroy

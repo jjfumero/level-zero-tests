@@ -34,9 +34,14 @@ ze_command_list_handle_t create_command_list() {
   return create_command_list(zeDevice::get_instance()->get_device());
 }
 ze_command_list_handle_t create_command_list(ze_device_handle_t device) {
+  return create_command_list(device, ZE_COMMAND_LIST_FLAG_NONE);
+}
+
+ze_command_list_handle_t create_command_list(ze_device_handle_t device,
+                                             ze_command_list_flag_t flags) {
   ze_command_list_desc_t descriptor;
   descriptor.version = ZE_COMMAND_LIST_DESC_VERSION_CURRENT;
-
+  descriptor.flags = flags;
   ze_command_list_handle_t command_list = nullptr;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListCreate(device, &descriptor, &command_list));
