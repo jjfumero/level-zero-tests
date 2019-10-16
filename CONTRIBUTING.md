@@ -103,6 +103,11 @@ synchronized with a tool called [irepo](https://github.intel.com/GSDI/irepo).
 Ensure you install and use irepo from a unix account with the username matching
 your Intel IDSID so authentication works correctly.
 
+> **_NOTE:_** Even though devtool (successor to irepo) is used in the build
+> automation, irepo is still the recommended tool for developer checkouts. The
+> current version of devtool does potentially unwanted things to your workspace,
+> such as removing all your existing git hooks and replacing them with its own.
+
 Once irepo is installed, synchronize the third-party assets:
 
 ```
