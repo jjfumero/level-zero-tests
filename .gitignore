@@ -37,6 +37,7 @@
 *.user
 *.filters
 .vs/
+.vscode/
 .idea/
 
 # Compiled Static libraries
