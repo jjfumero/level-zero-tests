@@ -177,6 +177,99 @@ TEST_F(zeFenceSynchronizeTests,
   lzt::free_memory(output_buffer);
 }
 
+class zeMultipleFenceTests : public lzt::zeEventPoolTests,
+                             public ::testing::WithParamInterface<bool> {};
+
+TEST_P(
+    zeMultipleFenceTests,
+    GivenMultipleCommandQueuesWhenFenceAndEventSetThenVerifyAllSignaledSuccessful) {
+  ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  ze_device_properties_t properties;
+  properties.version = ZE_DEVICE_PROPERTIES_VERSION_CURRENT;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDeviceGetProperties(device, &properties));
+  // maximum simultaneous command queues
+  const size_t num_async_compute =
+      static_cast<size_t>(properties.numAsyncComputeEngines);
+  const size_t num_async_copy =
+      static_cast<size_t>(properties.numAsyncCopyEngines);
+  const size_t num_cmdq = num_async_compute + num_async_copy;
+  bool use_event = GetParam();
+
+  const size_t size = 16;
+  std::vector<ze_event_handle_t> host_to_dev_event(num_cmdq, nullptr);
+  if (use_event) {
+    FAIL(); // Must fail until event signaling issues resolved
+            // Multiple issues noted (LOKI-537, LOKI-551)
+    ep.InitEventPool(num_cmdq);
+  }
+  std::vector<ze_fence_handle_t> fence(num_cmdq, nullptr);
+  std::vector<ze_command_queue_handle_t> cmdq(num_cmdq, nullptr);
+  std::vector<ze_command_list_handle_t> cmdlist(num_cmdq, nullptr);
+  std::vector<void *> buffer(num_cmdq, nullptr);
+  std::vector<uint8_t> val(num_cmdq, 0);
+  ze_command_list_flag_t cmdlist_flag = ZE_COMMAND_LIST_FLAG_NONE;
+  ze_command_queue_flag_t cmdq_flag = ZE_COMMAND_QUEUE_FLAG_NONE;
+  uint32_t ordinal = 0;
+
+  for (size_t i = 0; i < num_cmdq; i++) {
+    if (i == num_async_compute) {
+      cmdlist_flag = ZE_COMMAND_LIST_FLAG_COPY_ONLY;
+      cmdq_flag = ZE_COMMAND_QUEUE_FLAG_COPY_ONLY;
+      ordinal = 0;
+    }
+    cmdq[i] = lzt::create_command_queue(
+        device, cmdq_flag, ZE_COMMAND_QUEUE_MODE_DEFAULT,
+        ZE_COMMAND_QUEUE_PRIORITY_NORMAL, ordinal);
+    cmdlist[i] = lzt::create_command_list(device, cmdlist_flag);
+    fence[i] = lzt::create_fence(cmdq[i]);
+    buffer[i] = lzt::allocate_shared_memory(size);
+    val[i] = static_cast<uint8_t>(i + 1);
+
+    if (use_event) {
+      ep.create_event(host_to_dev_event[i], ZE_EVENT_SCOPE_FLAG_HOST,
+                      ZE_EVENT_SCOPE_FLAG_HOST);
+      lzt::append_wait_on_events(cmdlist[i], 1, &host_to_dev_event[i]);
+    }
+    lzt::append_memory_set(cmdlist[i], buffer[i], val[i], size);
+    lzt::append_barrier(cmdlist[i], nullptr, 0, nullptr);
+    lzt::close_command_list(cmdlist[i]);
+    ordinal++;
+  }
+
+  // attempt to execute command queues simutanesously
+  for (size_t i = 0; i < num_cmdq; i++) {
+    lzt::execute_command_lists(cmdq[i], 1, &cmdlist[i], fence[i]);
+  }
+
+  if (use_event) {
+    for (size_t i = 0; i < num_cmdq; i++) {
+      EXPECT_EQ(ZE_RESULT_NOT_READY, zeFenceQueryStatus(fence[i]));
+      EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSignal(host_to_dev_event[i]));
+    }
+  }
+
+  for (size_t i = 0; i < num_cmdq; i++) {
+    lzt::sync_fence(fence[i], UINT32_MAX);
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeFenceQueryStatus(fence[i]));
+    for (size_t j = 0; j < size; j++) {
+      EXPECT_EQ(static_cast<uint8_t *>(buffer[i])[j], val[i]);
+    }
+  }
+
+  for (size_t i = 0; i < num_cmdq; i++) {
+    if (use_event) {
+      ep.destroy_event(host_to_dev_event[i]);
+    }
+    lzt::destroy_command_queue(cmdq[i]);
+    lzt::destroy_command_list(cmdlist[i]);
+    lzt::destroy_fence(fence[i]);
+    lzt::free_memory(buffer[i]);
+  }
+}
+
+INSTANTIATE_TEST_CASE_P(TestMultipleFenceWithAndWithoutEvent,
+                        zeMultipleFenceTests, testing::Values(false, true));
+
 } // namespace
 
 // TODO: Test different fence flags
