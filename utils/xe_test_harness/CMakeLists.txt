@@ -44,6 +44,7 @@ add_core_library(xe_test_harness
     "src/xe_test_harness_fence.cpp"
     "src/xe_test_harness_module.cpp"
     "src/xe_test_harness_sampler.cpp"
+    "src/xe_test_harness_ocl_interop.cpp"
 )
 target_link_libraries(xe_test_harness
     PUBLIC

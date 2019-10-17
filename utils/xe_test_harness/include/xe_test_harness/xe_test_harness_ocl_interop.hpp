@@ -22,25 +22,20 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#ifndef level_zero_tests_XE_TEST_HARNESS_OCL_HPP
+#define level_zero_tests_XE_TEST_HARNESS_OCL_HPP
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
-#include "xe_test_harness_sampler.hpp"
-#include "xe_test_harness_ocl_interop.hpp"
+#include "ze_cl_interop.h"
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
+namespace level_zero_tests {
+
+void *ocl_register_memory(cl_context context, cl_mem mem);
+
+ze_command_queue_handle_t
+ocl_register_commandqueue(cl_context context, cl_command_queue command_queue);
+
+ze_module_handle_t ocl_register_program(cl_context context, cl_program program);
+
+}; // namespace level_zero_tests
 
 #endif

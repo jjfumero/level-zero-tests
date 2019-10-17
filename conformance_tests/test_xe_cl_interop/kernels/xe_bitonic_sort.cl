@@ -22,25 +22,18 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+kernel void xe_bitonic_sort(global int *a, const int p, const int q) {
+  const int i = get_global_id(0);
+  const int d = (1 << (p - q));
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
-#include "xe_test_harness_sampler.hpp"
-#include "xe_test_harness_ocl_interop.hpp"
+  if ((i & d) == 0) {
+    const int up = ((i >> p) & 2) == 0;
+    const int a1 = a[i];
+    const int a2 = a[i | d];
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
-
-#endif
+    if ((a1 > a2) == up) {
+      a[i] = a2;
+      a[i | d] = a1;
+    }
+  }
+}

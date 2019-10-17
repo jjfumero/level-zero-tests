@@ -31,7 +31,10 @@ add_conformance_test(
     level_zero_tests::logging
     level_zero_tests::xe_utils
     level_zero_tests::ocl_utils
+    level_zero_tests::random
     OpenCL::OpenCL
     Boost::boost
   REQUIRES_OPENCL_INTEROP
+  KERNELS
+    xe_bitonic_sort
 )
