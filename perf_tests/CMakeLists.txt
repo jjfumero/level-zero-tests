@@ -78,6 +78,11 @@ function(add_perf_test)
     endif()
 endfunction()
 
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION
+  "${CMAKE_BINARY_DIR}/out/perf_tests"
+)
+include(InstallRequiredSystemLibraries)
+
 add_subdirectory(xe_nano)
 add_subdirectory(xe_peak)
 add_subdirectory(xe_peer)

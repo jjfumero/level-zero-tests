@@ -27,6 +27,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(clang_tools)
 include(custom_functions)
+include(vs2019_missing_redist_workaround)
 
 # FindPNG doesn't listen to PNG_ROOT, so use CMAKE_PREFIX_PATH for it
 if(PNG_ROOT)

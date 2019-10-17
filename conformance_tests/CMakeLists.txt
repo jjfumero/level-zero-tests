@@ -119,6 +119,11 @@ function(add_conformance_test_executable)
     endif()
 endfunction()
 
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION
+  "${CMAKE_BINARY_DIR}/out/conformance_tests"
+)
+include(InstallRequiredSystemLibraries)
+
 add_subdirectory(test_xe_barrier)
 add_subdirectory(test_xe_cl_interop)
 add_subdirectory(test_xe_cmdlist)
