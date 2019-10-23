@@ -419,7 +419,7 @@ TEST_P(
     lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
   }
   ze_kernel_handle_t function_2 =
-      lzt::create_function(module, "ze_barrier_add_two_arrays");
+      lzt::create_function(module, "xe_barrier_add_two_arrays");
   lzt::set_group_size(function_2, 1, 1, 1);
 
   lzt::set_argument_value(function_2, 0, sizeof(p_host), &p_host);
