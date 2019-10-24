@@ -81,12 +81,12 @@ Using it to compile a kernel file called `xe_nano_benchmarks.cl` in the current
 directory:
 
 ```
-docker run \
-  --rm \
-  -v $PWD:$PWD \
-  -w $PWD \
-  clang-spv \
-  -o xe_nano_benchmarks.spv \
+docker run
+  --rm
+  -v $PWD:$PWD
+  -w $PWD
+  clang-spv
+  -o xe_nano_benchmarks.spv
   xe_nano_benchmarks.cl
 ```
 
@@ -124,6 +124,9 @@ cmake argument to point to whichever level-zero directory gets created in
 
 You should synchronize these components whenever their entries are updated in
 the [`dependencies.yml`](./dependencies.yml) file.
+
+If you opt to use devtool (`dt`) insetad of irepo, the commands are the same,
+e.g., `dt select dependencies.yml`.
 
 ## Updating Third Party Assets
 
@@ -282,30 +285,35 @@ the web interface.
 
 Changes should be verified before being merged into master. The minimum level of
 verification is currently for your changes to successfully build on Ubuntu 18.04
-and Windows. You should also verify that your changes do not introduce any
-unexpected regressions in test passes.
+and Windows and execute on Ubuntu 18.04 with no unintended regressions.
 
 There are two ways to verify your changes: automated GitLab pipelines, and
-manually using the provided Dockerfiles.
+manually using the provided Dockerfiles. For all the manual examples, your
+current working directory should be the root of this repository checkout.
 
-### Automated GitLab Pipelines
+### Automated GitLab Build and Run Pipelines
 
 The automated GitLab pipelines will automatically build changes for which you
 open a merge request on all of the target platforms. Even if you aren't ready to
 merge your changes yet, you can create a WIP merge request by prepending `WIP: `
 to the title, which will prevent it from being accidentally merged.
 
-You can also manually trigger a GitLab pipeline to run on your branch from the [CI/CD][ci_cd_page]
-page by clicking the **Run Pipeline** button.
+You can also manually trigger a GitLab pipeline to run on your branch from the
+[CI/CD][ci_cd_page] page by clicking the **Run Pipeline** button.
 
 After building your changes, all the tests will be executed against fulsim-gen9
-on Ubuntu 18.04. The final pipeline job (run-summarize) will dump all of the
-gtest output to the log, and you should review it to ensure the test(s) that
-were changed are executing as expected (you may have to open the raw log in
-order to view all the output). Automatic regression checking will be enabled at
-a future point.
+on Ubuntu 18.04. With merge requests to master, a result report will be
+displayed as a panel on the merge request page. The report shows newly failing
+(comparerd to the target branch, i.e. `master`) cases highlighted at the top,
+cases that continue to fail following, and newly passing cases listed at the
+very bottom. You should review this report and make sure your changes are not
+introducing any unintended regressions.
 
-### Manual Verification
+![Test reports in merge requests][img:mr_test_report]
+
+[img:mr_test_report]: doc/mr_test_report.png
+
+### Manual Builds with Docker
 
 You can build your changes locally using the provided Dockerfiles and CI build
 scripts. You will need these prerequisites:
@@ -326,40 +334,40 @@ same builder image that is used by the automated pipelines. From the root of
 your checkout of this repository, run the following:
 
 ```
-docker build \
-  -t level_zero_tests:latest \
-  ./docker/build/<platform>
+docker build
+  -t level_zero_tests-build
+  ./docker/build-<platform>
 ```
 
-This will create the image locally and tag it as `level_zero_tests`.
+This will create the image locally and tag it as `level_zero_tests-build`.
 
 Now that the build image has been created, you can perform a build of your
 changes, using the following:
 
 Linux example:
 
-```
-docker run \
-  --rm \
-  -v ${PWD}:/root/project \
-  -w /root/project \
-  -v ${PWD}/ccache:/ccache \
-  -e CCACHE_DIR=/ccache \
-  -e CCACHE_BASEDIR=/root/project \
-  level_zero_tests:latest \
+```bash
+docker run
+  --rm -ti
+  -v ${PWD}:${PWD}
+  -w ${PWD}
+  -v ${PWD}/ccache:/ccache
+  -e CCACHE_DIR=/ccache
+  -e CCACHE_BASEDIR=/root/project
+  level_zero_tests-build
   ./ci-build-linux.sh
 ```
 
 Windows example:
 
-```
-docker run `
-  --rm `
-  -v %cd%:C:\project `
-  -w C:\project `
-  -v C:\clcache:C:\clcache `
-  -e CLCACHE_DIR=C:\clcache `
-  level_zero_tests:latest `
+```cmd
+docker run
+  --rm -ti
+  -v %cd%:C:\project
+  -w C:\project
+  -v C:\clcache:C:\clcache
+  -e CLCACHE_DIR=C:\clcache
+  level_zero_tests-build
   .\ci-build-windows.bat
 ```
 
@@ -369,38 +377,39 @@ repo) into the build container and perform a build in a `build` directory
 subsequent compilations.
 
 The build image is also general-purpose enough to be usable as an interactive
-development environment, as it has all of the build tools and irepo installed
-and ready to go in it.
+development environment, as it has all of the build tools and a safe version of
+devtool (patched to remove the unwanted behavior described in the
+[Synchronizing Third Party Assets](#synchronizing-third-party-assets) section)
+installed and ready to go in it.
 
 Linux example:
 
-```
-docker run \
-  -it \
-  --rm \
-  -v ${PWD}:/root/project \
-  -w /root/project \
-  -v ${PWD}/ccache:/ccache \
-  -e CCACHE_DIR=/ccache \
-  -e CCACHE_BASEDIR=/root/project \
+```bash
+docker run
+  --rm -ti
+  -v ${PWD}:${PWD}
+  -w ${PWD}
+  -v ${PWD}/ccache:/ccache
+  -e CCACHE_DIR=/ccache
+  -e CCACHE_BASEDIR=/root/project
   level_zero_tests:latest
 ```
 
 Windows example:
 
-```
-docker run `
-  -it `
-  --rm `
-  -v %cd%:C:\project `
-  -w C:\project `
-  -v C:\clcache:C:\clcache `
-  -e CLCACHE_DIR=C:\clcache `
+```cmd
+docker run
+  --rm -ti
+  -v %cd%:C:\project
+  -w C:\project
+  -v C:\clcache:C:\clcache
+  -e CLCACHE_DIR=C:\clcache
   level_zero_tests:latest
 ```
 
 This will launch a container with an interactive shell in the root of this
-repository, where you can use irepo, cmake, and git for manually building.
+repository, where you can use devtool (`dt`), cmake, and git for manually
+building.
 
 [ci_cd_page]: https://gitlab.devtools.intel.com/one-api/level_zero_tests/pipelines
 [docker_ubuntu]: https://docs.docker.com/install/linux/docker-ce/ubuntu/
@@ -410,6 +419,71 @@ repository, where you can use irepo, cmake, and git for manually building.
 [docker_win10]: https://docs.docker.com/docker-for-windows/install/
 [docker_proxy]: https://docs.docker.com/network/proxy/
 [artifactory_web_login]: https://gfx-assets.fm.intel.com/artifactory/webapp/#/login
+
+### Manual Execution with Docker
+
+You can execute the tests locally using the provide docker runtime images.
+Execution in this manner is only supported on Linux.
+
+First, build the runtime image, which will be used for the container that the
+test binary itself executes in. You will need a user account and password that's
+capable of authenticating with QuickBuild to download the NEO runtime assets.
+
+Assuming the QuickBuild username and password are stored in the `QB_USER` and
+`QB_PASSWORD` environment variables:
+
+```bash
+docker build
+  --build-arg QB_USER
+  --build-arg QB_PASSWORD
+  -t level_zero_tests-runtime
+  ./docker/runtime-<platform>
+```
+
+Next, build the fulsim image. This requires a user account and password capable
+of authenticating with artifactory to download the fulsim binaries. The AGS
+entitlement for this is
+`Gfx Artifactory - gfx-compute-fulsim-assets-igk - readers`.
+
+Assuming the artifactory username and password are stored in the
+`ARTIFACTORY_USER` and `ARTIFACTORY_PASSWORD` environment variables:
+
+```bash
+docker build
+  --build-arg ARTIFACTORY_USER
+  --build-arg ARTIFACTORY_PASSWORD
+  --build-arg FULSIM_NAME=gen9
+  --build-arg FULSIM_VERSION=r36707
+  -t level_zero_tests-fulsim:gen9-r36707
+  ./docker/fulsim
+```
+
+Launch the fulsim container with:
+
+```bash
+docker run
+  --rm -ti
+  --name fulsim
+  level_zero_tests-fulsim:gen9-r36707
+  AubLoad -device skl.2.a0 -socket tcp
+```
+
+After fulsim has finished launching, you can execute a test binary in a runtime
+container (append any additional arguments to pass the the binary as you
+normally would):
+
+```bash
+docker run
+  --rm -ti
+  -v ${PWD}:${PWD}
+  -w ${PWD}/out/ubuntu1804/conformance_tests
+  --net=container:fulsim
+  -e SetCommandStreamReceiver=2
+  -e CreateMultipleRootDevices=2
+  -e LD_LIBRARY_PATH=${PWD}/third_party/level_zero_linux/lib/level_zero
+  level_zero_tests-runtime-ubuntu1804
+  ./test_xe_p2p
+```
 
 ## Approvals
 
