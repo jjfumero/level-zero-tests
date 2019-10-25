@@ -16,8 +16,6 @@ call cmake ^
   -DL0_ROOT=%cd%/../third_party/level_zero_windows ^
   -DREQUIRE_LEVELZERO_OPENCL_INTEROP=YES ^
   -DBOOST_ROOT=C:\boost ^
-  -DBoost_COMPILER="-vc" ^
-  -DBOOST_LIB_TOOLSET="vc" ^
   -DZLIB_ROOT=C:\zlib ^
   -DPNG_ROOT=C:\libpng ^
   -DOPENCL_ROOT=C:\opencl ^
