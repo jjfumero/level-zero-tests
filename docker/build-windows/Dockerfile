@@ -63,33 +63,6 @@ RUN git clone https://gitlab.devtools.intel.com/ledettwy/devtool.git C:\devtool;
 
 FROM toolchain AS build_deps
 
-# install boost
-RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    cd C:\TEMP; `
-    wget `
-      -Uri https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.zip `
-      -OutFile boost_1_70_0.zip `
-      -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::InternetExplorer; `
-    . 'C:\Program Files\7-Zip\7z.exe' x boost_1_70_0.zip; `
-    rm boost_1_70_0.zip
-SHELL ["cmd", "/S", "/C"]
-ENV BOOST_ROOT "C:\boost"
-RUN cd C:\VS\Common7\Tools & VsDevCmd && `
-    call "%VCInstallDir%\Auxiliary\Build\vcvars64.bat" && `
-    cd C:\TEMP\boost_1_70_0 && `
-    .\bootstrap && `
-    .\b2 install `
-      address-model=64 `
-      --prefix=%BOOST_ROOT% `
-      --with-program_options `
-      --with-timer `
-      --with-chrono `
-      --with-log `
-      --with-system `
-      -j4 && `
-    cd C:\ && `
-    rmdir /S /Q TEMP\boost_1_70_0
-
 # install zlib
 SHELL ["powershell"]
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
@@ -177,12 +150,40 @@ RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     cd C:\ && `
     rmdir /S /Q TEMP\OpenCL-ICD-Loader-b342ff7b7f70a4b3f2cfc53215af8fa20adc3d86
 
+# install boost
+SHELL ["powershell"]
+RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    cd C:\TEMP; `
+    wget `
+      -Uri https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.zip `
+      -OutFile boost_1_70_0.zip `
+      -UserAgent [Microsoft.PowerShell.Commands.PSUserAgent]::InternetExplorer; `
+    . 'C:\Program Files\7-Zip\7z.exe' x boost_1_70_0.zip; `
+    rm boost_1_70_0.zip
+SHELL ["cmd", "/S", "/C"]
+ENV BOOST_ROOT "C:\boost"
+RUN cd C:\VS\Common7\Tools & VsDevCmd && `
+    call "%VCInstallDir%\Auxiliary\Build\vcvars64.bat" && `
+    cd C:\TEMP\boost_1_70_0 && `
+    .\bootstrap && `
+    .\b2 install `
+      -j 4 `
+      address-model=64 `
+      --prefix=%BOOST_ROOT% `
+      --with-chrono `
+      --with-log `
+      --with-program_options `
+      --with-system `
+      --with-timer && `
+    cd C:\ && `
+    rmdir /S /Q TEMP\boost_1_70_0
+
 FROM toolchain AS dev
 
-COPY --from=build_deps C:\boost C:\boost
 COPY --from=build_deps C:\zlib C:\zlib
 COPY --from=build_deps C:\libpng C:\libpng
 COPY --from=build_deps C:\opencl C:\opencl
+COPY --from=build_deps C:\boost C:\boost
 
 SHELL ["cmd", "/S", "/C"]
 
