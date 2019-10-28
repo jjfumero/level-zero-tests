@@ -44,10 +44,15 @@ public:
   void InitEventPool();
   void InitEventPool(uint32_t count);
   void InitEventPool(uint32_t count, ze_event_pool_flag_t flags);
+  void InitEventPool(ze_event_pool_desc_t desc);
+  void InitEventPool(ze_event_pool_desc_t desc,
+                     std::vector<ze_device_handle_t> devices);
 
   void create_event(ze_event_handle_t &event);
   void create_event(ze_event_handle_t &event, ze_event_scope_flag_t signal,
                     ze_event_scope_flag_t wait);
+  void create_event(ze_event_handle_t &event, ze_event_desc_t desc);
+
   void create_events(std::vector<ze_event_handle_t> &events,
                      size_t event_count);
   void create_events(std::vector<ze_event_handle_t> &events, size_t event_count,
@@ -57,14 +62,21 @@ public:
   void destroy_events(std::vector<ze_event_handle_t> &events);
 
   void get_ipc_handle(ze_ipc_event_pool_handle_t *hIpc);
-  void open_ipc_handle(ze_ipc_event_pool_handle_t &hIpc,
-                       ze_event_pool_handle_t *eventPool);
-  void close_ipc_handle_pool(ze_event_pool_handle_t &eventPool);
 
   ze_event_pool_handle_t event_pool_ = nullptr;
   std::vector<bool> pool_indexes_available_;
   std::map<ze_event_handle_t, uint32_t> handle_to_index_map_;
 };
+
+void signal_event_from_host(ze_event_handle_t hEvent);
+
+ze_event_pool_handle_t create_event_pool(ze_event_pool_desc_t desc);
+ze_event_pool_handle_t
+create_event_pool(ze_event_pool_desc_t desc,
+                  std::vector<ze_device_handle_t> devices);
+void open_ipc_event_handle(ze_ipc_event_pool_handle_t hIpc,
+                           ze_event_pool_handle_t *eventPool);
+void close_ipc_event_handle(ze_event_pool_handle_t eventPool);
 
 class zeEventPoolTests : public ::testing::Test {
 protected:

@@ -92,15 +92,14 @@ TEST_F(
     zeDeviceCreateEventPoolTests,
     GivenDefaultDeviceWhenGettingIpcHandleAndOpeningAndClosingThenSuccessIsReturned) {
   ze_ipc_event_pool_handle_t hIpc;
-  ep.InitEventPool();
   // As of July 10, 2019, zeEventPoolGetIpcHandle() returns UNSUPPORTED
   ASSERT_EQ(ZE_RESULT_SUCCESS, zeEventPoolGetIpcHandle(ep.event_pool_, &hIpc));
 
   // Due to the above failures, the following tests obviously also fail.
   ze_event_pool_handle_t eventPool;
-  ep.open_ipc_handle(hIpc, &eventPool);
+  lzt::open_ipc_event_handle(hIpc, &eventPool);
   EXPECT_NE(nullptr, eventPool);
-  ep.close_ipc_handle_pool(eventPool);
+  lzt::close_ipc_event_handle(eventPool);
 }
 
 class zeDeviceCreateEventAndCommandListTests : public lzt::zeCommandList,
