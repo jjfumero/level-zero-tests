@@ -70,7 +70,7 @@ ze_device_p2p_properties_t get_p2p_properties(ze_device_handle_t dev1,
                                               ze_device_handle_t dev2);
 ze_bool_t can_access_peer(ze_device_handle_t dev1, ze_device_handle_t dev2);
 
-void set_intermediate_cache_config(ze_device_handle_t device,
+void set_intermediate_cache_config(ze_kernel_handle_t kernel,
                                    ze_cache_config_t config);
 void set_last_level_cache_config(ze_device_handle_t device,
                                  ze_cache_config_t config);

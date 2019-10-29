@@ -184,10 +184,10 @@ ze_bool_t can_access_peer(ze_device_handle_t dev1, ze_device_handle_t dev2) {
   return can_access;
 }
 
-void set_intermediate_cache_config(ze_device_handle_t device,
+void set_intermediate_cache_config(ze_kernel_handle_t kernel,
                                    ze_cache_config_t config) {
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDeviceSetIntermediateCacheConfig(device, config));
+            zeKernelSetIntermediateCacheConfig(kernel, config));
 }
 
 void set_last_level_cache_config(ze_device_handle_t device,

@@ -727,32 +727,17 @@ TEST_F(zeKernelCreateTests,
 
   for (auto mod : module_) {
     function = lzt::create_function(mod, "xe_module_add_constant");
+    ze_kernel_properties_t kernel_properties;
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function, ZE_KERNEL_GET_ATTR_MAX_REGS_USED,
-                                   &attribute_val));
-    LOG_INFO << "Maximum Device Registers = " << attribute_val;
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function,
-                                   ZE_KERNEL_GET_ATTR_NUM_THREAD_DIMENSIONS,
-                                   &attribute_val));
-    LOG_INFO << "Maximum Thread Dimensions for Group = " << attribute_val;
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function,
-                                   ZE_KERNEL_GET_ATTR_MAX_SHARED_MEM_SIZE,
-                                   &attribute_val));
-    LOG_INFO << "Maximum Shared Memory = " << attribute_val;
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function, ZE_KERNEL_GET_ATTR_HAS_SPILL_FILL,
-                                   &attribute_val));
-    LOG_INFO << "SPILL/FILLs = " << attribute_val;
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function, ZE_KERNEL_GET_ATTR_HAS_BARRIERS,
-                                   &attribute_val));
-    LOG_INFO << "Barriers = " << attribute_val;
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelGetAttribute(function, ZE_KERNEL_GET_ATTR_HAS_DPAS,
-                                   &attribute_val));
-    LOG_INFO << "DPAs = " << attribute_val;
+              zeKernelGetProperties(function, &kernel_properties));
+    LOG_INFO << "Kernel Name = " << kernel_properties.name;
+    LOG_INFO << "Num of Arguments = " << kernel_properties.numKernelArgs;
+    LOG_INFO << "Group Size in X dim = "
+             << kernel_properties.compileGroupSize.groupCountX;
+    LOG_INFO << "Group Size in Y dim = "
+             << kernel_properties.compileGroupSize.groupCountY;
+    LOG_INFO << "Group Size in Z dim = "
+             << kernel_properties.compileGroupSize.groupCountZ;
     lzt::destroy_function(function);
   }
 }

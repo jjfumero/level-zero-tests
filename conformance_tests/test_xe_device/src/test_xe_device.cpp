@@ -237,6 +237,8 @@ TEST_P(xeSetCacheConfigTests,
                                    GetParam());
 }
 
+// TODO: To move to kernel tests, VLCLJ-529
+#if 0
 INSTANTIATE_TEST_CASE_P(SetIntermediateCacheConfigParemeterizedTest,
                         xeSetCacheConfigTests,
                         ::testing::Values(ZE_CACHE_CONFIG_DEFAULT,
@@ -248,6 +250,7 @@ TEST_P(xeSetCacheConfigTests,
   lzt::set_intermediate_cache_config(
       lzt::zeDevice::get_instance()->get_device(), GetParam());
 }
+#endif
 
 INSTANTIATE_TEST_CASE_P(SetLastLevelCacheConfigParemeterizedTest,
                         xeSetCacheConfigTests,
