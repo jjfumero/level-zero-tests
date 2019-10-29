@@ -60,4 +60,5 @@ add_conformance_test_executable(
     level_zero_tests::logging
     level_zero_tests::xe_utils
     level_zero_tests::utils
+    Boost::system
 )

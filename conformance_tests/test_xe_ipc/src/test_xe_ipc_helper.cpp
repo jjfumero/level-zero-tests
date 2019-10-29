@@ -21,9 +21,8 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-#ifdef __linux__
+
 #include <boost/asio.hpp>
-#endif
 #include <iostream>
 
 #include "logging/logging.hpp"
@@ -31,7 +30,6 @@
 #include "xe_test_harness/xe_test_harness.hpp"
 
 int main() {
-#ifdef __linux__
   ze_result_t result = zeInit(ZE_INIT_FLAG_NONE);
   if (result) {
     throw std::runtime_error("zeInit failed: " +
@@ -57,6 +55,6 @@ int main() {
     LOG_INFO << "Failed to send ipc handle";
   }
   sock.close();
-#endif
+
   return 0;
 }

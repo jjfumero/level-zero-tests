@@ -21,10 +21,9 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-#ifdef __linux__
+
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
-#endif
 
 #include "gtest/gtest.h"
 #include "xe_utils/xe_utils.hpp"
@@ -55,7 +54,6 @@ TEST_F(
   lzt::free_memory(memory_);
 }
 
-#ifdef __linux__
 class xeIpcMemHandleOpenTests : public ::testing::Test {
 protected:
   void SetUp() override {
@@ -99,7 +97,6 @@ TEST_F(xeIpcMemHandleOpenTests,
                 lzt::zeDevice::get_instance()->get_device(), ipc_mem_handle_,
                 ZE_IPC_MEMORY_FLAG_NONE, &memory_));
 }
-#endif
 
 class xeIpcMemHandleCloseTests : public xeIpcMemHandleTests {
 protected:
