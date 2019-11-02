@@ -426,11 +426,10 @@ You can execute the tests locally using the provide docker runtime images.
 Execution in this manner is only supported on Linux.
 
 First, build the runtime image, which will be used for the container that the
-test binary itself executes in. You will need a user account and password that's
-capable of authenticating with QuickBuild to download the NEO runtime assets.
-
-Assuming the QuickBuild username and password are stored in the `QB_USER` and
-`QB_PASSWORD` environment variables:
+test binary itself executes in. This image does not include any of the NEO
+runtime libraries, so you will need to supply those yourself. If you are using
+the `level_zero_linux` irepo/devtool dependency for runtime, the NEO libraries
+needed are included with that.
 
 ```bash
 docker build
@@ -470,7 +469,8 @@ docker run
 
 After fulsim has finished launching, you can execute a test binary in a runtime
 container (append any additional arguments to pass the the binary as you
-normally would):
+normally would). In this example, the `level_zero_linux` irepo/devtool
+dependency is used to supply the level-zero and NEO runtime libraries.
 
 ```bash
 docker run
@@ -480,7 +480,7 @@ docker run
   --net=container:fulsim
   -e SetCommandStreamReceiver=2
   -e CreateMultipleRootDevices=2
-  -e LD_LIBRARY_PATH=${PWD}/third_party/level_zero_linux/lib/level_zero
+  -e LD_LIBRARY_PATH=${PWD}/third_party/level_zero_linux/lib
   level_zero_tests-runtime-ubuntu1804
   ./test_xe_p2p
 ```

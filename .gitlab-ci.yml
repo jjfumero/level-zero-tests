@@ -184,8 +184,6 @@ run-linux:
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
         --cache-from ${IMAGE_NAME}:latest
-        --build-arg QB_USER
-        --build-arg QB_PASSWORD
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
         -t ${IMAGE_NAME}:latest
         ./docker/runtime-ubuntu1804
@@ -203,7 +201,7 @@ run-linux:
         ./ci-run.py
           docker-fulsim
           out/ubuntu1804/conformance_tests
-          third_party/level_zero_linux/lib/level_zero
+          third_party/level_zero_linux/lib
           case_logs
           test_config.yml
           --runtime-image ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
