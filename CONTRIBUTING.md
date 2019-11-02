@@ -125,8 +125,8 @@ cmake argument to point to whichever level-zero directory gets created in
 You should synchronize these components whenever their entries are updated in
 the [`dependencies.yml`](./dependencies.yml) file.
 
-If you opt to use devtool (`dt`) insetad of irepo, the commands are the same,
-e.g., `dt select dependencies.yml`.
+If you opt to use devtool (`dt`) insetad of irepo, the commands are under the
+`workspace` subcommand, e.g., `dt workspace select dependencies.yml`.
 
 ## Updating Third Party Assets
 
