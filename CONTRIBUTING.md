@@ -480,6 +480,7 @@ docker run
   --net=container:fulsim
   -e SetCommandStreamReceiver=2
   -e CreateMultipleRootDevices=2
+  -e ProductFamilyOverride=skl
   -e LD_LIBRARY_PATH=${PWD}/third_party/level_zero_linux/lib
   level_zero_tests-runtime-ubuntu1804
   ./test_xe_p2p
