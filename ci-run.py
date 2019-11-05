@@ -333,7 +333,7 @@ def run_cases_in_docker_fulsim(
                 case = case,
                 env_vars = {
                   'SetCommandStreamReceiver': '2',
-                  # 'ProductFamilyOverride': 'skl',  # TODO: this broke recently
+                  'ProductFamilyOverride': 'skl',
                   'CreateMultipleRootDevices': '2'},
                 runtime_container = runtime))
         test_futures = [executor.submit(partial(run_case, case)) for case in test_cases]
