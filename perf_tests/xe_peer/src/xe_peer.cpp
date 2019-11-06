@@ -263,6 +263,7 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
                     << " GBPS " << total_bandwidth << std::endl;
         }
       }
+      benchmark->commandListReset(command_list_a);
     }
     _copy_function_cleanup(function_a);
     if (bidirectional) {
@@ -404,6 +405,7 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
                     << std::endl;
         }
       }
+      benchmark->commandListReset(command_list_a);
     }
     _copy_function_cleanup(function_a);
     if (bidirectional) {

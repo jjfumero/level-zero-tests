@@ -176,6 +176,10 @@ void XeApp::commandListClose(ze_command_list_handle_t command_list) {
   SUCCESS_OR_TERMINATE(zeCommandListClose(command_list));
 }
 
+void XeApp::commandListReset(ze_command_list_handle_t command_list) {
+  SUCCESS_OR_TERMINATE(zeCommandListReset(command_list));
+}
+
 void XeApp::commandQueueCreate(const uint32_t command_queue_id,
                                ze_command_queue_handle_t *command_queue) {
   assert(this->device != nullptr);

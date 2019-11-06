@@ -51,6 +51,7 @@ public:
                          ze_command_list_handle_t *phCommandList);
   void commandListDestroy(ze_command_list_handle_t phCommandList);
   void commandListClose(ze_command_list_handle_t phCommandList);
+  void commandListReset(ze_command_list_handle_t phCommandList);
 
   void commandQueueCreate(const uint32_t command_queue_id,
                           ze_command_queue_handle_t *command_queue);
