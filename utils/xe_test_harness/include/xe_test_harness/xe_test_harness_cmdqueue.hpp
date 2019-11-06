@@ -46,6 +46,7 @@ protected:
 
 ze_command_queue_handle_t create_command_queue();
 ze_command_queue_handle_t create_command_queue(ze_device_handle_t device);
+ze_command_queue_handle_t create_command_queue(ze_command_queue_mode_t mode);
 ze_command_queue_handle_t
 create_command_queue(ze_device_handle_t device, ze_command_queue_flag_t flags,
                      ze_command_queue_mode_t mode,

@@ -28,6 +28,7 @@
 #include "random/random.hpp"
 #include "logging/logging.hpp"
 #include <chrono>
+#include <thread>
 namespace lzt = level_zero_tests;
 #include "ze_api.h"
 
@@ -289,5 +290,67 @@ CustomExecuteParams fence_test_input[] = {
 INSTANTIATE_TEST_CASE_P(TestIncreasingNumberCommandListsWithCommandQueueFence,
                         zeCommandQueueExecuteCommandListTestsFence,
                         testing::ValuesIn(fence_test_input));
+
+static void ExecuteCommandQueue(ze_command_queue_handle_t &cq,
+                                ze_command_list_handle_t &cl,
+                                volatile bool &exited) {
+  exited = false;
+  lzt::execute_command_lists(cq, 1, &cl, nullptr);
+  exited = true;
+}
+
+class zeCommandQueueSynchronousTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<ze_command_queue_mode_t> {};
+
+TEST_P(
+    zeCommandQueueSynchronousTests,
+    GivenModeWhenCreatingCommandQueueThenSynchronousOrAsynchronousBehaviorIsConfirmed) {
+  ze_command_queue_mode_t mode = GetParam();
+  ze_command_queue_handle_t cq = lzt::create_command_queue(mode);
+  ze_command_list_handle_t cl = lzt::create_command_list();
+  lzt::zeEventPool ep;
+  ze_event_handle_t hEvent;
+
+  ep.create_event(hEvent, ZE_EVENT_SCOPE_FLAG_HOST, ZE_EVENT_SCOPE_FLAG_NONE);
+  // Verify Host Reads Event as unset
+  EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventHostSynchronize(hEvent, 0));
+
+  lzt::append_wait_on_events(cl, 1, &hEvent);
+  lzt::close_command_list(cl);
+  volatile bool exited = false;
+  std::thread child_thread(&ExecuteCommandQueue, std::ref(cq), std::ref(cl),
+                           std::ref(exited));
+
+  // sleep for 5 seconds to give execution a chance to complete
+  std::chrono::seconds timespan(5);
+  std::this_thread::sleep_for(timespan);
+
+  // We expect the child thread to exit if we are in async mode:
+  if (exited)
+    EXPECT_EQ(ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS, mode);
+  else
+    // We expect if we are in synchronous mode that the child thread will never
+    // exit:
+
+    // This test failse, and the corresponding LOKI ticket is: LOKI-588
+
+    EXPECT_EQ(ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS, mode);
+
+  // Note: if the command queue has a mode of: ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS
+  // It won't ever finish unless we signal the event that is waiting on:
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSignal(hEvent));
+
+  child_thread.join();
+
+  ep.destroy_event(hEvent);
+  lzt::destroy_command_list(cl);
+  lzt::destroy_command_queue(cq);
+}
+
+INSTANTIATE_TEST_CASE_P(SynchronousAndAsynchronousCommandQueueTests,
+                        zeCommandQueueSynchronousTests,
+                        testing::Values(ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS,
+                                        ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS));
 
 } // namespace

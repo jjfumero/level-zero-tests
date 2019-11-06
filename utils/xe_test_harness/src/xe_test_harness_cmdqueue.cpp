@@ -33,6 +33,12 @@ ze_command_queue_handle_t create_command_queue() {
   return create_command_queue(zeDevice::get_instance()->get_device());
 }
 
+ze_command_queue_handle_t create_command_queue(ze_command_queue_mode_t mode) {
+  return create_command_queue(zeDevice::get_instance()->get_device(),
+                              ZE_COMMAND_QUEUE_FLAG_NONE, mode,
+                              ZE_COMMAND_QUEUE_PRIORITY_NORMAL, 0);
+}
+
 ze_command_queue_handle_t create_command_queue(ze_device_handle_t device) {
   return create_command_queue(device, ZE_COMMAND_QUEUE_FLAG_NONE,
                               ZE_COMMAND_QUEUE_MODE_DEFAULT,
