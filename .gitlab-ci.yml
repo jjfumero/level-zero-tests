@@ -3,6 +3,7 @@ stages:
   - run
   - pre-deploy
   - deploy
+  - cleanup
 
 build-windows:
   stage: build
@@ -15,7 +16,7 @@ build-windows:
     - web
   variables:
     # ensures each job execution gets its own clone directory
-    GIT_CLONE_PATH: C:\gitlab-runner/builds/$CI_PROJECT_NAME/$CI_JOB_NAME/$CI_JOB_ID/src
+    GIT_CLONE_PATH: C:\gitlab-runner/builds/$CI_PROJECT_NAME/$CI_PIPELINE_ID/$CI_JOB_NAME/src
     BUILDER_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}-${CI_JOB_NAME}
   script:
     - del C:\clcache\stats.txt
@@ -289,3 +290,17 @@ deploy-artifactory:
             $VERSION
             archived/${type}_tests;
       done
+
+cleanup-windows:
+  stage: cleanup
+  tags:
+    - ilab
+    - win
+  only:
+    - merge_requests
+    - master
+    - web
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - rmdir C:\gitlab-runner\builds\%CI_PROJECT_NAME%\%CI_PIPELINE_ID% /s /q
