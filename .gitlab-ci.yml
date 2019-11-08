@@ -144,6 +144,8 @@ run-linux:
     - linux
     - privileged
     - production
+  dependencies:
+    - build-ubuntu1804
   services:
     - amr-registry.caas.intel.com/caas/docker:19.03.1-dind
   variables:
@@ -228,6 +230,9 @@ create-legacy-artifacts:
     - caas
     - docker
     - linux
+  dependencies:
+    - build-ubuntu1804
+    - build-windows
   image:
     name: amr-registry.caas.intel.com/level-zero-linux-compute/zip:latest
     entrypoint: ["/bin/bash"]
@@ -257,6 +262,10 @@ deploy-artifactory:
     - caas
     - docker
     - linux
+  dependencies:
+    - build-ubuntu1804
+    - build-windows
+    - create-legacy-artifacts
   image:
     name: amr-registry.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432
     entrypoint: [""]
@@ -300,6 +309,7 @@ cleanup-windows:
     - merge_requests
     - master
     - web
+  dependencies: []
   variables:
     GIT_STRATEGY: none
   script:
