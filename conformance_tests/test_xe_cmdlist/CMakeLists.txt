@@ -26,8 +26,11 @@ add_conformance_test(
   NAME test_xe_cmdlist
   SOURCES
     src/test_xe_cmdlist.cpp
+    src/test_xe_cmdlist_immediate.cpp
     src/main.cpp
   LINK_LIBRARIES
     level_zero_tests::logging
     level_zero_tests::xe_utils
+  KERNELS
+    xe_cmdlist_add
 )

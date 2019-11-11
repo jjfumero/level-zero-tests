@@ -50,6 +50,34 @@ ze_command_list_handle_t create_command_list(ze_device_handle_t device,
   return command_list;
 }
 
+ze_command_list_handle_t create_immediate_command_list() {
+  return create_immediate_command_list(zeDevice::get_instance()->get_device());
+}
+
+ze_command_list_handle_t
+create_immediate_command_list(ze_device_handle_t device) {
+  return create_immediate_command_list(device, ZE_COMMAND_QUEUE_FLAG_NONE,
+                                       ZE_COMMAND_QUEUE_MODE_DEFAULT,
+                                       ZE_COMMAND_QUEUE_PRIORITY_NORMAL, 0);
+}
+
+ze_command_list_handle_t create_immediate_command_list(
+    ze_device_handle_t device, ze_command_queue_flag_t flags,
+    ze_command_queue_mode_t mode, ze_command_queue_priority_t priority,
+    uint32_t ordinal) {
+  ze_command_queue_desc_t descriptor;
+  descriptor.version = ZE_COMMAND_QUEUE_DESC_VERSION_CURRENT;
+  descriptor.flags = flags;
+  descriptor.mode = mode;
+  descriptor.priority = priority;
+  descriptor.ordinal = ordinal;
+  ze_command_list_handle_t command_list = nullptr;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListCreateImmediate(device, &descriptor, &command_list));
+  EXPECT_NE(nullptr, command_list);
+  return command_list;
+}
+
 zeCommandList::zeCommandList() { command_list_ = create_command_list(); }
 
 zeCommandList::~zeCommandList() {

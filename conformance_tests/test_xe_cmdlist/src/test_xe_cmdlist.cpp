@@ -305,8 +305,5 @@ INSTANTIATE_TEST_CASE_P(
                     ZE_COMMAND_LIST_FLAG_RELAXED_ORDERING,
                     ZE_COMMAND_LIST_FLAG_MAXIMIZE_THROUGHPUT,
                     ZE_COMMAND_LIST_FLAG_EXPLICIT_ONLY));
-} // namespace
 
-// TODO: Check memory leaks after call to zeCommandListDestroy
-// TODO: How to verify xeCommanListClose, zeCommandListReset,
-// without command list reflection?
+} // namespace
