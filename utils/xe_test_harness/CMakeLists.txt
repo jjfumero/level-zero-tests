@@ -34,6 +34,7 @@ add_core_library(xe_test_harness
     # "include/xe_test_harness/xe_test_harness_image.hpp"
     # "include/xe_test_harness/xe_test_harness_fence.hpp"
     # "include/xe_test_harness/xe_test_harness_module.hpp"
+    # "tools/include/test_harness_api_tracing.hpp"
     "src/xe_test_harness_device.cpp"
     "src/xe_test_harness_driver.cpp"
     "src/xe_test_harness_cmdlist.cpp"
@@ -45,6 +46,7 @@ add_core_library(xe_test_harness
     "src/xe_test_harness_module.cpp"
     "src/xe_test_harness_sampler.cpp"
     "src/xe_test_harness_ocl_interop.cpp"
+    "tools/src/test_harness_api_tracing.cpp"
 )
 target_link_libraries(xe_test_harness
     PUBLIC

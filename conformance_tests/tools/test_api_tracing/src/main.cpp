@@ -22,26 +22,28 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+#include "logging/logging.hpp"
+#include "xe_utils/xe_utils.hpp"
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
-#include "xe_test_harness_sampler.hpp"
-#include "xe_test_harness_ocl_interop.hpp"
-#include "../../tools/include/test_harness_api_tracing.hpp"
+int main(int argc, char **argv) {
+  ::testing::InitGoogleMock(&argc, argv);
+  std::vector<std::string> command_line(argv + 1, argv + argc);
+  level_zero_tests::init_logging(command_line);
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
+  ze_result_t result = zeInit(ZE_INIT_FLAG_NONE);
+  if (result) {
+    throw std::runtime_error("zeInit failed: " +
+                             level_zero_tests::to_string(result));
+  }
+  LOG_TRACE << "Driver initialized";
 
-#endif
+  result = zetInit(ZE_INIT_FLAG_NONE);
+  if (result) {
+    throw std::runtime_error("zetInit failed: " +
+                             level_zero_tests::to_string(result));
+  }
+  LOG_TRACE << "Ze Tools API initialized";
+
+  return RUN_ALL_TESTS();
+}

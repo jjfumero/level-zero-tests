@@ -29,6 +29,7 @@
 #include <string>
 
 #include "ze_api.h"
+#include "zet_api.h"
 
 namespace level_zero_tests {
 

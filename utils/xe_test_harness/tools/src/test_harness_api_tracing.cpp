@@ -21,27 +21,33 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
-
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
+#include "xe_test_harness/xe_test_harness.hpp"
 #include "gtest/gtest.h"
+#include "logging/logging.hpp"
 
-#include "xe_test_harness_driver.hpp"
-#include "xe_test_harness_device.hpp"
-#include "xe_test_harness_cmdqueue.hpp"
-#include "xe_test_harness_cmdlist.hpp"
-#include "xe_test_harness_event.hpp"
-#include "xe_test_harness_memory.hpp"
-#include "xe_test_harness_image.hpp"
-#include "xe_test_harness_module.hpp"
-#include "xe_test_harness_sampler.hpp"
-#include "xe_test_harness_ocl_interop.hpp"
-#include "../../tools/include/test_harness_api_tracing.hpp"
+#include "ze_api.h"
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
+namespace lzt = level_zero_tests;
 
-#endif
+namespace level_zero_tests {
+
+zet_tracer_handle_t create_tracer_handle(const zet_tracer_desc_t tracer_desc) {
+  return create_tracer_handle(zeDevice::get_instance()->get_device(),
+                              tracer_desc);
+}
+
+zet_tracer_handle_t create_tracer_handle(const ze_device_handle_t device,
+                                         const zet_tracer_desc_t tracer_desc) {
+  zet_tracer_handle_t tracer_handle;
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetTracerCreate(device, &tracer_desc, &tracer_handle));
+
+  return tracer_handle;
+}
+
+void destroy_tracer_handle(zet_tracer_handle_t tracer_handle) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zetTracerDestroy(tracer_handle));
+}
+
+} // namespace level_zero_tests
