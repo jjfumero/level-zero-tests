@@ -1,2 +1,2 @@
-# test_xe_image
+# test_image
 Description

@@ -1,2 +1,2 @@
-# test_xe_template
+# test_template
 Description

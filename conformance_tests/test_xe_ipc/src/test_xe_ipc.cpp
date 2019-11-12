@@ -65,7 +65,7 @@ protected:
         boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 65432));
 
     // get a handle from another process
-    boost::process::system("./ipc/test_xe_ipc_helper");
+    boost::process::system("./ipc/test_ipc_helper");
     acceptor.accept(sock);
 
     boost::system::error_code error;

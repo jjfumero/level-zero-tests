@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_cmdqueue
+  NAME test_cmdqueue
   SOURCES
     src/test_xe_cmdqueue.cpp
     src/main.cpp

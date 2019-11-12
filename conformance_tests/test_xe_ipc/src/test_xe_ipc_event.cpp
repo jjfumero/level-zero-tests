@@ -95,7 +95,7 @@ static void run_ipc_event_test(parent_test_t parent_test,
   std::memcpy(region.get_address(), &test_data, sizeof(shared_data_t));
 
   // launch child
-  boost::process::child c("./ipc/test_xe_ipc_event_helper");
+  boost::process::child c("./ipc/test_ipc_event_helper");
 
   switch (parent_test) {
   case PARENT_TEST_HOST_SIGNALS:

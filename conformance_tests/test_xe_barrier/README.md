@@ -1,2 +1,2 @@
-# test_xe_barrier
+# test_barrier
 Description

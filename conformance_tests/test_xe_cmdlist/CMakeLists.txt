@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_cmdlist
+  NAME test_cmdlist
   SOURCES
     src/test_xe_cmdlist.cpp
     src/test_xe_cmdlist_immediate.cpp

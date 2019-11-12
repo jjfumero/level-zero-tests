@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_module
+  NAME test_module
   SOURCES
     src/test_xe_module.cpp
     src/main.cpp

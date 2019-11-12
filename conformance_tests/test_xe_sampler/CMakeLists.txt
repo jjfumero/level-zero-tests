@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_sampler
+  NAME test_sampler
   SOURCES
     src/test_xe_sampler.cpp
     src/main.cpp

@@ -1,2 +1,2 @@
-# test_xe_module
+# test_module
 Description

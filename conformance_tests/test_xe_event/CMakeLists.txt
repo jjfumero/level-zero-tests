@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_event
+  NAME test_event
   SOURCES
     src/test_xe_event.cpp
     src/main.cpp

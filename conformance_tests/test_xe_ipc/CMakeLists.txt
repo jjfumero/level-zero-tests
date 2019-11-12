@@ -36,14 +36,14 @@ if(UNIX)
 endif()
 
 add_conformance_test_executable(
-  NAME test_xe_ipc_event_helper
+  NAME test_ipc_event_helper
   PREFIX "ipc"  # install to prefix so it's not confused for a test
   SOURCES
     src/test_xe_ipc_event_helper.cpp
   LINK_LIBRARIES ${ipc_libraries}
 )
 add_conformance_test(
-  NAME test_xe_ipc
+  NAME test_ipc
   SOURCES
     src/test_xe_ipc.cpp
     src/test_xe_ipc_event.cpp
@@ -52,7 +52,7 @@ add_conformance_test(
 )
 
 add_conformance_test_executable(
-  NAME test_xe_ipc_helper
+  NAME test_ipc_helper
   PREFIX "ipc"  # install to prefix so it's not confused for a test
   SOURCES
     src/test_xe_ipc_helper.cpp

@@ -1,2 +1,2 @@
-# test_xe_cl_interop
+# test_cl_interop
 Description

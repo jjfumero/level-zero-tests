@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_barrier
+  NAME test_barrier
   SOURCES
     src/test_xe_barrier.cpp
     src/main.cpp

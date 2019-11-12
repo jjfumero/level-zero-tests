@@ -1,2 +1,2 @@
-# test_xe_event
+# test_event
 Description

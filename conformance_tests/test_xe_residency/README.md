@@ -1,2 +1,2 @@
-# test_xe_residency
+# test_residency
 Description

@@ -21,7 +21,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_p2p
+  NAME test_p2p
   SOURCES
     src/test_xe_p2p.cpp
     src/main.cpp

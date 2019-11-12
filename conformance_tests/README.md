@@ -21,7 +21,7 @@ Build instructions in [BUILD](BUILD.md) file.
 **Executing the conformance tests on HW:**
  * Execute each test individually
     * Set export LD_LIBRARY_PATH= "path to Level_zero.so"
-    * sudo ./test_xe_<filename>
+    * sudo ./test_<filename>
  * Execute all the tests using "ctest"
     * Set export LD_LIBRARY_PATH= "path to Level_zero.so"
     * Copy your folder and all sub folders: "build/compute_samples/tests/embargo"
@@ -35,5 +35,5 @@ Build instructions in [BUILD](BUILD.md) file.
             * export SetCommandStreamReceiver=2;export ProductFamilyOverride=skl
         * ATS Fulsim:
             * export SetCommandStreamReceiver=2;export ProductFamilyOverride=ats;export EnableLocalMemory=1
-        * ./test_xe<filename>
+        * ./test<filename>
     * NOTE: Execution of all the test using "ctest" does not work due to TBX failing to reset fast enough.

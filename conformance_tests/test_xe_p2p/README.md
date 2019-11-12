@@ -1,2 +1,2 @@
-# test_xe_p2p
+# test_p2p
 Description

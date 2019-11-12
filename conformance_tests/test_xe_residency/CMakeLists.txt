@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_residency
+  NAME test_residency
   SOURCES
     src/test_xe_residency.cpp
     src/main.cpp

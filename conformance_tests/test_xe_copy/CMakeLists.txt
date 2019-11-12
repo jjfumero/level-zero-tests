@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_copy
+  NAME test_copy
   SOURCES
     src/test_xe_copy.cpp
     src/test_xe_copy_events.cpp

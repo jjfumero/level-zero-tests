@@ -21,7 +21,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_memory_overcommit
+  NAME test_memory_overcommit
   SOURCES
     src/test_xe_memory_overcommit.cpp
     src/main.cpp

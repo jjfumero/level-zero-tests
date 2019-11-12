@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_cl_interop
+  NAME test_cl_interop
   SOURCES
     src/test_xe_cl_interop.cpp
     src/main.cpp

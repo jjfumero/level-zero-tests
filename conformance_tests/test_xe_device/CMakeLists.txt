@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_device
+  NAME test_device
   SOURCES
     src/test_xe_device.cpp
     src/main.cpp

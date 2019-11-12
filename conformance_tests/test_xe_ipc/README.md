@@ -1,2 +1,2 @@
-# test_xe_ipc
+# test_ipc
 Description

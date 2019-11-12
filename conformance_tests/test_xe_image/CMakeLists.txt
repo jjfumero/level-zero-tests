@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_image
+  NAME test_image
   SOURCES
     src/test_xe_image.cpp
     src/main.cpp

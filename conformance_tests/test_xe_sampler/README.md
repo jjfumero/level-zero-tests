@@ -1,2 +1,2 @@
-# test_xe_sampler
+# test_sampler
 Description

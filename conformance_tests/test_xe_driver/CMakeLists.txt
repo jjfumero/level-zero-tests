@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_driver_init_flag_none
+  NAME test_driver_init_flag_none
   SOURCES
     src/test_xe_driver_init_flag_none.cpp
     src/main.cpp
@@ -32,7 +32,7 @@ add_conformance_test(
 )
 
 add_conformance_test(
-  NAME test_xe_driver_init_flag_gpu
+  NAME test_driver_init_flag_gpu
   SOURCES
     src/test_xe_driver_init_flag_gpu.cpp
     src/main.cpp
@@ -41,7 +41,7 @@ add_conformance_test(
 )
 
 add_conformance_test(
-  NAME test_xe_driver
+  NAME test_driver
   SOURCES
     src/test_xe_driver.cpp
     src/main.cpp

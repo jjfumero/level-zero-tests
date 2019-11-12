@@ -29,7 +29,7 @@ else()
 endif()
 
 add_conformance_test(
-  NAME test_xe_memory
+  NAME test_memory
   SOURCES
     src/test_xe_memory.cpp
     src/test_xe_param_tests.cpp

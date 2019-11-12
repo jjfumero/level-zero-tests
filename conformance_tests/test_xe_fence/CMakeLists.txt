@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_fence
+  NAME test_fence
   SOURCES
     src/test_xe_fence.cpp
     src/main.cpp

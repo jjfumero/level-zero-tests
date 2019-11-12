@@ -1,2 +1,2 @@
-# test_xe_memory
+# test_memory
 Description

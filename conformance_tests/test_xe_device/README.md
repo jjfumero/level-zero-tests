@@ -1,2 +1,2 @@
-# test_xe_device
+# test_device
 Description

@@ -1,2 +1,2 @@
-# test_xe_cmdqueue
+# test_cmdqueue
 Description

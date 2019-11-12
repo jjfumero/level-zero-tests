@@ -23,7 +23,7 @@
 #
 
 add_conformance_test(
-  NAME test_xe_template
+  NAME test_template
   SOURCES
     src/test_xe_template.cpp
     src/main.cpp

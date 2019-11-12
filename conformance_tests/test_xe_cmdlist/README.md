@@ -1,2 +1,2 @@
-# test_xe_cmdlist
+# test_cmdlist
 Description
