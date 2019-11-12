@@ -21,15 +21,44 @@ flag to `YES`.
 
 ## Building
 
-This project uses cmake to configure the build. The `install` target will create
-an `out` directory in your cmake build directory containing the built
-performance test and the conformance test binaries (e.g.,
-`build/out/perf_tests/` and `build/out/conformance_tests/`). Nothing will get
-installed to your system.
+This project uses cmake to configure the build. By default, all the tests are
+built.
+
+The `install` target will by default create an `out` directory in your cmake
+build directory containing the built test executables and their data files.
+Nothing will get installed to any system paths. You can override the default
+install location by setting `CMAKE_INSTALL_PREFIX`.
 
 ```
 mkdir build
 cd build
-cmake ..
+cmake -D CMAKE_INSTALL_PREFIX=$PWD/../out ..
 cmake --build . --config Release --target install
 ```
+
+### Building a subset of the test executables
+
+Test executables are divided into a group hierarchy, and it is possible to
+select a specific grouping of test executables for build using the `GROUP`
+cmake flag. The following group specifiers are available:
+
+  - `/`: All tests.
+  - `/perf_tests`: All the performance tests.
+  - `/conformance_tests`: All the conformance tests.
+  - `/conformance_tests/core`: All of the conformance tests for the core API.
+  - `/conformance_tests/tools`: All of the conformance tests for the tools API.
+  - `/conformance_tests/tools/tracing`: All of the tools API conformance tests
+    related to tracing.
+  - `/conformance_tests/tools/sysman`: ALl of the tools API conformance tests
+    relating to system management.
+
+```
+cmake
+  -D GROUP=/perf_tests
+  -D CMAKE_INSTALL_PREFIX=$PWD/../out/perf_tests
+  ..
+cmake --build . --config Release --target install
+```
+
+The group that any particular test executable belongs to can be seen by looking
+in its `CMakeLists.txt` file at the `add_lzt_test()` call.

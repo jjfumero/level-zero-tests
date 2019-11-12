@@ -550,6 +550,10 @@ int main(int argc, char **argv) {
   XePingPong pingpong_benchmark;
   L0Context context;
 
+  if (argc > 1) {
+    throw std::runtime_error("no arguments are accepted");
+  }
+
   context.init();
 
   pingpong_benchmark.run_test(context);

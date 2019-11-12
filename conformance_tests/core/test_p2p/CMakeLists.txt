@@ -20,8 +20,9 @@
 # SOFTWARE.
 #
 
-add_conformance_test(
+add_lzt_test(
   NAME test_p2p
+  GROUP "/conformance_tests/core"
   SOURCES
     src/test_p2p.cpp
     src/main.cpp

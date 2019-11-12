@@ -22,8 +22,9 @@
 # must be express and approved by Intel in writing.
 #
 
-add_conformance_test(
+add_lzt_test(
   NAME test_module
+  GROUP "/conformance_tests/core"
   SOURCES
     src/test_module.cpp
     src/test_kernel_args.cpp

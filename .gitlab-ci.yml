@@ -40,11 +40,7 @@ build-windows:
         -v C:\devtool-cache:C:\devtool-cache
         -e DEVTOOL_CACHE_DIR=C:\devtool-cache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
-        .\ci-build-windows.bat
-    # Can't use wildcards for matching subdirerctories in windows...
-    - mkdir out\windows &&
-      move build\out\conformance_tests out\windows\conformance_tests &&
-      move build\out\perf_tests out\windows\perf_tests
+        .\ci\ci-build-windows.bat
     # Use a file to signal success/fail because error codes do not correctly
     # propagate
     - if not exist windows_build_succeeded (
@@ -106,17 +102,15 @@ build-ubuntu1804:
     # Perform the build inside the builder image
     - docker run
         --rm
-        -v ${PWD}:/root/project
-        -w /root/project
+        -v $PWD:$PWD
+        -w $PWD
         -v /ccache:/ccache
         -e CCACHE_DIR=/ccache
-        -e CCACHE_BASEDIR=/root/project
+        -e CCACHE_BASEDIR=$PWD
         -v /irepo-cache:/irepo-cache
         -e IREPO_CACHE_DIR=/irepo-cache
         ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        ./ci-build-linux.sh
-    - mkdir -p out/ubuntu1804;
-      mv build/out/* out/ubuntu1804
+        ./ci/ci-build-linux.sh $PWD/out/ubuntu1804
     # Upload the builder images used only if the build succeeded
     - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
     - docker push ${BUILDER_IMAGE}:latest
@@ -127,7 +121,7 @@ build-ubuntu1804:
       - build/VERSION
       - build/VERSION_SUFFIX
       - third_party/level_zero_linux
-      - out
+      - out/ubuntu1804
       - build/clang_format_results.patch
 
 run-linux:
@@ -201,15 +195,13 @@ run-linux:
         -w ${PWD}
         -v /var/run/docker.sock:/var/run/docker.sock
         ${IMAGE_NAME_PREFIX}-ci-run:${CI_COMMIT_REF_SLUG}
-        ./ci-run.py
-          docker-fulsim
-          out/ubuntu1804/conformance_tests
-          third_party/level_zero_linux/lib
-          case_logs
-          test_config.yml
-          --runtime-image ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
-          --parallelism 8
-          --fulsim-image ${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707
+        ./ci/ci-regression.py
+          $PWD
+          $PWD/out/ubuntu1804
+          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+          --parallelism 16
+          --fulsim-skl-image ${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707
+          --fulsim-skl-cmd 'AubLoad -device skl.2.a0 -socket tcp'
           --output-junit-xml test_results.xml
     - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
           IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
@@ -250,9 +242,98 @@ create-legacy-artifacts:
           rm -rf ${type}-tests-win64;
           popd;
       done
+
   artifacts:
     paths:
       - archived
+
+gen-deploy-aubs:
+  stage: deploy
+  image: docker:19.03.1
+  only:
+    - master
+  tags:
+    - caas
+    - dind
+    - docker
+    - linux
+    - privileged
+    - production
+  dependencies:
+    - build-ubuntu1804
+  services:
+    - amr-registry.caas.intel.com/caas/docker:19.03.1-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""  # https://about.gitlab.com/2019/07/31/docker-in-docker-with-docker-19-dot-03/
+    DOCKER_HOST: tcp://localhost:2375/
+    DOCKER_DRIVER: overlay2  # better performance for dind
+    IMAGE_NAME_PREFIX: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
+    HARBOR_USER2: ${HARBOR_USER}
+    HARBOR_TOKEN2: ${HARBOR_TOKEN}
+  script:
+    - docker info
+    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
+    - for image_type in ci-run runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker pull ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG} ||
+          docker pull ${IMAGE_NAME}:latest ||
+          true;
+      done
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-ci-run;
+      docker build
+        --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${IMAGE_NAME}:latest
+        -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        -t ${IMAGE_NAME}:latest
+        ./docker/ci-run
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-runtime-ubuntu1804;
+      docker build
+        --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        --cache-from ${IMAGE_NAME}:latest
+        -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
+        -t ${IMAGE_NAME}:latest
+        ./docker/runtime-ubuntu1804
+    - for image_type in ci-run runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker push ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG};
+      done
+    # TODO: Parallelism limited until better memory management can be worked out
+    - mkdir aubs;
+      time docker run
+        --rm
+        -v ${PWD}:${PWD}
+        -w ${PWD}
+        -v /var/run/docker.sock:/var/run/docker.sock
+        ${IMAGE_NAME_PREFIX}-ci-run:${CI_COMMIT_REF_SLUG}
+        ./ci/ci-generate-aubs.py
+          $PWD
+          $PWD/out/ubuntu1804
+          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+          $PWD/aubs
+          --parallelism 2
+    - for image_type in ci-run runtime-ubuntu1804; do
+          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
+          docker push ${IMAGE_NAME}:latest;
+      done
+    # Upload AUBs
+    # This isn't a separate step because GitLab has a very low size limit for
+    # artifacts. This is faster anyways.
+    - VERSION="$(cat build/VERSION)-$(cat build/VERSION_SUFFIX)";
+      for platform in $(ls -1 $PWD/aubs); do
+          docker run
+            --rm
+            -v $PWD:$PWD
+            -w $PWD
+            amr-registry.caas.intel.com/level-zero-linux-compute/gta-asset:1.0.432 push
+              --root-url https://gfx-assets.fm.intel.com/artifactory
+              -u ${ARTIFACTORY_USER}
+              -p ${ARTIFACTORY_PASSWORD}
+              gfx-sandbox-fm
+              level-zero-tests-aubs-$platform
+              $VERSION
+              aubs/$platform;
+      done
 
 deploy-artifactory:
   stage: deploy
@@ -299,6 +380,7 @@ deploy-artifactory:
             $VERSION
             archived/${type}_tests;
       done
+
 
 cleanup-windows:
   stage: cleanup

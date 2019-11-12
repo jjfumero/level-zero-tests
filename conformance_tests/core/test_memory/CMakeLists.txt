@@ -28,8 +28,9 @@ else()
     set(OS_SPECIFIC_LIBS "")
 endif()
 
-add_conformance_test(
+add_lzt_test(
   NAME test_memory
+  GROUP "/conformance_tests/core"
   SOURCES
     src/test_memory.cpp
     src/test_param_tests.cpp

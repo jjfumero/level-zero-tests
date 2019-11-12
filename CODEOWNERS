@@ -10,10 +10,7 @@
 # build/run automation
 /docker/ @ledettwy @jchodor
 /.gitlab-ci.yml @ledettwy @jchodor
-/ci-build-linux.sh @ledettwy @jchodor
-/ci-build-windows.bat @ledettwy @jchodor
-/ci-run.py @ledettwy @jchodor
-/test_config.yml @ledettwy @jchodor
+/ci/ @ledettwy @jchodor
 
 # test code
 conformance_tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger

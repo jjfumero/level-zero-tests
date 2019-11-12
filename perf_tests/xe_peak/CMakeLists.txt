@@ -23,8 +23,9 @@ else()
     set(OS_SPECIFIC_LIBS "")
 endif()
 
-add_perf_test(
+add_lzt_test(
   NAME xe_peak
+  GROUP "/perf_tests"
   SOURCES
     src/common.cpp
     src/options.cpp

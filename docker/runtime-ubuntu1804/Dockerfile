@@ -8,6 +8,7 @@ RUN echo 'Acquire::http::Proxy "http://proxy-chain.intel.com:911";' > /etc/apt/a
 RUN apt-get update && apt-get install -y \
         curl \
         git \
+        libpapi5 \
         libpng16-16 \
         ocl-icd-opencl-dev \
     && rm -rf /var/lib/apt/lists/*

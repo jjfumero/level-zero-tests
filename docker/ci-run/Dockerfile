@@ -7,5 +7,4 @@ ENV https_proxy http://proxy-chain.intel.com:911
 RUN pip3 install \
       docker \
       junitparser \
-      PyYaml \
-      xunitparser
+      PyYaml

@@ -22,8 +22,9 @@
 # must be express and approved by Intel in writing.
 #
 
-add_conformance_test(
+add_lzt_test(
   NAME test_image
+  GROUP "/conformance_tests/core"
   SOURCES
     src/test_image.cpp
     src/main.cpp

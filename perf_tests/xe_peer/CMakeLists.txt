@@ -24,8 +24,9 @@ else()
     set(OS_SPECIFIC_LIBS "")
 endif()
 
-add_perf_test(
+add_lzt_test(
   NAME xe_peer
+  GROUP "/perf_tests"
   SOURCES
     ../common/src/xe_app.cpp
     src/xe_peer.cpp

@@ -22,8 +22,9 @@
 # must be express and approved by Intel in writing.
 #
 
-add_conformance_test(
+add_lzt_test(
   NAME test_api_tracing
+  GROUP "/conformance_tests/tools/tracing"
   SOURCES
     src/test_api_tracing.cpp
     src/main.cpp

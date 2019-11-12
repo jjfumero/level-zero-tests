@@ -20,8 +20,9 @@
 # SOFTWARE.
 #
 
-add_conformance_test(
+add_lzt_test(
   NAME test_memory_overcommit
+  GROUP "/conformance_tests/core"
   SOURCES
     src/test_memory_overcommit.cpp
     src/main.cpp

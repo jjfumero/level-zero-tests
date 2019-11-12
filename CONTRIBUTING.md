@@ -60,7 +60,7 @@ cmake --build . --target clang-format
 
 OpenCL C kernel source code (`.cl`) and binaries (`.spv`) should be placed in a
 `kernels/` subdirectory of your conformance or performance test. The
-`add_perf_test` and `add_conformance_test` CMake functions will search for
+`add_lzt_test` and `add_lzt_test_executable` CMake functions will search for
 kernels in that directory.
 
 Whenever you add or update any kernels, you must re-generate the SPIR-V binaries

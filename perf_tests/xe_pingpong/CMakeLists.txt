@@ -23,8 +23,9 @@ else()
     set(OS_SPECIFIC_LIBS "")
 endif()
 
-add_perf_test(
+add_lzt_test(
   NAME xe_pingpong
+  GROUP "/perf_tests"
   SOURCES
     src/xe_pingpong.cpp
   LINK_LIBRARIES ${OS_SPECIFIC_LIBS}

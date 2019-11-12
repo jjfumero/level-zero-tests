@@ -77,9 +77,197 @@ file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/yuv" DESTINATION "${MEDIA_DIRECTORY}
 file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/bmp" DESTINATION "${MEDIA_DIRECTORY}")
 file(COPY "${MEDIA_ROOT_DIRECTORY}/internal/png" DESTINATION "${MEDIA_DIRECTORY}")
 
+if(NOT DEFINED GROUP)
+    set(GROUP "/")
+endif()
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/out" CACHE PATH "..." FORCE)
+endif()
+
+function(assert_valid_test_group_name group_name)
+    set(regex "^([/]([A-Za-z0-9_]*))*$")
+    string(REGEX MATCH "${regex}" valid_name "${group_name}")
+    if(NOT "${group_name}" STREQUAL "${valid_name}")
+        message(FATAL_ERROR "${group_name} is not a valid test group name, valid regex: ${regex}")
+    endif()
+endfunction()
+
+# Cmake 3.8 doesn't support the list(SUBLIST ...) command
+function(list_sublist list_var start_index length result_var)
+    if(length EQUAL 0)
+        set("${result_var}" "" PARENT_SCOPE)
+        return()
+    endif()
+    math(EXPR end_index "${start_index}+${length}-1")
+    set("${result_var}" "")
+    foreach(index RANGE ${start_index} ${end_index})
+        list(GET "${list_var}" "${index}" item)
+        list(APPEND "${result_var}" "${item}")
+    endforeach()
+    set("${result_var}" "${${result_var}}" PARENT_SCOPE)
+endfunction()
+
+function(is_test_group_member group1 group2 result_var)
+    assert_valid_test_group_name("${group1}")
+    assert_valid_test_group_name("${group2}")
+    string(REGEX MATCHALL "([A-Za-z0-9_])+" group1_list "${group1}")
+    string(REGEX MATCHALL "([A-Za-z0-9_])+" group2_list "${group2}")
+    list(LENGTH group1_list group1_list_length)
+    list(LENGTH group2_list group2_list_length)
+    if(group1_list_length GREATER group2_list_length)
+        set(list_length ${group2_list_length})
+    else()
+        set(list_length ${group1_list_length})
+    endif()
+    # list(SUBLIST group2_list 0 "${group1_list_length}" group2_common)
+    list_sublist(group2_list 0 "${list_length}" group2_common)
+    if(group2_common STREQUAL group1_list)
+        set("${result_var}" "TRUE" PARENT_SCOPE)
+    else()
+        set("${result_var}" "FALSE" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(add_lzt_test_executable)
+    set(options "")
+    set(oneValueArgs NAME PREFIX GROUP)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS MEDIA)
+    cmake_parse_arguments(ADD_LZT_TEST_EXECUTABLE
+      "${options}" "${oneValueArgs}" "${multiValueArgs}"
+      ${ARGN}
+    )
+
+    assert_valid_test_group_name("${ADD_LZT_TEST_EXECUTABLE_GROUP}")
+
+    is_test_group_member("${GROUP}" "${ADD_LZT_TEST_EXECUTABLE_GROUP}" in_scope)
+    if(NOT in_scope)
+        return()
+    endif()
+
+    is_test_group_member("/conformance_tests" "${ADD_LZT_TEST_EXECUTABLE_GROUP}" is_conformance_test)
+    is_test_group_member("/perf_tests" "${ADD_LZT_TEST_EXECUTABLE_GROUP}" is_perf_test)
+    if(is_conformance_test)
+        list(APPEND ADD_LZT_TEST_EXECUTABLE_LINK_LIBRARIES
+          level_zero_tests::test_harness
+          GMock::GMock
+          GTest::GTest
+        )
+        set(component "conformance-tests")
+    elseif(is_perf_test)
+        list(APPEND ADD_LZT_TEST_EXECUTABLE_INCLUDE_DIRECTORIES
+          ${CMAKE_SOURCE_DIR}/perf_tests/common/include
+        )
+        set(component "perf-tests")
+    endif()
+
+    add_executable(${ADD_LZT_TEST_EXECUTABLE_NAME} ${ADD_LZT_TEST_EXECUTABLE_SOURCES})
+
+    if(CLANG_TIDY_EXE)
+        set_target_properties(${ADD_LZT_TEST_EXECUTABLE_NAME}
+        PROPERTIES
+          CXX_CLANG_TIDY ${CLANG_TIDY_EXE}
+        )
+    endif()
+
+    target_link_libraries(${ADD_LZT_TEST_EXECUTABLE_NAME}
+      PRIVATE
+        LevelZero::LevelZero
+        ${ADD_LZT_TEST_EXECUTABLE_LINK_LIBRARIES}
+    )
+
+    target_include_directories(${ADD_LZT_TEST_EXECUTABLE_NAME}
+      PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${ADD_LZT_TEST_EXECUTABLE_INCLUDE_DIRECTORIES}
+    )
+
+    set(destination "${CMAKE_INSTALL_PREFIX}/${ADD_LZT_TEST_EXECUTABLE_PREFIX}")
+
+    foreach(kernel ${ADD_LZT_TEST_EXECUTABLE_KERNELS})
+        install(
+          FILES "${CMAKE_CURRENT_SOURCE_DIR}/kernels/${kernel}.spv"
+          DESTINATION ${destination}
+        )
+    endforeach()
+
+    foreach(media ${ADD_LZT_TEST_EXECUTABLE_MEDIA})
+        install(
+          FILES "${MEDIA_DIRECTORY}/${media}"
+          DESTINATION ${destination}
+        )
+    endforeach()
+
+    install(
+      TARGETS ${ADD_LZT_TEST_EXECUTABLE_NAME}
+      DESTINATION ${destination}
+      COMPONENT ${component}
+    )
+
+    if(MSVC)
+        set_target_properties(${ADD_LZT_TEST_EXECUTABLE_NAME}
+          PROPERTIES
+            VS_DEBUGGER_COMMAND_ARGUMENTS ""
+            VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)"
+        )
+    endif()
+endfunction()
+
+function(add_lzt_test)
+    set(options REQUIRES_OPENCL_INTEROP)
+    set(oneValueArgs NAME GROUP)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES LINK_LIBRARIES KERNELS MEDIA)
+    cmake_parse_arguments(ADD_LZT_TEST
+      "${options}" "${oneValueArgs}" "${multiValueArgs}"
+      ${ARGN}
+    )
+
+    assert_valid_test_group_name("${ADD_LZT_TEST_GROUP}")
+
+    is_test_group_member("${GROUP}" "${ADD_LZT_TEST_GROUP}" in_scope)
+    if(NOT in_scope)
+        message(STATUS "Ignoring ${ADD_LZT_TEST_NAME} because it is not in ${GROUP}")
+        return()
+    else()
+        message(STATUS "Adding ${ADD_LZT_TEST_NAME}")
+    endif()
+
+    if(
+      ADD_LZT_TEST_REQUIRES_OPENCL_INTEROP AND
+      NOT LevelZero_OpenCL_INTEROP
+    )
+        message(STATUS "Disabling build of ${ADD_LZT_TEST_NAME} since Level-Zero OpenCL interop is not available")
+        return()
+    endif()
+
+    add_lzt_test_executable(
+      NAME ${ADD_LZT_TEST_NAME}
+      GROUP ${ADD_LZT_TEST_GROUP}
+      SOURCES ${ADD_LZT_TEST_SOURCES}
+      INCLUDE_DIRECTORIES ${ADD_LZT_TEST_INCLUDE_DIRECTORIES}
+      LINK_LIBRARIES ${ADD_LZT_TEST_LINK_LIBRARIES}
+      KERNELS ${ADD_LZT_TEST_KERNELS}
+      MEDIA ${ADD_LZT_TEST_MEDIA}
+    )
+
+    file(APPEND
+      "${CMAKE_INSTALL_PREFIX}/manifest.txt"
+      "${ADD_LZT_TEST_NAME}${CMAKE_NEWLINE}"
+    )
+endfunction()
+
+if(WIN32)
+    set(CMAKE_NEWLINE "\r\n")
+else()
+    set(CMAKE_NEWLINE "\n")
+endif()
+
 add_subdirectory(utils)
 add_subdirectory(perf_tests)
 add_subdirectory(conformance_tests)
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "${CMAKE_BINARY_DIR}/out")
+include(InstallRequiredSystemLibraries)
 
 set(CPACK_PACKAGE_NAME "intel-level-zero")
 set(CPACK_PACKAGE_VENDOR "Intel Corporation")
@@ -104,9 +292,6 @@ set(CPACK_SOURCE_IGNORE_FILES
     /MAINTAINERS.md
     /dependencies.yml
     /docker
-    /ci-build-linux.sh
-    /ci-build-windows.cmd
-    /ci-run.py
-    /test_config.yml
+    /ci/
 )
 include(CPack)
