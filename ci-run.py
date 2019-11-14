@@ -221,8 +221,11 @@ def run_case_in_container(
         # exit (crash).
         if exit_code == 1:
             result = 'FAIL'
-            _, tr = xunitparser.parse(case_report_file_path)
-            failures = [fail_str for _, fail_str in tr.failures]
+            try:
+                _, tr = xunitparser.parse(case_report_file_path)
+                failures = [fail_str for _, fail_str in tr.failures]
+            except FileNotFoundError:
+                result = 'CRASH'
         elif exit_code != 0:
             result = 'CRASH'
 
