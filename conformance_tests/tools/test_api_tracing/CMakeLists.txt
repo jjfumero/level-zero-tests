@@ -29,5 +29,5 @@ add_conformance_test(
     src/main.cpp
   LINK_LIBRARIES
     level_zero_tests::logging
-    level_zero_tests::xe_utils
+    level_zero_tests::utils
 )

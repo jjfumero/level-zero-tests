@@ -24,7 +24,7 @@
 
 #include "gmock/gmock.h"
 #include "logging/logging.hpp"
-#include "xe_utils/xe_utils.hpp"
+#include "utils/utils.hpp"
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleMock(&argc, argv);

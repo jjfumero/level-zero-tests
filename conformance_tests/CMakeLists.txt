@@ -22,7 +22,7 @@
 #
 
 # The current distinction between add_conformance_test and
-# add_conformance_test_executable exists mainly for test_xe_ipc, which is
+# add_conformance_test_executable exists mainly for test_ipc, which is
 # currently written to have a "helper" binary that isn't a conformance test by
 # itself.
 
@@ -78,7 +78,7 @@ function(add_conformance_test_executable)
     target_link_libraries(${ADD_CONFORMANCE_TEST_EXECUTABLE_NAME}
       PRIVATE
         LevelZero::LevelZero
-        level_zero_tests::xe_test_harness
+        level_zero_tests::test_harness
         GMock::GMock
         GTest::GTest
         ${ADD_CONFORMANCE_TEST_EXECUTABLE_LINK_LIBRARIES}
@@ -124,22 +124,22 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION
 )
 include(InstallRequiredSystemLibraries)
 
-add_subdirectory(test_xe_barrier)
-add_subdirectory(test_xe_cl_interop)
-add_subdirectory(test_xe_cmdlist)
-add_subdirectory(test_xe_cmdqueue)
-add_subdirectory(test_xe_copy)
-add_subdirectory(test_xe_device)
-add_subdirectory(test_xe_driver)
-add_subdirectory(test_xe_event)
-add_subdirectory(test_xe_fence)
-add_subdirectory(test_xe_image)
-add_subdirectory(test_xe_ipc)
-add_subdirectory(test_xe_memory)
-add_subdirectory(test_xe_memory_overcommit)
-add_subdirectory(test_xe_module)
-add_subdirectory(test_xe_p2p)
-add_subdirectory(test_xe_residency)
-add_subdirectory(test_xe_sampler)
-add_subdirectory(test_xe_template)
+add_subdirectory(test_barrier)
+add_subdirectory(test_cl_interop)
+add_subdirectory(test_cmdlist)
+add_subdirectory(test_cmdqueue)
+add_subdirectory(test_copy)
+add_subdirectory(test_device)
+add_subdirectory(test_driver)
+add_subdirectory(test_event)
+add_subdirectory(test_fence)
+add_subdirectory(test_image)
+add_subdirectory(test_ipc)
+add_subdirectory(test_memory)
+add_subdirectory(test_memory_overcommit)
+add_subdirectory(test_module)
+add_subdirectory(test_p2p)
+add_subdirectory(test_residency)
+add_subdirectory(test_sampler)
+add_subdirectory(test_template)
 add_subdirectory(tools)

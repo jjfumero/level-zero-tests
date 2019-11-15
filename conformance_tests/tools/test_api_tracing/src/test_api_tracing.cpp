@@ -25,7 +25,7 @@
 #include "gtest/gtest.h"
 
 #include "logging/logging.hpp"
-#include "xe_test_harness/xe_test_harness.hpp"
+#include "test_harness/test_harness.hpp"
 #include "ze_api.h"
 #include "zet_api.h"
 
