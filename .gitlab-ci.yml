@@ -221,8 +221,7 @@ run-linux:
 # Special archived artifacts to support legacy compute-samples GTA plugin
 create-legacy-artifacts:
   stage: pre-deploy
-  only:
-    - master
+  only: []
   tags:
     - caas
     - docker
@@ -253,8 +252,7 @@ create-legacy-artifacts:
 
 deploy-artifactory:
   stage: deploy
-  only:
-    - master
+  only: []
   tags:
     - caas
     - docker
