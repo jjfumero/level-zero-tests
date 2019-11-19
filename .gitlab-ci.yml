@@ -10,10 +10,7 @@ build-windows:
   tags:
     - ilab
     - win
-  only:
-    - merge_requests
-    - master
-    - web
+  only: []
   variables:
     # ensures each job execution gets its own clone directory
     GIT_CLONE_PATH: C:\gitlab-runner/builds/$CI_PROJECT_NAME/$CI_PIPELINE_ID/$CI_JOB_NAME/src
@@ -305,10 +302,7 @@ cleanup-windows:
   tags:
     - ilab
     - win
-  only:
-    - merge_requests
-    - master
-    - web
+  only: []
   dependencies: []
   variables:
     GIT_STRATEGY: none
