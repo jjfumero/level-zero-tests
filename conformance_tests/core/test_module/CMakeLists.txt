@@ -26,12 +26,13 @@ add_conformance_test(
   NAME test_module
   SOURCES
     src/test_module.cpp
+    src/test_kernel_args.cpp
     src/main.cpp
   LINK_LIBRARIES
     level_zero_tests::logging
     level_zero_tests::utils
-    level_zero_tests::utils
   KERNELS
+    multi_argument_kernel_test
     single_global_variable
     multiple_global_variables
     update_variable_on_device
