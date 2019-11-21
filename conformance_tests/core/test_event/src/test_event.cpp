@@ -80,7 +80,7 @@ INSTANTIATE_TEST_CASE_P(
                                          ZE_EVENT_SCOPE_FLAG_HOST)));
 
 TEST_F(zeDeviceCreateEventPoolTests,
-       GivenDefaultDeviceWhenGettingIpcHandleThenNotNullisReturned) {
+       GivenDefaultDeviceWhenGettingIpcEventHandleThenNotNullisReturned) {
   ze_ipc_event_pool_handle_t hIpc;
   ep.InitEventPool();
   // As of July 10, 2019, zeEventPoolGetIpcHandle() returns UNSUPPORTED
@@ -90,8 +90,9 @@ TEST_F(zeDeviceCreateEventPoolTests,
 
 TEST_F(
     zeDeviceCreateEventPoolTests,
-    GivenDefaultDeviceWhenGettingIpcHandleAndOpeningAndClosingThenSuccessIsReturned) {
+    GivenDefaultDeviceWhenGettingIpcEventHandleAndOpeningAndClosingThenSuccessIsReturned) {
   ze_ipc_event_pool_handle_t hIpc;
+  ep.InitEventPool();
   // As of July 10, 2019, zeEventPoolGetIpcHandle() returns UNSUPPORTED
   ASSERT_EQ(ZE_RESULT_SUCCESS, zeEventPoolGetIpcHandle(ep.event_pool_, &hIpc));
 
