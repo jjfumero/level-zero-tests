@@ -165,8 +165,11 @@ class zeCommandListCloseAndResetTests
     : public ::testing::Test,
       public ::testing::WithParamInterface<ze_command_list_flag_t> {};
 
-TEST_P(zeCommandListCloseAndResetTests,
-       GivenClosedCommandListWhenAppendAttemptedThenNotSuccessful) {
+TEST_P(
+    zeCommandListCloseAndResetTests,
+    DISABLED_GivenResetCommandListWhenCloseImmediatelyNoCommandListInstructionsExecute) {
+  // Disabled as test performs illegal append operation
+  // However, can be enabled to confirm fix for LOKI-575 when available
   ze_command_list_flag_t flags = GetParam();
   ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   ze_command_list_handle_t cmdlist = lzt::create_command_list(device, flags);
