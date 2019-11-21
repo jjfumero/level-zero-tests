@@ -102,6 +102,11 @@ void append_memory_copy(ze_command_list_handle_t cl, void *dstptr,
                                    cl, dstptr, srcptr, size, hSignalEvent));
 }
 
+void append_memory_copy(ze_command_list_handle_t cl, void *dstptr,
+                        const void *srcptr, size_t size) {
+  append_memory_copy(cl, dstptr, srcptr, size, nullptr);
+}
+
 void append_memory_copy_region(ze_command_list_handle_t hCommandList,
                                void *dstptr, const ze_copy_region_t *dstRegion,
                                uint32_t dstPitch, const void *srcptr,
@@ -118,6 +123,15 @@ void append_barrier(ze_command_list_handle_t cl, ze_event_handle_t hSignalEvent,
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListAppendBarrier(cl, hSignalEvent, numWaitEvents,
                                        phWaitEvents));
+}
+
+void append_barrier(ze_command_list_handle_t cl,
+                    ze_event_handle_t hSignalEvent) {
+  append_barrier(cl, hSignalEvent, 0, nullptr);
+}
+
+void append_barrier(ze_command_list_handle_t cl) {
+  append_barrier(cl, nullptr, 0, nullptr);
 }
 
 void append_memory_ranges_barrier(ze_command_list_handle_t hCommandList,

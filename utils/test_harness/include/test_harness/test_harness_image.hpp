@@ -103,6 +103,7 @@ class zeImageCreateCommon {
 public:
   zeImageCreateCommon();
   ~zeImageCreateCommon();
+  ze_image_desc_t get_dflt_ze_image_desc(void) const;
 
   std::vector<ze_image_flag_t> image_creation_flags_list_;
   level_zero_tests::ImagePNG32Bit dflt_host_image_;
@@ -114,5 +115,15 @@ class zeImageCreateCommonTests : public ::testing::Test {
 protected:
   zeImageCreateCommon img;
 };
+
+void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp);
+
+// Returns number of errors found:
+int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
+                         const lzt::ImagePNG32Bit &imagepng2, int origin1X,
+                         int origin1Y, int width1, int height1, int origin2X,
+                         int origin2Y, int width2, int height2);
+
 }; // namespace level_zero_tests
+
 #endif

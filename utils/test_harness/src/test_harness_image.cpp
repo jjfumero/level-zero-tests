@@ -96,9 +96,9 @@ void generate_ze_image_creation_flags_list(
   }
 }
 
-zeImageCreateCommon::zeImageCreateCommon() : dflt_host_image_(128, 128) {
-  lzt::generate_ze_image_creation_flags_list(image_creation_flags_list_);
+ze_image_desc_t zeImageCreateCommon::get_dflt_ze_image_desc(void) const {
   ze_image_desc_t image_desc;
+
   image_desc.version = ZE_IMAGE_DESC_VERSION_CURRENT;
   image_desc.format.layout = ZE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
   image_desc.flags = ZE_IMAGE_FLAG_PROGRAM_READ;
@@ -111,6 +111,12 @@ zeImageCreateCommon::zeImageCreateCommon() : dflt_host_image_(128, 128) {
   image_desc.width = dflt_host_image_.width();
   image_desc.height = dflt_host_image_.height();
   image_desc.depth = 1;
+  return image_desc;
+}
+
+zeImageCreateCommon::zeImageCreateCommon() : dflt_host_image_(128, 128) {
+  lzt::generate_ze_image_creation_flags_list(image_creation_flags_list_);
+  ze_image_desc_t image_desc = get_dflt_ze_image_desc();
 
   create_ze_image(dflt_device_image_, &image_desc);
   create_ze_image(dflt_device_image_2_, &image_desc);
@@ -158,6 +164,80 @@ get_ze_image_properties(ze_image_desc_t image_descriptor) {
   EXPECT_TRUE(samplerFilterFlagsValid);
 
   return image_properties;
+}
+
+static inline uint32_t mask_and_shift(int8_t v, uint8_t m, size_t s) {
+  return static_cast<uint32_t>(v & m) << s;
+}
+
+static inline uint32_t make_pixel(int8_t r, int8_t g, int8_t b, int8_t a) {
+  return mask_and_shift(r, 0xff, 24) | mask_and_shift(g, 0xff, 16) |
+         mask_and_shift(b, 0xff, 8) | mask_and_shift(a, 0xff, 0);
+}
+
+static void clip_to_uint8_t(int8_t &sd, int8_t addvalue) {
+  int16_t sd16 = sd;
+  sd16 += addvalue;
+  if ((sd16 > 127) || (sd16 < -128)) {
+    sd = 0;
+  } else {
+    sd = static_cast<int8_t>(sd16);
+  }
+}
+
+static void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
+                               int originX, int originY, int width,
+                               int height) {
+  int8_t pixel_r = dp * 1;
+  int8_t pixel_g = dp * 2;
+  int8_t pixel_b = dp * 3;
+  int8_t pixel_a = dp * 4;
+
+  for (int y = originY; y < height; y++) {
+    for (int x = originX; x < width; x++) {
+      uint32_t pixel = make_pixel(pixel_r, pixel_g, pixel_b, pixel_a);
+      image.set_pixel(x, y, pixel);
+      clip_to_uint8_t(pixel_r, dp * 1);
+      clip_to_uint8_t(pixel_g, dp * 2);
+      clip_to_uint8_t(pixel_b, dp * 3);
+      clip_to_uint8_t(pixel_a, dp * 4);
+    }
+  }
+}
+
+void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp) {
+  write_data_pattern(image, dp, 0, 0, image.width(), image.height());
+}
+
+static inline uint32_t get_pixel(const uint32_t *image, int x, int y,
+                                 int row_width) {
+  return image[y * row_width + x];
+}
+
+int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
+                         const lzt::ImagePNG32Bit &imagepng2, int origin1X,
+                         int origin1Y, int width1, int height1, int origin2X,
+                         int origin2Y, int width2, int height2) {
+  const uint32_t *image1 = imagepng1.raw_data();
+  const uint32_t *image2 = imagepng2.raw_data();
+  int errCnt = 0, successCnt = 0;
+  for (int x1 = origin1X, x2 = origin2X; (x1 < width1) && (x2 < width2);
+       x1++, x2++) {
+    for (int y1 = origin1Y, y2 = origin2Y; (y1 < height1) && (y2 < height2);
+         y1++, y2++) {
+      uint32_t pixel1 = get_pixel(image1, x1, y1, width1);
+      uint32_t pixel2 = get_pixel(image2, x2, y2, width2);
+      if (pixel1 != pixel2) {
+        LOG_DEBUG << "errCnt: " << errCnt << " successCnt: " << successCnt
+                  << " x1: " << x1 << " y1: " << y1 << " x2: " << x2
+                  << " y2: " << y2 << " pixel1: 0x" << std::hex << pixel1
+                  << " pixel2: 0x" << pixel2;
+        errCnt++;
+      } else
+        successCnt++;
+    }
+  }
+  return errCnt;
 }
 
 }; // namespace level_zero_tests
