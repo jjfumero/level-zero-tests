@@ -65,7 +65,7 @@ TEST(zeDriverGetApiVersionTests,
 
 TEST(zeDriverGetIPCPropertiesTests,
      GivenValidDriverWhenRetrievingIPCPropertiesThenValidPropertiesAreRetured) {
-
+  lzt::ze_init();
   auto drivers = lzt::get_all_driver_handles();
   ASSERT_GT(drivers.size(), 0);
   for (auto driver : drivers) {
