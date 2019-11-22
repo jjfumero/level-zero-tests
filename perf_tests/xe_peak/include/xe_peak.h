@@ -102,7 +102,7 @@ class XePeak {
     int parse_arguments(int argc, char **argv);
 
     /* Helper Functions */
-    float run_kernel(L0Context context, ze_kernel_handle_t &function,
+    long double run_kernel(L0Context context, ze_kernel_handle_t &function,
                      struct XeWorkGroups &workgroup_info, TimingMeasurement type, bool reset_command_list = true);
     uint64_t set_workgroups(L0Context &context,
                             const uint64_t total_work_items_requested, struct XeWorkGroups *workgroup_info);
@@ -130,6 +130,7 @@ class XePeak {
     void _transfer_bw_shared_memory(L0Context &context,
                                     std::vector<float> local_memory);
     TimingMeasurement is_bandwidth_with_event_timer(void);
+    long double calculate_gbps(long double period, long double buffer_size);
 };
 
 uint64_t max_device_object_size(L0Context &context);

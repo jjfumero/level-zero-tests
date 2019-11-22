@@ -24,7 +24,7 @@
 void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
                                    void *source_buffer, size_t buffer_size) {
   Timer timer;
-  float gbps, timed;
+  long double gbps, timed;
   ze_result_t result = ZE_RESULT_SUCCESS;
 
   for (uint32_t i = 0; i < warmup_iterations; i++) {
@@ -51,9 +51,9 @@ void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
 
   context.execute_commandlist_and_sync();
   timed = timer.stopAndTime();
-  timed /= static_cast<float>(iters);
+  timed /= static_cast<long double>(iters);
 
-  gbps = static_cast<float>(buffer_size) / timed / 1e3f;
+  gbps = calculate_gbps(timed, static_cast<long double>(buffer_size));
 
   std::cout << gbps << " GBPS\n";
 }
@@ -61,7 +61,7 @@ void XePeak::_transfer_bw_gpu_copy(L0Context &context, void *destination_buffer,
 void XePeak::_transfer_bw_host_copy(void *destination_buffer,
                                     void *source_buffer, size_t buffer_size) {
   Timer timer;
-  float gbps, timed;
+  long double gbps, timed;
 
   for (uint32_t i = 0; i < warmup_iterations; i++) {
     memcpy(destination_buffer, source_buffer, buffer_size);
@@ -73,8 +73,8 @@ void XePeak::_transfer_bw_host_copy(void *destination_buffer,
   }
   timed = timer.stopAndTime();
 
-  timed /= static_cast<float>(iters);
-  gbps = static_cast<float>(buffer_size) / timed / 1e3f;
+  timed /= static_cast<long double>(iters);
+  gbps = calculate_gbps(timed, static_cast<long double>(buffer_size));
 
   std::cout << gbps << " GBPS\n";
 }

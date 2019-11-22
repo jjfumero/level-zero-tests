@@ -22,10 +22,10 @@
 #include "../include/xe_peak.h"
 
 void XePeak::xe_peak_int_compute(L0Context &context) {
-  float gflops, timed;
+  long double gflops, timed;
   ze_result_t result = ZE_RESULT_SUCCESS;
   TimingMeasurement type = is_bandwidth_with_event_timer();
-  float flops_per_work_item = 2048;
+  size_t flops_per_work_item = 2048;
   struct XeWorkGroups workgroup_info;
   int input_value = 4;
 
@@ -112,35 +112,35 @@ void XePeak::xe_peak_int_compute(L0Context &context) {
   // Vector width 1
   std::cout << "int : ";
   timed = run_kernel(context, compute_int_v1, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 2
   std::cout << "int2 : ";
   timed = run_kernel(context, compute_int_v2, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 4
   std::cout << "int4 : ";
   timed = run_kernel(context, compute_int_v4, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 8
   std::cout << "int8 : ";
   timed = run_kernel(context, compute_int_v8, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 16
   std::cout << "int16 : ";
   timed = run_kernel(context, compute_int_v16, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   result = zeKernelDestroy(compute_int_v1);

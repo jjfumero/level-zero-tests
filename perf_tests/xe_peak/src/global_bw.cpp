@@ -22,7 +22,7 @@
 #include "../include/xe_peak.h"
 
 void XePeak::xe_peak_global_bw(L0Context &context) {
-  float timed_lo, timed_go, timed, gbps;
+  long double timed_lo, timed_go, timed, gbps;
   ze_result_t result = ZE_RESULT_SUCCESS;
   uint64_t temp_global_size, max_total_work_items;
   struct XeWorkGroups workgroup_info;
@@ -140,7 +140,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed_go = run_kernel(context, global_offset_v1, workgroup_info, type);
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
-  gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
+  gbps = calculate_gbps(timed, numItems * sizeof(float));
 
   std::cout << gbps << " GBPS\n";
 
@@ -157,7 +157,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed_go = run_kernel(context, global_offset_v2, workgroup_info, type);
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
-  gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
+  gbps = calculate_gbps(timed, numItems * sizeof(float));
 
   std::cout << gbps << " GBPS\n";
 
@@ -174,7 +174,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed_go = run_kernel(context, global_offset_v4, workgroup_info, type);
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
-  gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
+  gbps = calculate_gbps(timed, numItems * sizeof(float));
 
   std::cout << gbps << " GBPS\n";
 
@@ -191,7 +191,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed_go = run_kernel(context, global_offset_v8, workgroup_info, type);
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
-  gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
+  gbps = calculate_gbps(timed, numItems * sizeof(float));
 
   std::cout << gbps << " GBPS\n";
 
@@ -207,7 +207,7 @@ void XePeak::xe_peak_global_bw(L0Context &context) {
   timed_go = run_kernel(context, global_offset_v16, workgroup_info, type);
   timed = (timed_lo < timed_go) ? timed_lo : timed_go;
 
-  gbps = ((float)numItems * sizeof(float)) / timed / 1e3f;
+  gbps = calculate_gbps(timed, numItems * sizeof(float));
 
   std::cout << gbps << " GBPS\n";
 

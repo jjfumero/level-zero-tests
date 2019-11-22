@@ -22,7 +22,7 @@
 #include "../include/xe_peak.h"
 
 void XePeak::xe_peak_sp_compute(L0Context &context) {
-  float gflops, timed;
+  long double gflops, timed;
   ze_result_t result = ZE_RESULT_SUCCESS;
   TimingMeasurement type = is_bandwidth_with_event_timer();
   float flops_per_work_item = 4096;
@@ -113,35 +113,35 @@ void XePeak::xe_peak_sp_compute(L0Context &context) {
   // Vector width 1
   std::cout << "float : ";
   timed = run_kernel(context, compute_sp_v1, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 2
   std::cout << "float2 : ";
   timed = run_kernel(context, compute_sp_v2, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 4
   std::cout << "float4 : ";
   timed = run_kernel(context, compute_sp_v4, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 8
   std::cout << "float8 : ";
   timed = run_kernel(context, compute_sp_v8, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   ///////////////////////////////////////////////////////////////////////////
   // Vector width 16
   std::cout << "float16 : ";
   timed = run_kernel(context, compute_sp_v16, workgroup_info, type);
-  gflops = number_of_work_items * flops_per_work_item / timed / 1e3f;
+  gflops = calculate_gbps(timed, number_of_work_items * flops_per_work_item);
   std::cout << gflops << " GFLOPS\n";
 
   result = zeKernelDestroy(compute_sp_v1);

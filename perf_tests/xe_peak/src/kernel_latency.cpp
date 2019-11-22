@@ -27,7 +27,7 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
 
   struct XeWorkGroups workgroup_info;
   set_workgroups(context, global_size, &workgroup_info);
-  float latency = 0;
+  long double latency = 0;
   ze_result_t result = ZE_RESULT_SUCCESS;
 
   std::vector<uint8_t> binary_file =

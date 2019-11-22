@@ -41,7 +41,7 @@ class Timer {
     void start();
 
     // Stop and return time in micro-seconds
-    float stopAndTime();
+    long double stopAndTime();
 };
 
 uint64_t roundToMultipleOf(uint64_t number, uint64_t base, uint64_t maxValue);

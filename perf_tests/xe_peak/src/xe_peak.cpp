@@ -429,11 +429,12 @@ void single_event_create(ze_event_pool_handle_t event_pool,
 // On success, the average time is returned.
 // On error, an exception will be thrown describing the failure.
 //---------------------------------------------------------------------
-float XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
-                         struct XeWorkGroups &workgroup_info,
-                         TimingMeasurement type, bool reset_command_list) {
+long double XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
+                               struct XeWorkGroups &workgroup_info,
+                               TimingMeasurement type,
+                               bool reset_command_list) {
   ze_result_t result = ZE_RESULT_SUCCESS;
-  float timed = 0;
+  long double timed = 0;
 
   result = zeKernelSetGroupSize(function, workgroup_info.group_size_x,
                                 workgroup_info.group_size_y,
@@ -695,7 +696,7 @@ float XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
   if (reset_command_list)
     context.reset_commandlist();
 
-  return (timed / static_cast<float>(iters));
+  return (timed / static_cast<long double>(iters));
 }
 
 //---------------------------------------------------------------------
@@ -868,4 +869,9 @@ TimingMeasurement XePeak::is_bandwidth_with_event_timer(void) {
   } else {
     return TimingMeasurement::BANDWIDTH;
   }
+}
+
+long double XePeak::calculate_gbps(long double period,
+                                   long double buffer_size) {
+  return buffer_size / period / 1e3f;
 }

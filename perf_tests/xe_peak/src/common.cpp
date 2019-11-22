@@ -25,10 +25,10 @@ using namespace std;
 
 void Timer::start() { tick = chrono::high_resolution_clock::now(); }
 
-float Timer::stopAndTime() {
+long double Timer::stopAndTime() {
   tock = chrono::high_resolution_clock::now();
-  return (
-      float)(chrono::duration_cast<chrono::microseconds>(tock - tick).count());
+  return (long double)chrono::duration_cast<chrono::microseconds>(tock - tick)
+      .count();
 }
 
 uint64_t roundToMultipleOf(uint64_t number, uint64_t base, uint64_t maxValue) {
