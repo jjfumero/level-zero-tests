@@ -442,12 +442,23 @@ void XePingPong::run_test(L0Context &context) {
             << "KERNEL EXECUTION ONLY EXPERIMENTS\n\n";
   set_argument_value(context, 0, sizeof(ping), &ping);
   setup_commandlist(context, DEVICE_MEM_KERNEL_ONLY);
+
+  // Warm-up
+  for (int i = 0; i < num_execute / 2; i++) {
+    run_command_queue(context);
+    // next line not needed for ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS;
+    // synchronize_command_queue(context);
+  }
+  reset_commandlist(context);
+  set_argument_value(context, 0, sizeof(ping), &ping);
+  setup_commandlist(context, DEVICE_MEM_KERNEL_ONLY);
+
   auto elapsed_time = measure_benchmark(context, DEVICE_MEM_KERNEL_ONLY);
   const auto loop_time_kernel_dev = elapsed_time / num_execute * 1000.;
   std::cout << "Device allocated memory w.sync:   " << std::fixed
-            << std::setprecision(2) << elapsed_time << " msecs ";
-  std::cout << "(" << std::fixed << std::setprecision(2) << loop_time_kernel_dev
-            << " usec/loop)\n";
+            << std::setprecision(2) << loop_time_kernel_dev << " usec/loop ";
+  std::cout << "(" << std::fixed << std::setprecision(2) << elapsed_time
+            << " msec total)\n";
   reset_commandlist(context);
 
   set_argument_value(context, 0, sizeof(pong), &pong);
@@ -455,9 +466,9 @@ void XePingPong::run_test(L0Context &context) {
   elapsed_time = measure_benchmark(context, HOST_MEM_KERNEL_ONLY);
   const auto loop_time_kernel_host = elapsed_time / num_execute * 1000.;
   std::cout << "Host allocated memory w.sync  :   " << std::fixed
-            << std::setprecision(2) << elapsed_time << " msecs ";
-  std::cout << "(" << std::fixed << std::setprecision(2)
-            << loop_time_kernel_host << " usec/loop)\n";
+            << std::setprecision(2) << loop_time_kernel_host << " usec/loop ";
+  std::cout << "(" << std::fixed << std::setprecision(2) << elapsed_time
+            << " msec total)\n";
   reset_commandlist(context);
 
   set_argument_value(context, 0, sizeof(ping_shared), &ping_shared);
@@ -465,9 +476,9 @@ void XePingPong::run_test(L0Context &context) {
   elapsed_time = measure_benchmark(context, SHARED_MEM_KERNEL_ONLY);
   const auto loop_time_kernel_shared = elapsed_time / num_execute * 1000.;
   std::cout << "Shared allocated memory w.sync:   " << std::fixed
-            << std::setprecision(2) << elapsed_time << " msecs ";
-  std::cout << "(" << std::fixed << std::setprecision(2)
-            << loop_time_kernel_shared << " usec/loop)\n";
+            << std::setprecision(2) << loop_time_kernel_shared << " usec/loop ";
+  std::cout << "(" << std::fixed << std::setprecision(2) << elapsed_time
+            << " msec total)\n";
   reset_commandlist(context);
 
   std::cout << "\n"
