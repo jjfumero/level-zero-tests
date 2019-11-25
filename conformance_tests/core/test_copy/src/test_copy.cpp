@@ -201,8 +201,6 @@ TEST_F(
   append_memory_copy(cl.command_list_, static_cast<void *>(char_dst_ptr),
                      host_memory1.data(), size, nullptr);
   append_barrier(cl.command_list_, nullptr, 0, nullptr);
-  // Must assert here to prevent Fulsim crash.  Ref: LOKI-473
-  FAIL();
   for (uint32_t i = 1; i < num_dev_mem_copy; i++) {
     char_src_ptr = char_dst_ptr;
     char_dst_ptr += (size + addr_alignment);

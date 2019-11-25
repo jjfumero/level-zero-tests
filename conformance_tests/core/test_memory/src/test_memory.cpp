@@ -484,9 +484,6 @@ protected:
 TEST_F(
     xeHostSystemMemoryDeviceTests,
     GivenHostSystemAllocationWhenAccessingMemoryOnDeviceThenCorrectDataIsRead) {
-  // FIXME: LOKI-488
-  FAIL()
-      << "Fail due to Abort when accessing system memory allocation: LOKI-488";
   lzt::write_data_pattern(memory_, size_, 1);
   std::string module_name = "unified_mem_test.spv";
   ze_module_handle_t module = lzt::create_module(

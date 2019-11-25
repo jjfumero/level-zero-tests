@@ -198,8 +198,6 @@ TEST_P(
   const size_t size = 16;
   std::vector<ze_event_handle_t> host_to_dev_event(num_cmdq, nullptr);
   if (use_event) {
-    FAIL(); // Must fail until event signaling issues resolved
-            // Multiple issues noted (LOKI-537, LOKI-551)
     ep.InitEventPool(num_cmdq);
   }
   std::vector<ze_fence_handle_t> fence(num_cmdq, nullptr);

@@ -105,7 +105,7 @@ static void run_ipc_event_test(parent_test_t parent_test,
     parent_device_signals(hEvent);
     break;
   default:
-    FAIL();
+    FAIL() << "Fatal test error";
   }
 
   c.wait(); // wait for the process to exit

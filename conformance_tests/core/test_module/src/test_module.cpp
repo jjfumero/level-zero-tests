@@ -117,9 +117,6 @@ class zeModuleCreateTests : public ::testing::Test {};
 TEST_F(
     zeModuleCreateTests,
     GivenModuleWithGlobalVariableWhenRetrievingGlobalPointerThenPointerPointsToValidGlobalVariable) {
-  // Unimplemented API which sometimes produces segmenatation fault.
-  // Fail until implemented
-  FAIL();
   const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   std::vector<ze_module_handle_t> module =
       create_module_vector(device, "single_global_variable");
@@ -131,7 +128,7 @@ TEST_F(
 
   for (auto mod : module) {
     global_pointer = nullptr;
-    EXPECT_EQ(
+    ASSERT_EQ(
         ZE_RESULT_SUCCESS,
         zeModuleGetGlobalPointer(mod, global_name.c_str(), &global_pointer));
     EXPECT_NE(nullptr, global_pointer);
@@ -144,9 +141,6 @@ TEST_F(
 TEST_F(
     zeModuleCreateTests,
     WhenRetrievingMultipleGlobalPointersFromTheSameVariableThenAllPointersAreTheSame) {
-  // Unimplemented API which sometimes produces segmenatation fault.
-  // Fail until implemented
-  FAIL();
   const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   std::vector<ze_module_handle_t> module =
       create_module_vector(device, "single_global_variable");
@@ -160,7 +154,7 @@ TEST_F(
 
     for (int i = 0; i < 5; ++i) {
       current_pointer = nullptr;
-      EXPECT_EQ(
+      ASSERT_EQ(
           ZE_RESULT_SUCCESS,
           zeModuleGetGlobalPointer(mod, global_name.c_str(), &current_pointer));
       EXPECT_NE(nullptr, current_pointer);
@@ -177,9 +171,7 @@ TEST_F(
 TEST_F(
     zeModuleCreateTests,
     GivenModuleWithMultipleGlobalVariablesWhenRetrievingGlobalPointersThenAllPointersPointToValidGlobalVariable) {
-  // Unimplemented API which sometimes produces segmenatation fault.
-  // Fail until implemented
-  FAIL();
+
   const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   std::vector<ze_module_handle_t> module =
       create_module_vector(device, "multiple_global_variables");
@@ -192,7 +184,7 @@ TEST_F(
     for (int i = 0; i < global_count; ++i) {
       std::string global_name = "global_" + std::to_string(i);
       global_pointer = nullptr;
-      EXPECT_EQ(
+      ASSERT_EQ(
           ZE_RESULT_SUCCESS,
           zeModuleGetGlobalPointer(mod, global_name.c_str(), &global_pointer));
       EXPECT_NE(nullptr, global_pointer);
@@ -207,9 +199,6 @@ TEST_F(
 TEST_F(
     zeModuleCreateTests,
     GivenGlobalPointerWhenUpdatingGlobalVariableOnDeviceThenGlobalPointerPointsToUpdatedVariable) {
-  // Unimplemented API which sometimes produces segmenatation fault.
-  // Fail until implemented
-  FAIL();
   const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   std::vector<ze_module_handle_t> module =
       create_module_vector(device, "update_variable_on_device");
@@ -222,7 +211,7 @@ TEST_F(
 
   for (auto mod : module) {
     global_pointer = nullptr;
-    EXPECT_EQ(
+    ASSERT_EQ(
         ZE_RESULT_SUCCESS,
         zeModuleGetGlobalPointer(mod, global_name.c_str(), &global_pointer));
     EXPECT_NE(nullptr, global_pointer);
@@ -297,8 +286,6 @@ TEST_F(
 TEST_F(
     zeModuleCreateTests,
     GivenInvalidDeviceAndBinaryFileWhenCreatingModuleThenFailsAndOutputBuildReturnsErrorString) {
-  // Must fail until LOKI-573 is fixed
-  FAIL();
   const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
   ze_module_build_log_handle_t build_log_error;
   ze_module_desc_t module_description;
@@ -789,11 +776,6 @@ TEST_P(
   ze_thread_group_dimensions_t thread_group_dimensions;
 
   enum TestType test_type = GetParam();
-
-  if (test_type == HOST_FUNCTION) {
-    // Must fail to prevent segmentation fault. Wait for LOKI-537 fix
-    FAIL();
-  }
 
   std::vector<int> dim = {1, 2, 3};
   std::vector<uint32_t> tg_count = {1, 2, 3, 4};
