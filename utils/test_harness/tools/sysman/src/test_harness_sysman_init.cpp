@@ -22,27 +22,20 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#include "test_harness/test_harness.hpp"
 
-#include "test_harness_driver.hpp"
-#include "test_harness_device.hpp"
-#include "test_harness_cmdqueue.hpp"
-#include "test_harness_cmdlist.hpp"
-#include "test_harness_event.hpp"
-#include "test_harness_memory.hpp"
-#include "test_harness_image.hpp"
-#include "test_harness_module.hpp"
-#include "test_harness_sampler.hpp"
-#include "test_harness_ocl_interop.hpp"
-#include "../../tools/include/test_harness_api_tracing.hpp"
-#include "../../tools/sysman/include/test_harness_sysman.hpp"
+#include "ze_api.h"
+#include "utils/utils.hpp"
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
+namespace lzt = level_zero_tests;
 
-#endif
+namespace level_zero_tests {
+
+zet_sysman_handle_t get_sysman_handle(ze_device_handle_t device) {
+  zet_sysman_handle_t hSysmanDevice;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanGet(device, ZET_SYSMAN_VERSION_CURRENT, &hSysmanDevice));
+  return hSysmanDevice;
+}
+
+}; // namespace level_zero_tests

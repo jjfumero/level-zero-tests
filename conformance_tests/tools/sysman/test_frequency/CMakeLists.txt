@@ -22,5 +22,12 @@
 # must be express and approved by Intel in writing.
 #
 
-add_subdirectory(test_api_tracing)
-add_subdirectory(sysman)
+add_conformance_test(
+  NAME test_frequency
+  SOURCES
+    src/test_frequency.cpp
+    src/main.cpp
+  LINK_LIBRARIES
+    level_zero_tests::logging
+    level_zero_tests::utils
+)

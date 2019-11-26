@@ -22,27 +22,31 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_ZE_TEST_HARNESS_HPP
-#define level_zero_tests_ZE_TEST_HARNESS_HPP
-#include "gtest/gtest.h"
+#include "test_harness/test_harness.hpp"
 
-#include "test_harness_driver.hpp"
-#include "test_harness_device.hpp"
-#include "test_harness_cmdqueue.hpp"
-#include "test_harness_cmdlist.hpp"
-#include "test_harness_event.hpp"
-#include "test_harness_memory.hpp"
-#include "test_harness_image.hpp"
-#include "test_harness_module.hpp"
-#include "test_harness_sampler.hpp"
-#include "test_harness_ocl_interop.hpp"
-#include "../../tools/include/test_harness_api_tracing.hpp"
-#include "../../tools/sysman/include/test_harness_sysman.hpp"
+#include "ze_api.h"
+#include "utils/utils.hpp"
 
-class zeEventPoolCommandListTests : public ::testing::Test {
-protected:
-  level_zero_tests::zeEventPool ep;
-  level_zero_tests::zeCommandList cl;
-};
+namespace lzt = level_zero_tests;
 
-#endif
+namespace level_zero_tests {
+
+uint32_t get_freq_handle_count(ze_device_handle_t device, uint32_t pCount) {
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanFrequencyGet(hSysmanDevice, &pCount, nullptr));
+  EXPECT_GT(pCount, 0);
+  return pCount;
+}
+
+std::vector<zet_sysman_freq_handle_t>
+get_freq_handles(ze_device_handle_t device) {
+  uint32_t pCount = get_freq_handle_count(device);
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  std::vector<zet_sysman_freq_handle_t> pFreqHandles(pCount);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanFrequencyGet(hSysmanDevice, &pCount, pFreqHandles.data()));
+  return pFreqHandles;
+}
+
+}; // namespace level_zero_tests

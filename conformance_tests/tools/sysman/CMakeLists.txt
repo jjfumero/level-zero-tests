@@ -22,5 +22,4 @@
 # must be express and approved by Intel in writing.
 #
 
-add_subdirectory(test_api_tracing)
-add_subdirectory(sysman)
+add_subdirectory(test_frequency)

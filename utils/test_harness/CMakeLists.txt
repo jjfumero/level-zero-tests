@@ -35,6 +35,7 @@ add_core_library(test_harness
     # "include/test_harness/test_harness_fence.hpp"
     # "include/test_harness/test_harness_module.hpp"
     # "tools/include/test_harness_api_tracing.hpp"
+    # "tools/sysman/include/test_harness_sysman.h"
     "src/test_harness_device.cpp"
     "src/test_harness_driver.cpp"
     "src/test_harness_cmdlist.cpp"
@@ -47,6 +48,8 @@ add_core_library(test_harness
     "src/test_harness_sampler.cpp"
     "src/test_harness_ocl_interop.cpp"
     "tools/src/test_harness_api_tracing.cpp"
+    "tools/sysman/src/test_harness_sysman_frequency.cpp"
+    "tools/sysman/src/test_harness_sysman_init.cpp"
 )
 target_link_libraries(test_harness
     PUBLIC
