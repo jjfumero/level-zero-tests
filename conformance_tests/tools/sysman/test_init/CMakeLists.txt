@@ -22,5 +22,12 @@
 # must be express and approved by Intel in writing.
 #
 
-add_subdirectory(test_frequency)
-add_subdirectory(test_init)
+add_conformance_test(
+  NAME test_init
+  SOURCES
+    src/test_init.cpp
+    src/main.cpp
+  LINK_LIBRARIES
+    level_zero_tests::logging
+    level_zero_tests::utils
+)
