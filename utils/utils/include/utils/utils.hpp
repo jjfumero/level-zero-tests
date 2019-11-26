@@ -59,6 +59,7 @@ void print_header_version();
 void print_driver_version();
 void print_driver_overview(const ze_driver_handle_t driver);
 void print_driver_overview(const std::vector<ze_driver_handle_t> driver);
+void print_platform_overview(const std::string context);
 void print_platform_overview();
 
 std::vector<uint8_t> load_binary_file(const std::string &file_path);

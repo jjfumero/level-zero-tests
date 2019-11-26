@@ -60,12 +60,16 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
                              const ze_device_mem_alloc_flag_t dev_flags,
                              const ze_host_mem_alloc_flag_t host_flags,
                              ze_device_handle_t device);
+void allocate_mem(void **memory, ze_memory_type_t mem_type, size_t size);
+
 void free_memory(const void *ptr);
 void free_memory(ze_driver_handle_t driver, const void *ptr);
 
 void allocate_mem_and_get_ipc_handle(ze_ipc_mem_handle_t *handle, void **memory,
                                      ze_memory_type_t mem_type);
-
+void allocate_mem_and_get_ipc_handle(ze_ipc_mem_handle_t *handle, void **memory,
+                                     ze_memory_type_t mem_type, size_t size);
+void get_ipc_handle(ze_ipc_mem_handle_t *handle, void *memory);
 void write_data_pattern(void *buff, size_t size, int8_t data_pattern);
 void validate_data_pattern(void *buff, size_t size, int8_t data_pattern);
 

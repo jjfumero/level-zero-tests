@@ -22,15 +22,12 @@
 # must be express and approved by Intel in writing.
 #
 
-
-
-
 set(ipc_libraries
   level_zero_tests::logging
   level_zero_tests::utils
-  level_zero_tests::utils
   Boost::system
 )
+
 if(UNIX)
     list(APPEND ipc_libraries rt)
 endif()
@@ -42,12 +39,16 @@ add_conformance_test_executable(
     src/test_ipc_event_helper.cpp
   LINK_LIBRARIES ${ipc_libraries}
 )
+
 add_conformance_test(
   NAME test_ipc
   SOURCES
     src/test_ipc.cpp
     src/test_ipc_event.cpp
     src/main.cpp
+    src/test_ipc_comm_sender_sockets.cpp
+    src/test_ipc_comm_receiver.cpp
+    src/test_ipc_comm.cpp
   LINK_LIBRARIES ${ipc_libraries}
 )
 
@@ -56,9 +57,8 @@ add_conformance_test_executable(
   PREFIX "ipc"  # install to prefix so it's not confused for a test
   SOURCES
     src/test_ipc_helper.cpp
-  LINK_LIBRARIES
-    level_zero_tests::logging
-    level_zero_tests::utils
-    level_zero_tests::utils
-    Boost::system
+    src/test_ipc_comm_sender.cpp
+    src/test_ipc_comm_receiver_sockets.cpp
+    src/test_ipc_comm.cpp
+  LINK_LIBRARIES ${ipc_libraries}
 )

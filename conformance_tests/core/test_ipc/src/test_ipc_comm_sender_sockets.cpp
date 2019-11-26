@@ -22,27 +22,36 @@
  * must be express and approved by Intel in writing.
  */
 
-#include <boost/asio.hpp>
-#include <iostream>
-
-#include "logging/logging.hpp"
-#include "utils/utils.hpp"
-#include "test_harness/test_harness.hpp"
-
 #include "test_ipc_comm.hpp"
+#include "utils/utils.hpp"
+#include "logging/logging.hpp"
+#include "gtest/gtest.h"
 
-namespace lzt = level_zero_tests;
+namespace level_zero_tests {
 
-int main(int argc, const char **argv) {
-  lzt::write_rndv_comm_context ctx;
-  lzt::ipc_test_parameters parms;
-  ze_result_t result = zeInit(ZE_INIT_FLAG_NONE);
+void run_sender_sockets(const ipc_test_parameters &parms) {
+  RndvPacket rp;
+  boost::asio::io_service io_service;
+  boost_ip::tcp::socket comm_socket(io_service);
+  boost_ip::tcp::endpoint ep(boost::asio::ip::address::from_string("127.0.0.1"),
+                             65433);
 
-  if (result) {
-    throw std::runtime_error("zeInit failed: " +
-                             level_zero_tests::to_string(result));
+  write_rndv_sockets_connect(comm_socket, ep);
+  rp.opcode = RSO_RTS_SOCKETS;
+  rp.payload.parms = parms;
+  if (write_to_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
+                      sizeof(rp)) != sizeof(rp)) {
+    throw std::runtime_error("Client: writing RTS message");
   }
-  lzt::init_comm(ctx);
-  lzt::run_receiver_sockets(parms);
-  lzt::run_sender(parms, ctx);
+  if (read_from_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
+                       sizeof(rp)) != sizeof(rp)) {
+    throw std::runtime_error("Client: reading stream message");
+  }
+  if (rp.opcode != RSO_ACK_SOCKETS) {
+    unexpected_opcode(rp, __LINE__);
+  }
+  EXPECT_EQ(0, std::memcmp(&rp.payload.parms, &parms, sizeof(parms)));
+  comm_socket.close();
 }
+
+} // namespace level_zero_tests

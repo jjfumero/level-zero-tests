@@ -406,8 +406,11 @@ void print_driver_overview(const std::vector<ze_driver_handle_t> driver) {
   }
 }
 
-void print_platform_overview() {
+void print_platform_overview(const std::string context) {
   LOG_INFO << "Platform overview";
+  if (context.size() > 0) {
+    LOG_INFO << " (Context: " << context << ")";
+  }
   print_header_version();
   print_driver_version();
 
@@ -416,6 +419,8 @@ void print_platform_overview() {
 
   print_driver_overview(drivers);
 }
+
+void print_platform_overview() { print_platform_overview(""); }
 
 std::vector<uint8_t> load_binary_file(const std::string &file_path) {
   LOG_ENTER_FUNCTION

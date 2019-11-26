@@ -24,11 +24,16 @@
 
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#include <boost/process.hpp>
+namespace bp = boost::process;
 
 #include "gtest/gtest.h"
 #include "utils/utils.hpp"
 #include "test_harness/test_harness.hpp"
 #include "logging/logging.hpp"
+#include "test_ipc_comm.hpp"
 
 #include "ze_api.h"
 
@@ -54,50 +59,6 @@ TEST_F(
   lzt::free_memory(memory_);
 }
 
-class xeIpcMemHandleOpenTests : public ::testing::Test {
-protected:
-  void SetUp() override {
-    boost::asio::io_service io_service;
-    boost::asio::ip::tcp::socket sock(io_service);
-
-    boost::asio::ip::tcp::acceptor acceptor(
-        io_service,
-        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 65432));
-
-    // get a handle from another process
-    boost::process::system("./ipc/test_ipc_helper");
-    acceptor.accept(sock);
-
-    boost::system::error_code error;
-    size_t bytes = boost::asio::read(
-        sock, boost::asio::buffer(&ipc_mem_handle_, sizeof(ipc_mem_handle_)),
-        error);
-
-    if (error || bytes < sizeof(ipc_mem_handle_)) {
-      FAIL() << "Failed to retrieve ipc handle";
-    }
-  }
-
-  void TearDown() override {
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeDriverCloseMemIpcHandle(lzt::get_default_driver(), memory_));
-    lzt::free_memory(memory_);
-  }
-
-  void *memory_ = nullptr;
-  ze_ipc_mem_handle_t ipc_mem_handle_;
-};
-
-TEST_F(xeIpcMemHandleOpenTests,
-       GivenValidIpcMemoryHandleWhenOpeningIpcMemHandleThenSuccessIsReturned) {
-
-  EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverOpenMemIpcHandle(
-                lzt::get_default_driver(),
-                lzt::zeDevice::get_instance()->get_device(), ipc_mem_handle_,
-                ZE_IPC_MEMORY_FLAG_NONE, &memory_));
-}
-
 class xeIpcMemHandleCloseTests : public xeIpcMemHandleTests {
 protected:
   void SetUp() override {
@@ -121,5 +82,44 @@ TEST_F(
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeDriverCloseMemIpcHandle(lzt::get_default_driver(), memory_));
 }
+
+class xeIpcMemAccessTests
+    : public ::testing::TestWithParam<::testing::tuple<
+          ze_memory_type_t /*source_type*/, size_t /*size*/,
+          int /*data_pattern*/, ze_memory_type_t /*destination_type*/>> {};
+
+TEST_P(
+    xeIpcMemAccessTests,
+    GivenTwoProcessesUsingWriteRndvProtocolWithIpcMemoryHandleMessageIsCorrect) {
+  ze_memory_type_t source_type;
+  size_t size;
+  int data_pattern;
+  ze_memory_type_t destination_type;
+  std::tie(source_type, size, data_pattern, destination_type) = GetParam();
+  lzt::ipc_test_parameters test_parameters;
+  test_parameters.source_type = source_type;
+  test_parameters.size = size;
+  test_parameters.data_pattern = data_pattern;
+  test_parameters.destination_type = destination_type;
+  lzt::write_rndv_comm_context ctx;
+
+  init_comm(ctx);
+  fs::path p = bp::search_path("test_ipc_helper");
+  bp::child c(p);
+  run_sender_sockets(test_parameters);
+  run_receiver(test_parameters, ctx);
+  c.wait();
+}
+
+INSTANTIATE_TEST_CASE_P(IpcMemoryAccess, xeIpcMemAccessTests,
+                        ::testing::Combine(
+                            // Note that the only memory type supported by IPC
+                            // memory is device memory:
+                            testing::Values(ZE_MEMORY_TYPE_DEVICE),
+                            testing::Values(1024, 2048, 4096, 8192),
+                            testing::Values(0x55, 0xAA),
+                            // Note that the only memory type supported by IPC
+                            // memory is device memory:
+                            testing::Values(ZE_MEMORY_TYPE_DEVICE)));
 
 } // namespace

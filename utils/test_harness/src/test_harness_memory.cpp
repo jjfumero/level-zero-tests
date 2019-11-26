@@ -124,6 +124,23 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
   return memory;
 }
 
+void allocate_mem(void **memory, ze_memory_type_t mem_type, size_t size) {
+  switch (mem_type) {
+  case ZE_MEMORY_TYPE_HOST:
+    *memory = allocate_host_memory(size);
+    break;
+  case ZE_MEMORY_TYPE_DEVICE:
+    *memory = allocate_device_memory(size);
+    break;
+  case ZE_MEMORY_TYPE_SHARED:
+    *memory = allocate_shared_memory(size);
+    break;
+  case ZE_MEMORY_TYPE_UNKNOWN:
+  default:
+    break;
+  }
+}
+
 void free_memory(const void *ptr) {
   free_memory(lzt::get_default_driver(), ptr);
 }
@@ -134,25 +151,20 @@ void free_memory(ze_driver_handle_t driver, const void *ptr) {
 
 void allocate_mem_and_get_ipc_handle(ze_ipc_mem_handle_t *mem_handle,
                                      void **memory, ze_memory_type_t mem_type) {
+  allocate_mem_and_get_ipc_handle(mem_handle, memory, mem_type, 1);
+}
 
-  *memory = nullptr;
-  switch (mem_type) {
-  case ZE_MEMORY_TYPE_HOST:
-    *memory = allocate_host_memory(1);
-    break;
-  case ZE_MEMORY_TYPE_DEVICE:
-    *memory = allocate_device_memory(1);
-    break;
-  case ZE_MEMORY_TYPE_SHARED:
-    *memory = allocate_shared_memory(1);
-    break;
-  default:
-    break;
-  }
+void allocate_mem_and_get_ipc_handle(ze_ipc_mem_handle_t *mem_handle,
+                                     void **memory, ze_memory_type_t mem_type,
+                                     size_t size) {
+  allocate_mem(memory, mem_type, size);
+  get_ipc_handle(mem_handle, *memory);
+}
 
+void get_ipc_handle(ze_ipc_mem_handle_t *mem_handle, void *memory) {
   EXPECT_EQ(
       ZE_RESULT_SUCCESS,
-      zeDriverGetMemIpcHandle(lzt::get_default_driver(), *memory, mem_handle));
+      zeDriverGetMemIpcHandle(lzt::get_default_driver(), memory, mem_handle));
 }
 
 void write_data_pattern(void *buff, size_t size, int8_t data_pattern) {
