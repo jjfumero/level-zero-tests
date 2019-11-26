@@ -34,9 +34,11 @@ namespace lzt = level_zero_tests;
 namespace {
 enum MemAccessTestType { ATOMIC, CONCURRENT, CONCURRENT_ATOMIC };
 
-class xeP2PTests : public ::testing::Test {
+class xeP2PTests : public ::testing::Test,
+                   public ::testing::WithParamInterface<ze_memory_type_t> {
 protected:
   void SetUp() override {
+    ze_memory_type_t memory_type = GetParam();
     ze_bool_t can_access;
     auto drivers = lzt::get_all_driver_handles();
     ASSERT_GT(drivers.size(), 0);
@@ -59,10 +61,22 @@ protected:
       DevInstance instance;
       instance.dev = device;
       instance.dev_grp = drivers[0];
-      instance.src_region = lzt::allocate_device_memory(
-          mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device, drivers[0]);
-      instance.dst_region = lzt::allocate_device_memory(
-          mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device, drivers[0]);
+      if (memory_type == ZE_MEMORY_TYPE_DEVICE) {
+        instance.src_region = lzt::allocate_device_memory(
+            mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device, drivers[0]);
+        instance.dst_region = lzt::allocate_device_memory(
+            mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, device, drivers[0]);
+      } else if (memory_type == ZE_MEMORY_TYPE_SHARED) {
+        instance.src_region = lzt::allocate_shared_memory(
+            mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+            ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, device);
+        instance.dst_region = lzt::allocate_shared_memory(
+            mem_size_, 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+            ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, device);
+      } else {
+        FAIL() << "Unexpected memory type";
+      }
+
       instance.cmd_list = lzt::create_command_list(device);
       instance.cmd_q = lzt::create_command_queue(device);
 
@@ -98,7 +112,7 @@ protected:
   DevInstance dev0_, dev1_;
 };
 
-TEST_F(
+TEST_P(
     xeP2PTests,
     GivenP2PDevicesWhenCopyingDeviceMemoryFromRemoteDeviceThenSuccessIsReturned) {
 
@@ -121,7 +135,11 @@ TEST_F(
             zeCommandQueueSynchronize(dev1_.cmd_q, UINT32_MAX));
 }
 
-TEST_F(
+INSTANTIATE_TEST_CASE_P(
+    GivenP2PDevicesWhenCopyingDeviceMemoryFromRemoteDeviceThenSuccessIsReturned_IP,
+    xeP2PTests, testing::Values(ZE_MEMORY_TYPE_DEVICE, ZE_MEMORY_TYPE_SHARED));
+
+TEST_P(
     xeP2PTests,
     GivenP2PDevicesWhenCopyingDeviceMemoryToRemoteDeviceThenSuccessIsReturned) {
 
@@ -144,7 +162,11 @@ TEST_F(
             zeCommandQueueSynchronize(dev1_.cmd_q, UINT32_MAX));
 }
 
-TEST_F(
+INSTANTIATE_TEST_CASE_P(
+    GivenP2PDevicesWhenCopyingDeviceMemoryToRemoteDeviceThenSuccessIsReturned_IP,
+    xeP2PTests, testing::Values(ZE_MEMORY_TYPE_DEVICE, ZE_MEMORY_TYPE_SHARED));
+
+TEST_P(
     xeP2PTests,
     GivenP2PDevicesWhenSettingAndCopyingMemoryToRemoteDeviceThenRemoteDeviceGetsCorrectMemory) {
 
@@ -182,7 +204,11 @@ TEST_F(
   }
 }
 
-TEST_F(xeP2PTests,
+INSTANTIATE_TEST_CASE_P(
+    GivenP2PDevicesWhenSettingAndCopyingMemoryToRemoteDeviceThenRemoteDeviceGetsCorrectMemory_IP,
+    xeP2PTests, testing::Values(ZE_MEMORY_TYPE_DEVICE, ZE_MEMORY_TYPE_SHARED));
+
+TEST_P(xeP2PTests,
        GivenP2PDevicesWhenKernelReadsRemoteDeviceMemoryThenCorrectDataIsRead) {
 
   std::string module_name = "p2p_test.spv";
@@ -222,8 +248,13 @@ TEST_F(xeP2PTests,
   lzt::destroy_module(module);
 }
 
+INSTANTIATE_TEST_CASE_P(
+    GivenP2PDevicesWhenKernelReadsRemoteDeviceMemoryThenCorrectDataIsRead_IP,
+    xeP2PTests, testing::Values(ZE_MEMORY_TYPE_DEVICE, ZE_MEMORY_TYPE_SHARED));
+
 class xeP2PKernelTests : public lzt::zeEventPoolTests,
-                         public ::testing::WithParamInterface<std::string> {
+                         public ::testing::WithParamInterface<
+                             std::tuple<std::string, ze_memory_type_t>> {
 protected:
   void SetUp() override {
 
@@ -413,10 +444,19 @@ protected:
       dev_access_[0].init_val = 1;
     }
     dev_access_[0].kernel_add_val = 10;
-    dev_access_[0].device_mem_remote = lzt::allocate_device_memory(
-        (num * sizeof(int)), 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-        dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev,
-        dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev_grp);
+    if (memory_type_ == ZE_MEMORY_TYPE_DEVICE) {
+      dev_access_[0].device_mem_remote = lzt::allocate_device_memory(
+          (num * sizeof(int)), 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev,
+          dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev_grp);
+    } else if (memory_type_ == ZE_MEMORY_TYPE_SHARED) {
+      dev_access_[0].device_mem_remote = lzt::allocate_shared_memory(
+          (num * sizeof(int)), 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+          ZE_HOST_MEM_ALLOC_FLAG_DEFAULT,
+          dev_access_[std::max(static_cast<uint32_t>(1), (num - 1))].dev);
+    } else {
+      FAIL() << "Unexpected memory type";
+    }
     dev_access_[0].shared_mem = lzt::allocate_shared_memory(
         (num * sizeof(int)), 1, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev_access_[0].dev);
@@ -514,6 +554,7 @@ protected:
   std::vector<DevAccess> dev_access_;
   std::string kernel_name_;
   uint32_t get_devices_;
+  ze_memory_type_t memory_type_;
 };
 
 class xeP2PKernelTestsAtomicAccess : public xeP2PKernelTests {};
@@ -534,7 +575,8 @@ TEST_P(xeP2PKernelTestsAtomicAccess,
             dev_access_[1].dev_mem_access_properties.deviceAllocCapabilities &
                 ZE_MEMORY_ATOMIC_ACCESS);
 
-  kernel_name_ = GetParam();
+  kernel_name_ = std::get<0>(GetParam());
+  memory_type_ = std::get<1>(GetParam());
   run_test(1, false, ATOMIC);
 
   int *dev0_int = (static_cast<int *>(dev_access_[0].shared_mem));
@@ -544,15 +586,19 @@ TEST_P(xeP2PKernelTestsAtomicAccess,
             dev0_int[0]);
 }
 
-INSTANTIATE_TEST_CASE_P(TestP2PAtomicAccess, xeP2PKernelTestsAtomicAccess,
-                        testing::Values("ze_atomic_access"));
+INSTANTIATE_TEST_CASE_P(
+    TestP2PAtomicAccess, xeP2PKernelTestsAtomicAccess,
+    testing::Combine(testing::Values("ze_atomic_access"),
+                     testing::Values(ZE_MEMORY_TYPE_DEVICE,
+                                     ZE_MEMORY_TYPE_SHARED)));
 
 class xeP2PKernelTestsConcurrentAccess : public xeP2PKernelTests {};
 
 TEST_P(xeP2PKernelTestsConcurrentAccess,
        GivenP2PDevicesWhenConcurrentAccessesOfPeerMemoryThenSuccessIsReturned) {
 
-  kernel_name_ = GetParam();
+  kernel_name_ = std::get<0>(GetParam());
+  memory_type_ = std::get<1>(GetParam());
   for (uint32_t num_concurrent = 2; num_concurrent <= get_devices_;
        num_concurrent++) {
     LOG_INFO << "Testing " << num_concurrent << " concurrent device access";
@@ -570,9 +616,11 @@ TEST_P(xeP2PKernelTestsConcurrentAccess,
   }
 }
 
-INSTANTIATE_TEST_CASE_P(TestP2PConcurrentAccess,
-                        xeP2PKernelTestsConcurrentAccess,
-                        testing::Values("ze_concurrent_access"));
+INSTANTIATE_TEST_CASE_P(
+    TestP2PConcurrentAccess, xeP2PKernelTestsConcurrentAccess,
+    testing::Combine(testing::Values("ze_concurrent_access"),
+                     testing::Values(ZE_MEMORY_TYPE_DEVICE,
+                                     ZE_MEMORY_TYPE_SHARED)));
 
 class xeP2PKernelTestsAtomicAndConcurrentAccess : public xeP2PKernelTests {};
 
@@ -583,8 +631,8 @@ TEST_P(
   ze_device_p2p_properties_t dev_p2p_properties;
   dev_p2p_properties.version = ZE_DEVICE_P2P_PROPERTIES_VERSION_CURRENT;
 
-  kernel_name_ = GetParam();
-
+  kernel_name_ = std::get<0>(GetParam());
+  memory_type_ = std::get<1>(GetParam());
   for (uint32_t num_concurrent = 2; num_concurrent <= get_devices_;
        num_concurrent++) {
     LOG_INFO << "Testing " << num_concurrent
@@ -614,8 +662,10 @@ TEST_P(
   }
 }
 
-INSTANTIATE_TEST_CASE_P(TestP2PAtomicAndConcurrentAccess,
-                        xeP2PKernelTestsAtomicAndConcurrentAccess,
-                        testing::Values("ze_atomic_access"));
+INSTANTIATE_TEST_CASE_P(
+    TestP2PAtomicAndConcurrentAccess, xeP2PKernelTestsAtomicAndConcurrentAccess,
+    testing::Combine(testing::Values("ze_atomic_access"),
+                     testing::Values(ZE_MEMORY_TYPE_DEVICE,
+                                     ZE_MEMORY_TYPE_SHARED)));
 
 } // namespace
