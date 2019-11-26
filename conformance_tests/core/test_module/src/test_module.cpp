@@ -40,20 +40,12 @@ namespace lzt = level_zero_tests;
 
 namespace {
 
-enum TestType { FUNCTION, FUNCTION_INDIRECT, MULTIPLE_INDIRECT, HOST_FUNCTION };
+enum TestType { FUNCTION, FUNCTION_INDIRECT, MULTIPLE_INDIRECT };
 
 struct FunctionData {
   void *host_buffer;
   void *shared_buffer;
 };
-
-void TestHostFunction(void *user_data) {
-  struct FunctionData *hf = static_cast<FunctionData *>(user_data);
-  int *host_addval_offset = static_cast<int *>(hf->host_buffer);
-  int *shared_addval_offset = static_cast<int *>(hf->shared_buffer);
-  shared_addval_offset[0] += host_addval_offset[0];
-  host_addval_offset[0] += 12345;
-}
 
 std::vector<ze_module_handle_t> create_module_vector_and_log(
     ze_device_handle_t device, const std::string filename_prefix,
@@ -480,24 +472,6 @@ protected:
       num_launch_arg[0] = 2;
       memcpy(args_buff, arg_buffer_list.data(),
              2 * sizeof(ze_thread_group_dimensions_t));
-    } else if (type == HOST_FUNCTION) {
-      // Append host function to command list followed by device function
-      // Host function execution blocks device function execution
-
-      host_addval_offset[0] = host_offset;
-      struct FunctionData *user_data =
-          static_cast<FunctionData *>(malloc(sizeof(FunctionData)));
-      user_data->host_buffer = host_buff;
-      user_data->shared_buffer = input_a;
-      ze_host_pfn_t hostFunction = &TestHostFunction;
-
-      EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendLaunchHostFunction(
-                                       cmd_list, &TestHostFunction, user_data,
-                                       signal_event, num_wait, p_wait_events));
-
-      EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeCommandListAppendLaunchKernel(
-                    cmd_list, function, &th_group_dim, nullptr, 0, nullptr));
     }
 
     EXPECT_EQ(ZE_RESULT_SUCCESS,
@@ -523,10 +497,7 @@ protected:
     }
 
     int offset = 0;
-    if (type == HOST_FUNCTION) {
-      offset = host_offset;
-      EXPECT_EQ(host_addval_offset[0], host_offset + 12345);
-    }
+
     EXPECT_EQ(input_a_int[0],
               offset + ((addval * (group_size_x * th_group_dim.groupCountX) *
                          (group_size_y * th_group_dim.groupCountY) *
@@ -782,7 +753,7 @@ TEST_P(
   std::vector<uint32_t> grp_size = {1, 2, 3, 4};
   std::vector<bool> sig_to_host = {false, true};
   std::vector<bool> sig_from_host = {false, true};
-  if ((test_type == MULTIPLE_INDIRECT) || (test_type == HOST_FUNCTION)) {
+  if (test_type == MULTIPLE_INDIRECT) {
     dim.erase(dim.begin(), dim.begin() + 2);
     tg_count.erase(tg_count.begin(), tg_count.begin() + 3);
     grp_size.erase(grp_size.begin(), grp_size.begin() + 3);
@@ -821,7 +792,6 @@ TEST_P(
 INSTANTIATE_TEST_CASE_P(
     TestFunctionAndFunctionIndirectAndMultipleFunctionsIndirect,
     zeKernelLaunchTests,
-    testing::Values(FUNCTION, FUNCTION_INDIRECT, MULTIPLE_INDIRECT,
-                    HOST_FUNCTION));
+    testing::Values(FUNCTION, FUNCTION_INDIRECT, MULTIPLE_INDIRECT));
 
 } // namespace
