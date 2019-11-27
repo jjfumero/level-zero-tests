@@ -227,18 +227,11 @@ TEST_P(
                                    command_queue, params.num_command_lists,
                                    list_of_command_lists.data(), nullptr));
   ze_result_t sync_status = ZE_RESULT_NOT_READY;
-  auto start = std::chrono::high_resolution_clock::now();
-  auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> realtime = end - start;
-  double test_timeout = 10.0; // seconds
-  while ((sync_status != ZE_RESULT_SUCCESS) &&
-         (realtime.count() < test_timeout)) {
+  while (sync_status != ZE_RESULT_SUCCESS) {
     EXPECT_EQ(sync_status, ZE_RESULT_NOT_READY);
     sync_status = zeCommandQueueSynchronize(command_queue, params.sync_timeout);
-    end = std::chrono::high_resolution_clock::now();
-    realtime = end - start;
+    std::this_thread::yield();
   }
-  EXPECT_LT(realtime.count(), test_timeout); // timeout after 10 seconds
 }
 
 CustomExecuteParams synchronize_test_input[] = {{1, 0},
