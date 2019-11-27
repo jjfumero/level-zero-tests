@@ -91,8 +91,15 @@ void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
 
 void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
                        size_t size, ze_event_handle_t hSignalEvent) {
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendMemorySet(
-                                   cl, dstptr, value, size, hSignalEvent));
+  append_memory_fill(cl, dstptr, &value, 1, size, hSignalEvent);
+}
+
+void append_memory_fill(ze_command_list_handle_t cl, void *dstptr,
+                        const void *pattern, size_t pattern_size, size_t size,
+                        ze_event_handle_t hSignalEvent) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeCommandListAppendMemoryFill(cl, dstptr, pattern, pattern_size,
+                                          size, hSignalEvent));
 }
 
 void append_memory_copy(ze_command_list_handle_t cl, void *dstptr,

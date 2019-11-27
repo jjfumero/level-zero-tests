@@ -62,6 +62,10 @@ void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
 void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
                        size_t size, ze_event_handle_t hSignalEvent);
 
+void append_memory_fill(ze_command_list_handle_t cl, void *dstptr,
+                        const void *pattern, size_t pattern_size, size_t size,
+                        ze_event_handle_t hSignalEvent);
+
 void append_memory_copy(ze_command_list_handle_t cl, void *dstptr,
                         const void *srcptr, size_t size,
                         ze_event_handle_t hSignalEvent);
