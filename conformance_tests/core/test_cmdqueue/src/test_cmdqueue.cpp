@@ -316,7 +316,7 @@ TEST_P(
                            std::ref(exited));
 
   // sleep for 5 seconds to give execution a chance to complete
-  std::chrono::seconds timespan(5);
+  std::chrono::milliseconds timespan(500);
   std::this_thread::sleep_for(timespan);
 
   // We expect the child thread to exit if we are in async mode:
