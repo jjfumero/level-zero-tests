@@ -104,11 +104,15 @@ TEST_P(
   lzt::write_rndv_comm_context ctx;
 
   init_comm(ctx);
-  fs::path p = bp::search_path("test_ipc_helper");
-  bp::child c(p);
-  run_sender_sockets(test_parameters);
-  run_receiver(test_parameters, ctx);
-  c.wait();
+  fs::path p = bp::search_path("./ipc/test_ipc_helper");
+  if (p.empty()) {
+    FAIL() << "Cannot find test_ipc_helper on PATH";
+  } else {
+    bp::child c(p);
+    run_sender_sockets(test_parameters);
+    run_receiver(test_parameters, ctx);
+    c.wait();
+  }
 }
 
 INSTANTIATE_TEST_CASE_P(IpcMemoryAccess, xeIpcMemAccessTests,
