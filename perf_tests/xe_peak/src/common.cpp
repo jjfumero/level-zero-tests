@@ -27,7 +27,8 @@ void Timer::start() { tick = chrono::high_resolution_clock::now(); }
 
 long double Timer::stopAndTime() {
   tock = chrono::high_resolution_clock::now();
-  return (long double)chrono::duration_cast<chrono::microseconds>(tock - tick)
+  return std::chrono::duration<long double, std::chrono::microseconds::period>(
+             tock - tick)
       .count();
 }
 
