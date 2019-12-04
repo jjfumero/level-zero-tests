@@ -73,13 +73,14 @@ print_probe_output(const std::string prefix, const std::string filename,
                                       prefix, probe_setting, function_name,    \
                                       __VA_ARGS__)
 template <typename... Params, typename... Args>
-int64_t _function_call_iter_measure_latency(
+long double _function_call_iter_measure_latency(
     const std::string filename, const int line_number,
     const std::string function_name, const std::string prefix,
     const probe_config_t &probe_setting,
     ze_result_t (*api_function)(Params... params), Args... args) {
   int iteration_number = probe_setting.measure_iteration;
-  Timer<std::chrono::nanoseconds> timer;
+  Timer<> timer;
+  long double nsec;
 
   timer.start();
   for (int i = 0; i < iteration_number; i++) {
@@ -87,12 +88,13 @@ int64_t _function_call_iter_measure_latency(
   }
   timer.end();
 
-  auto int_nsec = timer.period_minus_overhead();
+  nsec = timer.period_minus_overhead();
 
-  print_probe_output(PREFIX_LATENCY + prefix, filename, line_number,
-                     function_name, int_nsec / iteration_number, UNIT_LATENCY);
+  print_probe_output(
+      PREFIX_LATENCY + prefix, filename, line_number, function_name,
+      nsec / static_cast<long double>(iteration_number), UNIT_LATENCY);
 
-  return int_nsec;
+  return nsec;
 }
 
 #define PROBE_MEASURE_HARDWARE_COUNTERS(prefix, probe_setting, function_name,  \
@@ -158,14 +160,15 @@ void _function_call_rate_iter(const std::string filename, const int line_number,
                               const std::string prefix,
                               ze_result_t (*api_function)(Params... params),
                               Args... args) {
-  Timer<std::chrono::nanoseconds> timer;
-  const int one_second_in_nano = 1000000000;
+  Timer<> timer;
+  long double nsec;
+  const long double one_second_in_nano = 1000000000.0;
   /*
    * 500 ms will be used to count function calls. This is determined by
    * dividing 1 second in nanoseconds by division_factor.
    */
-  const int division_factor = 2;
-  const int period = one_second_in_nano / division_factor;
+  const long double division_factor = 2.0;
+  const long double period = one_second_in_nano / division_factor;
   int function_call_counter = 0;
 
   /* Determine number of function calls per 500 milliseconds */
@@ -180,10 +183,9 @@ void _function_call_rate_iter(const std::string filename, const int line_number,
   }
   timer.end();
 
-  auto int_nsec = timer.period_minus_overhead();
-  function_call_counter = static_cast<int>(
-      division_factor * (period / static_cast<long double>(int_nsec)) *
-      function_call_counter);
+  nsec = timer.period_minus_overhead();
+  function_call_counter = static_cast<int>(division_factor * (period / nsec) *
+                                           function_call_counter);
   if (verbose) {
     /* It helps verify that function calls are one second */
     timer.start();
@@ -192,8 +194,8 @@ void _function_call_rate_iter(const std::string filename, const int line_number,
     }
     timer.end();
 
-    int_nsec = timer.period_minus_overhead();
-    std::cout << "Period " << int_nsec << " number function calls "
+    nsec = timer.period_minus_overhead();
+    std::cout << "Period " << nsec << " number function calls "
               << function_call_counter << std::endl;
   }
   print_probe_output(PREFIX_FUNCTION_CALL_RATE + prefix, filename, line_number,

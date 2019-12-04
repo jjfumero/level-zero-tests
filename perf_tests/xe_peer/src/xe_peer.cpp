@@ -166,11 +166,11 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
     thread_group_dimensions.groupCountZ = 1;
 
     for (uint32_t j = 0; j < device_count; j++) {
-      int64_t total_time_usec;
-      double total_time_s;
-      double total_data_transfer;
-      double total_bandwidth;
-      Timer<std::chrono::microseconds> timer;
+      long double total_time_usec;
+      long double total_time_s;
+      long double total_data_transfer;
+      long double total_bandwidth;
+      Timer<std::chrono::microseconds::period> timer;
       void *buffer_j = buffers.at(j);
 
       if (bidirectional) {
@@ -239,10 +239,11 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
       timer.end();
 
       total_time_usec = timer.period_minus_overhead();
-      total_time_s = total_time_usec / static_cast<double>(1e6);
+      total_time_s = total_time_usec / 1e6;
 
-      total_data_transfer = (buffer_size * number_iterations) /
-                            static_cast<double>(1e9); /* Units in Gigabytes */
+      total_data_transfer =
+          (buffer_size * number_iterations) /
+          static_cast<long double>(1e9); /* Units in Gigabytes */
       if (bidirectional) {
         total_data_transfer = 2 * total_data_transfer;
       }
@@ -318,8 +319,8 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
     thread_group_dimensions.groupCountZ = 1;
 
     for (uint32_t j = 0; j < device_count; j++) {
-      double total_time_usec;
-      Timer<std::chrono::microseconds> timer;
+      long double total_time_usec;
+      Timer<std::chrono::microseconds::period> timer;
       void *buffer_j = buffers.at(j);
 
       if (bidirectional) {
@@ -388,7 +389,7 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
       timer.end();
 
       total_time_usec = timer.period_minus_overhead() /
-                        static_cast<double>(number_iterations);
+                        static_cast<long double>(number_iterations);
 
       if (bidirectional) {
         std::cout << std::setprecision(11) << std::setw(8) << " Device(" << i

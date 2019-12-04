@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-template <typename T> class Timer {
+template <typename T = std::chrono::nanoseconds::period> class Timer {
 public:
   Timer() { overhead(); }
   inline void start() {
@@ -35,26 +35,27 @@ public:
 
   inline void end() { time_end = std::chrono::high_resolution_clock::now(); }
 
-  inline int64_t period_minus_overhead() {
-    return std::chrono::duration_cast<T>(time_end - time_start).count() -
+  inline long double period_minus_overhead() {
+    return std::chrono::duration<long double, T>(time_end - time_start)
+               .count() -
            time_overhead;
   }
 
   inline bool has_it_been(long long int moment) {
     std::chrono::high_resolution_clock::time_point time_now =
         std::chrono::high_resolution_clock::now();
-    auto period = std::chrono::duration_cast<T>(time_now - time_start);
+    auto period = std::chrono::duration<long double, T>(time_now - time_start);
     return (period.count() >= moment);
   }
 
 private:
   std::chrono::high_resolution_clock::time_point time_start, time_end;
-  int64_t time_overhead;
+  long double time_overhead;
 
   inline void overhead() {
     start();
     end();
-    auto period = std::chrono::duration_cast<T>(time_end - time_start);
+    auto period = std::chrono::duration<long double, T>(time_end - time_start);
     time_overhead = period.count();
   }
 };
