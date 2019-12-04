@@ -37,42 +37,47 @@ using namespace level_zero_tests;
 
 namespace {
 
-class zeCommandListAppendMemorySetTests : public zeEventPoolCommandListTests {};
+class zeCommandListAppendMemoryFillTests : public zeEventPoolCommandListTests {
+};
 
 TEST_F(
-    zeCommandListAppendMemorySetTests,
-    GivenDeviceMemorySizeAndValueWhenAppendingMemorySetThenSuccessIsReturned) {
+    zeCommandListAppendMemoryFillTests,
+    GivenDeviceMemorySizeAndValueWhenAppendingMemoryFillThenSuccessIsReturned) {
   const size_t size = 4096;
   void *memory = allocate_device_memory(size);
-  const int value = 0x00;
+  const uint8_t pattern = 0x00;
+  const int pattern_size = 1;
 
-  append_memory_set(cl.command_list_, memory, value, size);
+  lzt::append_memory_fill(cl.command_list_, memory, &pattern, pattern_size,
+                          size, nullptr);
   free_memory(memory);
 }
 
 TEST_F(
-    zeCommandListAppendMemorySetTests,
-    GivenDeviceMemorySizeAndValueWhenAppendingMemorySetWithHEventThenSuccessIsReturned) {
+    zeCommandListAppendMemoryFillTests,
+    GivenDeviceMemorySizeAndValueWhenAppendingMemoryFillWithHEventThenSuccessIsReturned) {
   const size_t size = 4096;
   void *memory = allocate_device_memory(size);
-  const int value = 0x00;
+  const uint8_t pattern = 0x00;
   ze_event_handle_t hEvent = nullptr;
+  const int pattern_size = 1;
 
   ep.create_event(hEvent);
-  lzt::append_memory_set(cl.command_list_, memory, value, size, hEvent);
+  lzt::append_memory_fill(cl.command_list_, memory, &pattern, pattern_size,
+                          size, hEvent);
   ep.destroy_event(hEvent);
 
   free_memory(memory);
 }
 
-class zeCommandListAppendMemorySetVerificationTests : public ::testing::Test {
+class zeCommandListAppendMemoryFillVerificationTests : public ::testing::Test {
 protected:
-  zeCommandListAppendMemorySetVerificationTests() {
+  zeCommandListAppendMemoryFillVerificationTests() {
     command_list = create_command_list();
     cq = create_command_queue();
   }
 
-  ~zeCommandListAppendMemorySetVerificationTests() {
+  ~zeCommandListAppendMemoryFillVerificationTests() {
     destroy_command_queue(cq);
     destroy_command_list(command_list);
   }
@@ -80,57 +85,63 @@ protected:
   ze_command_queue_handle_t cq;
 };
 
-TEST_F(zeCommandListAppendMemorySetVerificationTests,
-       GivenHostMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+TEST_F(zeCommandListAppendMemoryFillVerificationTests,
+       GivenHostMemoryWhenExecutingAMemoryFillThenMemoryIsSetCorrectly) {
 
   size_t size = 16;
   auto memory = allocate_host_memory(size);
-  uint8_t value = 0xAB;
+  uint8_t pattern = 0xAB;
+  const int pattern_size = 1;
 
-  append_memory_set(command_list, memory, value, size);
+  append_memory_fill(command_list, memory, &pattern, pattern_size, size,
+                     nullptr);
   append_barrier(command_list, nullptr, 0, nullptr);
   close_command_list(command_list);
   execute_command_lists(cq, 1, &command_list, nullptr);
   synchronize(cq, UINT32_MAX);
 
   for (uint32_t i = 0; i < size; i++) {
-    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], value)
-        << "Memory Set did not match.";
+    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], pattern)
+        << "Memory Fill did not match.";
   }
 
   free_memory(memory);
 }
 
-TEST_F(zeCommandListAppendMemorySetVerificationTests,
-       GivenSharedMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+TEST_F(zeCommandListAppendMemoryFillVerificationTests,
+       GivenSharedMemoryWhenExecutingAMemoryFillThenMemoryIsSetCorrectly) {
 
   size_t size = 16;
   auto memory = allocate_shared_memory(size);
-  uint8_t value = 0xAB;
+  uint8_t pattern = 0xAB;
+  const int pattern_size = 1;
 
-  append_memory_set(command_list, memory, value, size);
+  append_memory_fill(command_list, memory, &pattern, pattern_size, size,
+                     nullptr);
   append_barrier(command_list, nullptr, 0, nullptr);
   close_command_list(command_list);
   execute_command_lists(cq, 1, &command_list, nullptr);
   synchronize(cq, UINT32_MAX);
 
   for (uint32_t i = 0; i < size; i++) {
-    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], value)
-        << "Memory Set did not match.";
+    ASSERT_EQ(static_cast<uint8_t *>(memory)[i], pattern)
+        << "Memory Fill did not match.";
   }
 
   free_memory(memory);
 }
 
-TEST_F(zeCommandListAppendMemorySetVerificationTests,
-       GivenDeviceMemoryWhenExecutingAMemorySetThenMemoryIsSetCorrectly) {
+TEST_F(zeCommandListAppendMemoryFillVerificationTests,
+       GivenDeviceMemoryWhenExecutingAMemoryFillThenMemoryIsSetCorrectly) {
 
   size_t size = 16;
   auto memory = allocate_device_memory(size);
   auto local_mem = allocate_host_memory(size);
-  uint8_t value = 0xAB;
+  uint8_t pattern = 0xAB;
+  const int pattern_size = 1;
 
-  append_memory_set(command_list, memory, value, size);
+  append_memory_fill(command_list, memory, &pattern, pattern_size, size,
+                     nullptr);
   append_barrier(command_list, nullptr, 0, nullptr);
   close_command_list(command_list);
   execute_command_lists(cq, 1, &command_list, nullptr);
@@ -143,12 +154,48 @@ TEST_F(zeCommandListAppendMemorySetVerificationTests,
   synchronize(cq, UINT32_MAX);
 
   for (uint32_t i = 0; i < size; i++) {
-    ASSERT_EQ(static_cast<uint8_t *>(local_mem)[i], value)
-        << "Memory Set did not match.";
+    ASSERT_EQ(static_cast<uint8_t *>(local_mem)[i], pattern)
+        << "Memory Fill did not match.";
   }
 
   free_memory(memory);
+  free_memory(local_mem);
 }
+
+class zeCommandListAppendMemoryFillPatternVerificationTests
+    : public zeCommandListAppendMemoryFillVerificationTests,
+      public ::testing::WithParamInterface<size_t> {};
+
+TEST_P(zeCommandListAppendMemoryFillPatternVerificationTests,
+       GivenPatternSizeWhenExecutingAMemoryFillThenMemoryIsSetCorrectly) {
+
+  const int pattern_size = GetParam();
+  const size_t total_size = (pattern_size * 10) + 5;
+  auto pattern = new uint8_t[pattern_size];
+  auto target_memory = allocate_host_memory(total_size);
+
+  for (uint32_t i = 0; i < pattern_size; i++) {
+    pattern[i] = i;
+  }
+
+  append_memory_fill(command_list, target_memory, pattern, pattern_size,
+                     total_size, nullptr);
+  append_barrier(command_list, nullptr, 0, nullptr);
+  close_command_list(command_list);
+  execute_command_lists(cq, 1, &command_list, nullptr);
+  synchronize(cq, UINT32_MAX);
+
+  for (uint32_t i = 0; i < total_size; i++) {
+    ASSERT_EQ(static_cast<uint8_t *>(target_memory)[i], i % pattern_size)
+        << "Memory Fill did not match.";
+  }
+  free_memory(target_memory);
+  delete[] pattern;
+}
+
+INSTANTIATE_TEST_CASE_P(VaryPatternSize,
+                        zeCommandListAppendMemoryFillPatternVerificationTests,
+                        ::testing::Values(1, 2, 4, 8, 16, 32, 64, 128));
 
 class zeCommandListCommandQueueTests : public ::testing::Test {
 protected:
