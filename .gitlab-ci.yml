@@ -251,8 +251,7 @@ create-legacy-artifacts:
 gen-deploy-aubs:
   stage: deploy
   image: docker:19.03.1
-  only:
-    - master
+  only: []
   tags:
     - caas
     - dind
