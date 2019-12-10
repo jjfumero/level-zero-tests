@@ -222,6 +222,7 @@ create-legacy-artifacts:
     - caas
     - docker
     - linux
+    - production
   dependencies:
     - build-ubuntu1804
     - build-windows
@@ -343,6 +344,7 @@ deploy-artifactory:
     - caas
     - docker
     - linux
+    - production
   dependencies:
     - build-ubuntu1804
     - build-windows
