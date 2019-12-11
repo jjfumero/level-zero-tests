@@ -78,3 +78,6 @@ public/
 # Media data files
 mediadata/external/
 mediadata/merged/
+
+# Devtool stuff:
+.devtool/
