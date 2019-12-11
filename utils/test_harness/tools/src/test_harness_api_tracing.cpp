@@ -50,4 +50,24 @@ void destroy_tracer_handle(zet_tracer_handle_t tracer_handle) {
   EXPECT_EQ(ZE_RESULT_SUCCESS, zetTracerDestroy(tracer_handle));
 }
 
+void set_tracer_prologues(zet_tracer_handle_t tracer_handle,
+                          zet_core_callbacks_t prologues) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetTracerSetPrologues(tracer_handle, &prologues, nullptr));
+}
+
+void set_tracer_epilogues(const zet_tracer_handle_t tracer_handle,
+                          zet_core_callbacks_t epilogues) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetTracerSetEpilogues(tracer_handle, &epilogues, nullptr));
+}
+
+void enable_tracer(zet_tracer_handle_t tracer_handle) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zetTracerSetEnabled(tracer_handle, true));
+}
+
+void disable_tracer(zet_tracer_handle_t tracer_handle) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zetTracerSetEnabled(tracer_handle, false));
+}
+
 } // namespace level_zero_tests
