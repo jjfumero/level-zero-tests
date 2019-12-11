@@ -175,7 +175,7 @@ void zeEventPool::destroy_events(std::vector<ze_event_handle_t> &events) {
 void zeEventPool::get_ipc_handle(ze_ipc_event_pool_handle_t *hIpc) {
   // As of July 10, 2019, zeEventPoolGetIpcHandle() returns UNSUPPORTED
   // and thus the following test fails:
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventPoolGetIpcHandle(event_pool_, hIpc));
+  ASSERT_EQ(ZE_RESULT_SUCCESS, zeEventPoolGetIpcHandle(event_pool_, hIpc));
 }
 
 void close_ipc_event_handle(ze_event_pool_handle_t eventPool) {

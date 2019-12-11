@@ -83,6 +83,9 @@ static void run_ipc_event_test(parent_test_t parent_test,
   auto ep = get_event_pool(multi_device);
   ze_ipc_event_pool_handle_t hIpcEventPool;
   ep.get_ipc_handle(&hIpcEventPool);
+  if (testing::Test::HasFatalFailure())
+    return; // Abort test if IPC Event handle failed
+
   ze_event_handle_t hEvent;
   ep.create_event(hEvent, defaultEventDesc);
   shared_data_t test_data = {parent_test, child_test, hIpcEventPool,
