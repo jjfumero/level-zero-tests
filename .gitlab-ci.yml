@@ -37,6 +37,7 @@ build-windows:
         -w C:\project
         -v C:\clcache:C:\clcache
         -e CLCACHE_DIR=C:\clcache
+        -e CLCACHE_OBJECT_CACHE_TIMEOUT_MS=30000
         -v C:\devtool-cache:C:\devtool-cache
         -e DEVTOOL_CACHE_DIR=C:\devtool-cache
         %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
