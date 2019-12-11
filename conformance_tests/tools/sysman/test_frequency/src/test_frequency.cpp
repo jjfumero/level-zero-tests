@@ -90,4 +90,41 @@ TEST(
   }
 }
 
+TEST(zetSysmanFrequencyGetStateTests,
+     GivenValidDeviceWhenRetrievingFreqStateThenValidFreqStatesAreReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      zet_freq_state_t pState = lzt::get_freq_state(pFreqHandle);
+      lzt::validate_freq_state(pFreqHandle, pState);
+    }
+  }
+}
+
+TEST(zetSysmanFrequencyGetStateTests,
+     GivenValidFreqRangeWhenRetrievingFreqStateThenValidFreqStatesAreReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      zet_freq_range_t limits;
+      auto frequency = lzt::get_available_clocks(pFreqHandle);
+      ASSERT_GT(frequency.size(), 0);
+      limits.min = frequency[0];
+      limits.max = frequency[1];
+      lzt::set_freq_range(pFreqHandle, limits);
+      lzt::idle_check(pFreqHandle);
+      zet_freq_state_t state = lzt::get_freq_state(pFreqHandle);
+      lzt::validate_freq_state(pFreqHandle, state);
+      EXPECT_LE(state.actual, limits.max);
+      EXPECT_GE(state.actual, limits.min);
+      EXPECT_LE(state.request, limits.max);
+      EXPECT_GE(state.request, limits.min);
+    }
+  }
+}
+
 } // namespace
