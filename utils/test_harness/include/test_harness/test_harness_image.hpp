@@ -79,6 +79,9 @@ const auto image_format_media_layouts =
                       ZE_IMAGE_FORMAT_LAYOUT_P216, ZE_IMAGE_FORMAT_LAYOUT_P416);
 
 const std::vector<ze_image_format_swizzle_t> image_format_swizzles = {
+    ZE_IMAGE_FORMAT_SWIZZLE_R};
+
+const std::vector<ze_image_format_swizzle_t> image_format_swizzles_all = {
     ZE_IMAGE_FORMAT_SWIZZLE_R, ZE_IMAGE_FORMAT_SWIZZLE_G,
     ZE_IMAGE_FORMAT_SWIZZLE_B, ZE_IMAGE_FORMAT_SWIZZLE_A,
     ZE_IMAGE_FORMAT_SWIZZLE_0, ZE_IMAGE_FORMAT_SWIZZLE_1,
