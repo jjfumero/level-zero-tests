@@ -31,6 +31,7 @@
 
 class XeApp {
 public:
+  XeApp(void);
   XeApp(std::string module_path);
   ~XeApp();
 
@@ -45,6 +46,8 @@ public:
   void functionDestroy(ze_kernel_handle_t function);
   void imageCreate(ze_image_handle_t *image);
   void imageCreate(ze_device_handle_t device, ze_image_handle_t *image);
+  void imageCreate(ze_image_handle_t *image, uint32_t width, uint32_t height,
+                   uint32_t depth);
   void imageDestroy(ze_image_handle_t image);
   void commandListCreate(ze_command_list_handle_t *phCommandList);
   void commandListCreate(ze_device_handle_t device,
@@ -52,6 +55,16 @@ public:
   void commandListDestroy(ze_command_list_handle_t phCommandList);
   void commandListClose(ze_command_list_handle_t phCommandList);
   void commandListReset(ze_command_list_handle_t phCommandList);
+  void commandListAppendImageCopyFromMemory(
+      ze_command_list_handle_t command_list, ze_image_handle_t image,
+      uint8_t *srcBuffer, ze_image_region_t *Region);
+
+  void commandListAppendBarrier(ze_command_list_handle_t command_list);
+
+  void commandListAppendImageCopyToMemory(ze_command_list_handle_t command_list,
+                                          uint8_t *dstBuffer,
+                                          ze_image_handle_t image,
+                                          ze_image_region_t *Region);
 
   void commandQueueCreate(const uint32_t command_queue_id,
                           ze_command_queue_handle_t *command_queue);

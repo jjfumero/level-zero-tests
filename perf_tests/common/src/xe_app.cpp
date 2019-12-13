@@ -53,6 +53,15 @@ std::vector<uint8_t> XeApp::load_binary_file(const std::string &file_path) {
   return binary_file;
 }
 
+XeApp::XeApp(void) {
+  device = nullptr;
+  module = nullptr;
+  driver = nullptr;
+  this->module_path = "";
+
+  SUCCESS_OR_TERMINATE(zeInit(ZE_INIT_FLAG_NONE));
+}
+
 XeApp::XeApp(std::string module_path) {
   device = nullptr;
   module = nullptr;
@@ -150,6 +159,28 @@ void XeApp::imageCreate(ze_device_handle_t device, ze_image_handle_t *image) {
   zeImageCreate(device, &imageDesc, image);
 }
 
+void XeApp::imageCreate(ze_image_handle_t *image, uint32_t width,
+                        uint32_t height, uint32_t depth) {
+
+  assert(this->device != nullptr);
+  ze_image_format_desc_t formatDesc = {
+      ZE_IMAGE_FORMAT_LAYOUT_32, ZE_IMAGE_FORMAT_TYPE_FLOAT,
+      ZE_IMAGE_FORMAT_SWIZZLE_R, ZE_IMAGE_FORMAT_SWIZZLE_0,
+      ZE_IMAGE_FORMAT_SWIZZLE_0, ZE_IMAGE_FORMAT_SWIZZLE_1};
+
+  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
+                               ZE_IMAGE_FLAG_PROGRAM_READ,
+                               ZE_IMAGE_TYPE_2D,
+                               formatDesc,
+                               width,
+                               height,
+                               depth,
+                               0,
+                               0};
+
+  zeImageCreate(this->device, &imageDesc, image);
+}
+
 void XeApp::imageDestroy(ze_image_handle_t image) {
   SUCCESS_OR_TERMINATE(zeImageDestroy(image));
 }
@@ -178,6 +209,25 @@ void XeApp::commandListClose(ze_command_list_handle_t command_list) {
 
 void XeApp::commandListReset(ze_command_list_handle_t command_list) {
   SUCCESS_OR_TERMINATE(zeCommandListReset(command_list));
+}
+
+void XeApp::commandListAppendImageCopyFromMemory(
+    ze_command_list_handle_t command_list, ze_image_handle_t image,
+    uint8_t *srcBuffer, ze_image_region_t *Region) {
+  SUCCESS_OR_TERMINATE(zeCommandListAppendImageCopyFromMemory(
+      command_list, image, srcBuffer, Region, nullptr));
+}
+
+void XeApp::commandListAppendBarrier(ze_command_list_handle_t command_list) {
+  SUCCESS_OR_TERMINATE(
+      zeCommandListAppendBarrier(command_list, nullptr, 0, nullptr));
+}
+
+void XeApp::commandListAppendImageCopyToMemory(
+    ze_command_list_handle_t command_list, uint8_t *dstBuffer,
+    ze_image_handle_t image, ze_image_region_t *Region) {
+  SUCCESS_OR_TERMINATE(zeCommandListAppendImageCopyToMemory(
+      command_list, dstBuffer, image, Region, nullptr));
 }
 
 void XeApp::commandQueueCreate(const uint32_t command_queue_id,
@@ -225,10 +275,17 @@ void XeApp::singleDeviceInit(void) {
   device_count = 1;
   driverGetDevices(driver, device_count, &device);
 
-  moduleCreate(device, &module);
+  /*  if module paths string size is not 0 then only call modulecreate */
+  if (this->module_path.size() != 0)
+    moduleCreate(device, &module);
 }
 
-void XeApp::singleDeviceCleanup(void) { moduleDestroy(module); }
+void XeApp::singleDeviceCleanup(void) {
+
+  /*  if module pathsstring size is not 0 then only call moduledestory */
+  if (this->module_path.size() != 0)
+    moduleDestroy(module);
+}
 
 uint32_t XeApp::driverCount(void) {
   uint32_t driver_count = 0;
