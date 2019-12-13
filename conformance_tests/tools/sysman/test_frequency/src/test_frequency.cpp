@@ -127,4 +127,75 @@ TEST(zetSysmanFrequencyGetStateTests,
   }
 }
 
+TEST(
+    zetSysmanFrequencyGetPropertiesTests,
+    GivenValidFrequencyHandleWhenRequestingDeviceGPUTypeThenExpectCanControlPropertyToBeTrue) {
+  ze_result_t result;
+  zet_freq_properties_t properties;
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      properties = lzt::get_freq_properties(pFreqHandle);
+      if (properties.type == ZET_FREQ_DOMAIN_GPU)
+        EXPECT_TRUE(properties.canControl);
+      else if (properties.type == ZET_FREQ_DOMAIN_MEMORY)
+        EXPECT_FALSE(properties.canControl);
+      else
+        FAIL();
+    }
+  }
+}
+
+TEST(
+    zetSysmanFrequencyGetPropertiesTests,
+    GivenValidFrequencyHandleWhenRequestingFrequencyPropertiesThenExpectPositiveFrequencyRangeAndSteps) {
+  ze_result_t result;
+  zet_freq_properties_t properties;
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      properties = lzt::get_freq_properties(pFreqHandle);
+      EXPECT_GT(properties.max, 0);
+      EXPECT_GT(properties.min, 0);
+      EXPECT_GT(properties.step, 0);
+    }
+  }
+}
+
+TEST(
+    zetSysmanFrequencyGetPropertiesTests,
+    GivenSameFrequencyHandleWhenRequestingFrequencyPropertiesThenExpectSamePropertiesOnMultipleCalls) {
+  ze_result_t result;
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+    }
+    std::vector<zet_freq_properties_t> properties(3);
+
+    for (uint32_t i = 0; i < 3; i++)
+      properties[i] = lzt::get_freq_properties(pFreqHandles[0]);
+
+    ASSERT_GT(properties.size(), 1);
+    for (uint32_t i = 1; i < properties.size(); i++) {
+      EXPECT_EQ(properties[0].type, properties[i].type);
+      EXPECT_EQ(properties[0].onSubdevice, properties[i].onSubdevice);
+      if (properties[0].onSubdevice == true &&
+          properties[i].onSubdevice == true)
+        EXPECT_EQ(properties[0].subdeviceId, properties[i].subdeviceId);
+      EXPECT_EQ(properties[0].canControl, properties[i].canControl);
+      EXPECT_EQ(properties[0].isThrottleEventSupported,
+                properties[i].isThrottleEventSupported);
+      EXPECT_EQ(properties[0].max, properties[i].max);
+      EXPECT_EQ(properties[0].min, properties[i].min);
+      EXPECT_EQ(properties[0].step, properties[i].step);
+    }
+  }
+}
+
 } // namespace
