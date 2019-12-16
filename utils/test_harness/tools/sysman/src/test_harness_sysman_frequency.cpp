@@ -96,11 +96,14 @@ uint32_t get_available_clock_count(zet_sysman_freq_handle_t pFreqHandle) {
   uint32_t count = 0;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zetSysmanFrequencyGetAvailableClocks(pFreqHandle, &count, nullptr));
+  EXPECT_GT(count, 0);
   return count;
 }
 
-std::vector<double> get_available_clocks(zet_sysman_freq_handle_t pFreqHandle) {
-  uint32_t count = get_available_clock_count(pFreqHandle);
+std::vector<double> get_available_clocks(zet_sysman_freq_handle_t pFreqHandle,
+                                         uint32_t &count) {
+  if (count == 0)
+    count = get_available_clock_count(pFreqHandle);
   std::vector<double> frequency(count);
   EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanFrequencyGetAvailableClocks(
                                    pFreqHandle, &count, frequency.data()));

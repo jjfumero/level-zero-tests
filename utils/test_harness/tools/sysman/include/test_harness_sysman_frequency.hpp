@@ -47,7 +47,8 @@ zet_freq_properties_t get_freq_properties(zet_sysman_freq_handle_t pFreqHandle);
 zet_freq_range_t
 get_and_validate_freq_range(zet_sysman_freq_handle_t pFreqHandle);
 uint32_t get_available_clock_count(zet_sysman_freq_handle_t pFreqHandle);
-std::vector<double> get_available_clocks(zet_sysman_freq_handle_t pFreqHandle);
+std::vector<double> get_available_clocks(zet_sysman_freq_handle_t pFreqHandle,
+                                         uint32_t &count);
 
 } // namespace level_zero_tests
 

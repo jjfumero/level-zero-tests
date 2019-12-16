@@ -111,7 +111,8 @@ TEST(zetSysmanFrequencyGetStateTests,
     for (auto pFreqHandle : pFreqHandles) {
       EXPECT_NE(nullptr, pFreqHandle);
       zet_freq_range_t limits;
-      auto frequency = lzt::get_available_clocks(pFreqHandle);
+      uint32_t count = 0;
+      auto frequency = lzt::get_available_clocks(pFreqHandle, count);
       ASSERT_GT(frequency.size(), 0);
       limits.min = frequency[0];
       limits.max = frequency[1];
@@ -123,6 +124,63 @@ TEST(zetSysmanFrequencyGetStateTests,
       EXPECT_GE(state.actual, limits.min);
       EXPECT_LE(state.request, limits.max);
       EXPECT_GE(state.request, limits.min);
+    }
+  }
+}
+TEST(
+    zetSysmanFrequencyGetAvailableClocksTests,
+    GivenValidFrequencyHandleWhenRetrievingAvailableClocksThenSuccessAndSameValuesAreReturnedTwice) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      uint32_t icount = 0;
+      uint32_t lcount = 0;
+      auto pFrequencyInitial = lzt::get_available_clocks(pFreqHandle, icount);
+      auto pFrequencyLater = lzt::get_available_clocks(pFreqHandle, lcount);
+
+      EXPECT_EQ(pFrequencyInitial.size(), pFrequencyLater.size());
+      EXPECT_TRUE(std::equal(pFrequencyInitial.begin(), pFrequencyInitial.end(),
+                             pFrequencyLater.begin()));
+    }
+  }
+}
+
+TEST(
+    zetSysmanFrequencyGetAvailableClocksTests,
+    GivenValidFrequencyHandleWhenRetrievingAvailableClocksThenPositiveAndValidValuesAreReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      uint32_t count = 0;
+      auto pFrequency = lzt::get_available_clocks(pFreqHandle, count);
+
+      for (uint32_t i = 0; i < pFrequency.size(); i++) {
+        EXPECT_GT(pFrequency[i], 0);
+        if (i > 0)
+          EXPECT_GE(
+              pFrequency[i],
+              pFrequency[i - 1]); // Each entry in array of pFrequency, should
+                                  // be less than or equal to next entry
+      }
+    }
+  }
+}
+TEST(zetSysmanFrequencyGetAvailableClocksTests,
+     GivenClocksCountWhenRetrievingAvailableClocksThenActualCountIsUpdated) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      uint32_t pCount = 0;
+      pCount = lzt::get_available_clock_count(pFreqHandle);
+      uint32_t tCount = pCount + 1;
+      lzt::get_available_clocks(pFreqHandle, tCount);
+      EXPECT_EQ(pCount, tCount);
     }
   }
 }
