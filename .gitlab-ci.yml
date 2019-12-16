@@ -361,8 +361,8 @@ deploy-artifactory:
           for type in perf conformance; do
               gta-asset push
                 --root-url https://gfx-assets.fm.intel.com/artifactory
-                -u ${ARTIFACTORY_USER}
-                -p ${ARTIFACTORY_PASSWORD}
+                -u ${ARTIFACTORY_DEPLOY_USER}
+                -p ${ARTIFACTORY_DEPLOY_PASSWORD}
                 gfx-compute-assets
                 level-zero-tests-${type}-$platform
                 $VERSION
@@ -375,8 +375,8 @@ deploy-artifactory:
           gta-asset push
             --root-url https://gfx-assets.fm.intel.com/artifactory
             --no-archive
-            -u ${ARTIFACTORY_USER}
-            -p ${ARTIFACTORY_PASSWORD}
+            -u ${ARTIFACTORY_DEPLOY_USER}
+            -p ${ARTIFACTORY_DEPLOY_PASSWORD}
             gfx-compute-assets
             level-zero-tests-legacyformat-${type}
             $VERSION
