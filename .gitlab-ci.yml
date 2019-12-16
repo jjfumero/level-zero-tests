@@ -363,8 +363,8 @@ deploy-artifactory:
                 --root-url https://gfx-assets.fm.intel.com/artifactory
                 -u ${ARTIFACTORY_USER}
                 -p ${ARTIFACTORY_PASSWORD}
-                gfx-sandbox-fm/level-zero-${type}
-                $platform
+                gfx-compute-assets
+                level-zero-tests-${type}-$platform
                 $VERSION
                 out/$platform/${type}_tests;
           done;
@@ -377,8 +377,8 @@ deploy-artifactory:
             --no-archive
             -u ${ARTIFACTORY_USER}
             -p ${ARTIFACTORY_PASSWORD}
-            gfx-sandbox-fm
-            level-zero-${type}-archived
+            gfx-compute-assets
+            level-zero-tests-legacyformat-${type}
             $VERSION
             archived/${type}_tests;
       done
