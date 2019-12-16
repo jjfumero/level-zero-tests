@@ -198,4 +198,51 @@ TEST(
   }
 }
 
+TEST(
+    zetSysmanFrequencyGetRangeTests,
+    GivenValidFrequencyCountWhenRequestingFrequencyHandleThenExpectzetSysmanFrequencyGetRangeToReturnSuccessOnMultipleCalls) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      zet_freq_range_t freqRange;
+      for (uint32_t i = 0; i < 3; i++)
+        freqRange = lzt::get_freq_range(pFreqHandle);
+    }
+  }
+}
+
+TEST(
+    zetSysmanFrequencyGetRangeTests,
+    GivenSameFrequencyHandleWhenRequestingFrequencyRangeThenExpectSameRangeOnMultipleCalls) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      std::vector<zet_freq_range_t> freqRangeToCompare;
+      for (uint32_t i = 0; i < 3; i++)
+        freqRangeToCompare.push_back(lzt::get_freq_range(pFreqHandle));
+
+      for (uint32_t i = 1; i < freqRangeToCompare.size(); i++) {
+        EXPECT_EQ(freqRangeToCompare[0].max, freqRangeToCompare[i].max);
+        EXPECT_EQ(freqRangeToCompare[0].min, freqRangeToCompare[i].min);
+      }
+    }
+  }
+}
+
+TEST(
+    zetSysmanFrequencyGetRangeTests,
+    GivenValidFrequencyCountWhenRequestingFrequencyHandleThenExpectzetSysmanFrequencyGetRangeToReturnValidFrequencyRanges) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    zet_freq_range_t freqRange;
+    for (auto pFreqHandle : pFreqHandles)
+      freqRange = lzt::get_and_validate_freq_range(pFreqHandle);
+  }
+}
+
 } // namespace
