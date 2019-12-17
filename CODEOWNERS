@@ -8,9 +8,9 @@
 /clang-format-patch.sh @nrspruit @ledettwy
 
 # build/run automation
-/docker/ @ledettwy @jchodor
-/.gitlab-ci.yml @ledettwy @jchodor
-/ci/ @ledettwy @jchodor
+/docker/ @ledettwy @jchodor @nrspruit
+/.gitlab-ci.yml @ledettwy @jchodor @nrspruit
+/ci/ @ledettwy @jchodor @nrspruit
 
 # test code
 conformance_tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
