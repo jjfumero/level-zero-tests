@@ -404,6 +404,15 @@ protected:
               zeKernelSetGroupSize(function, group_size_x, group_size_y,
                                    group_size_z));
 
+    ze_kernel_properties_t kernel_properties;
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeKernelGetProperties(function, &kernel_properties));
+    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountX, group_size_x);
+    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountY, group_size_y);
+    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountZ, group_size_z);
+    EXPECT_EQ(kernel_properties.numKernelArgs, 2);
+    EXPECT_STREQ(kernel_properties.name, "module_add_constant");
+
     ze_event_handle_t signal_event = nullptr;
     uint32_t num_wait = 0;
     ze_event_handle_t *p_wait_events = nullptr;
@@ -677,8 +686,13 @@ TEST_F(zeKernelCreateTests,
   lzt::free_memory(input_b);
 }
 
-TEST_F(zeKernelCreateTests,
-       GivenValidFunctionWhenGettingAttributesThenReturnSuccessful) {
+TEST_F(
+    zeKernelCreateTests,
+    GivenValidFunctionWhenGettingPropertiesThenReturnSuccessfulAndPropertiesAreValid) {
+  ze_device_compute_properties_t dev_compute_properties;
+  dev_compute_properties.version = ZE_DEVICE_COMPUTE_PROPERTIES_VERSION_CURRENT;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeDeviceGetComputeProperties(device_, &dev_compute_properties));
 
   ze_kernel_handle_t function;
   uint32_t attribute_val;
@@ -688,6 +702,13 @@ TEST_F(zeKernelCreateTests,
     ze_kernel_properties_t kernel_properties;
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeKernelGetProperties(function, &kernel_properties));
+    EXPECT_LE(kernel_properties.compileGroupSize.groupCountX,
+              dev_compute_properties.maxGroupCountX);
+    EXPECT_LE(kernel_properties.compileGroupSize.groupCountY,
+              dev_compute_properties.maxGroupCountY);
+    EXPECT_LE(kernel_properties.compileGroupSize.groupCountZ,
+              dev_compute_properties.maxGroupCountZ);
+
     LOG_INFO << "Kernel Name = " << kernel_properties.name;
     LOG_INFO << "Num of Arguments = " << kernel_properties.numKernelArgs;
     LOG_INFO << "Group Size in X dim = "
