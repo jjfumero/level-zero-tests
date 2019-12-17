@@ -518,7 +518,7 @@ protected:
                                       img.dflt_host_image_.height());
     // Scribble a known incorrect data pattern to new_host_image to ensure we
     // are validating actual data from the L0 functionality:
-    lzt::write_data_pattern(new_host_image, -1);
+    lzt::write_image_data_pattern(new_host_image, -1);
 
     // First, copy the image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
@@ -599,7 +599,7 @@ protected:
       src_reg_2 = &source_region2;
       dest_reg_1 = &dest_region1;
       dest_reg_2 = &dest_region2;
-      lzt::write_data_pattern(host_image2, -1);
+      lzt::write_image_data_pattern(host_image2, -1);
     }
 
     ze_image_desc_t image_desc = img.get_dflt_ze_image_desc();
@@ -610,7 +610,7 @@ protected:
                                       img.dflt_host_image_.height());
     // Scribble a known incorrect data pattern to new_host_image to ensure we
     // are validating actual data from the L0 functionality:
-    lzt::write_data_pattern(new_host_image, -1);
+    lzt::write_image_data_pattern(new_host_image, -1);
     // First, copy the default image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyFromMemory(
@@ -768,14 +768,14 @@ protected:
     // copy regions, and is host_image2:
     // In region operations, host_image2 references the lower part of the
     // image:
-    lzt::write_data_pattern(host_image2, -1);
+    lzt::write_image_data_pattern(host_image2, -1);
     // new_host_image is used to validate that the above image copy operation(s)
     // were correct:
     lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
                                       img.dflt_host_image_.height());
     // Scribble a known incorrect data pattern to new_host_image to ensure we
     // are validating actual data from the L0 functionality:
-    lzt::write_data_pattern(new_host_image, -1);
+    lzt::write_image_data_pattern(new_host_image, -1);
     // First, copy the entire host image to hds_memory:
     append_memory_copy(cl.command_list_, hds_memory,
                        img.dflt_host_image_.raw_data(),
@@ -933,14 +933,14 @@ protected:
     // copy regions, and is host_image2:
     // In region operations, host_image2 references the lower part of the
     // image:
-    lzt::write_data_pattern(host_image2, -1);
+    lzt::write_image_data_pattern(host_image2, -1);
     // new_host_image is used to validate that the above image copy operation(s)
     // were correct:
     lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
                                       img.dflt_host_image_.height());
     // Scribble a known incorrect data pattern to new_host_image to ensure we
     // are validating actual data from the L0 functionality:
-    lzt::write_data_pattern(new_host_image, -1);
+    lzt::write_image_data_pattern(new_host_image, -1);
     // Copy the image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyFromMemory(

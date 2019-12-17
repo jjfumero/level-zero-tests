@@ -170,9 +170,11 @@ static inline uint32_t mask_and_shift(int8_t v, uint8_t m, size_t s) {
   return static_cast<uint32_t>(v & m) << s;
 }
 
-static inline uint32_t make_pixel(int8_t r, int8_t g, int8_t b, int8_t a) {
-  return mask_and_shift(r, 0xff, 24) | mask_and_shift(g, 0xff, 16) |
-         mask_and_shift(b, 0xff, 8) | mask_and_shift(a, 0xff, 0);
+static inline uint32_t make_pixel(int8_t r, uint8_t r_idx, int8_t g,
+                                  uint8_t g_idx, int8_t b, uint8_t b_idx,
+                                  int8_t a, uint8_t a_idx) {
+  return mask_and_shift(r, 0xff, r_idx) | mask_and_shift(g, 0xff, g_idx) |
+         mask_and_shift(b, 0xff, b_idx) | mask_and_shift(a, 0xff, a_idx);
 }
 
 static void clip_to_uint8_t(int8_t &sd, int8_t addvalue) {
@@ -185,17 +187,51 @@ static void clip_to_uint8_t(int8_t &sd, int8_t addvalue) {
   }
 }
 
-static void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
-                               int originX, int originY, int width,
-                               int height) {
+enum RGBA_index {
+  X_IDX = 0,
+  Y_IDX = 8,
+  Z_IDX = 16,
+  W_IDX = 24,
+  UNKNOWN_IDX = 255
+};
+
+static inline uint8_t lookup_idx(ze_image_format_swizzle_t s,
+                                 const ze_image_format_desc_t &fmt) {
+  if (s == fmt.x) {
+    return X_IDX;
+  } else if (s == fmt.y) {
+    return Y_IDX;
+  } else if (s == fmt.z) {
+    return Z_IDX;
+  } else if (s == fmt.w) {
+    return W_IDX;
+  } else {
+    return UNKNOWN_IDX;
+  }
+}
+
+static void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
+                                     const ze_image_format_desc_t &image_format,
+                                     int originX, int originY, int width,
+                                     int height) {
   int8_t pixel_r = dp * 1;
+  uint8_t r_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_R, image_format);
   int8_t pixel_g = dp * 2;
+  uint8_t g_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_G, image_format);
   int8_t pixel_b = dp * 3;
+  uint8_t b_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_B, image_format);
   int8_t pixel_a = dp * 4;
+  uint8_t a_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_A, image_format);
+
+  // FIXME:
+  // If any of the above lookups fail, then the rest of this code will
+  // not work.  I want to:
+  // testing::Test::FAIL() << "Can't find swizzle value in format.";
 
   for (int y = originY; y < height; y++) {
     for (int x = originX; x < width; x++) {
-      uint32_t pixel = make_pixel(pixel_r, pixel_g, pixel_b, pixel_a);
+      uint32_t pixel = make_pixel(pixel_r, r_idx, pixel_g, g_idx, pixel_b,
+                                  b_idx, pixel_a, a_idx);
       image.set_pixel(x, y, pixel);
       clip_to_uint8_t(pixel_r, dp * 1);
       clip_to_uint8_t(pixel_g, dp * 2);
@@ -205,8 +241,18 @@ static void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
   }
 }
 
-void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp) {
-  write_data_pattern(image, dp, 0, 0, image.width(), image.height());
+void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
+                              const ze_image_format_desc_t &image_format) {
+  write_image_data_pattern(image, dp, image_format, 0, 0, image.width(),
+                           image.height());
+}
+
+void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp) {
+  zeImageCreateCommon img;
+  ze_image_desc_t img_desc = img.get_dflt_ze_image_desc();
+
+  write_image_data_pattern(image, dp, img_desc.format, 0, 0, image.width(),
+                           image.height());
 }
 
 static inline uint32_t get_pixel(const uint32_t *image, int x, int y,
@@ -218,6 +264,42 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
                          const lzt::ImagePNG32Bit &imagepng2, int origin1X,
                          int origin1Y, int width1, int height1, int origin2X,
                          int origin2Y, int width2, int height2) {
+  zeImageCreateCommon img;
+  ze_image_desc_t img_desc = img.get_dflt_ze_image_desc();
+
+  return compare_data_pattern(imagepng1, img_desc.format, imagepng2,
+                              img_desc.format, origin1X, origin1Y, width1,
+                              height1, origin2X, origin2Y, width2, height2);
+}
+
+static void decompose_pixel(uint32_t pixel, int8_t &r, uint8_t r_idx, int8_t &g,
+                            uint8_t g_idx, int8_t &b, uint8_t b_idx, int8_t &a,
+                            uint8_t a_idx) {
+  r = (pixel >> r_idx) & 0xff;
+  g = (pixel >> g_idx) & 0xff;
+  b = (pixel >> b_idx) & 0xff;
+  a = (pixel >> a_idx) & 0xff;
+}
+
+// Returns number of errors found, color order for both images are
+// define in the image_format parameters:
+int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
+                         const ze_image_format_desc_t &image1_format,
+                         const lzt::ImagePNG32Bit &imagepng2,
+                         const ze_image_format_desc_t &image2_format,
+                         int origin1X, int origin1Y, int width1, int height1,
+                         int origin2X, int origin2Y, int width2, int height2) {
+  uint8_t r1_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_R, image1_format);
+  uint8_t g1_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_G, image1_format);
+  uint8_t b1_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_B, image1_format);
+  uint8_t a1_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_A, image1_format);
+  uint8_t r2_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_R, image2_format);
+  uint8_t g2_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_G, image2_format);
+  uint8_t b2_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_B, image2_format);
+  uint8_t a2_idx = lookup_idx(ZE_IMAGE_FORMAT_SWIZZLE_A, image2_format);
+
+  const bool must_decompose_colors = (r1_idx != r2_idx) || (g1_idx != g2_idx) ||
+                                     (b1_idx != b2_idx) || (a1_idx != a2_idx);
   const uint32_t *image1 = imagepng1.raw_data();
   const uint32_t *image2 = imagepng2.raw_data();
   int errCnt = 0, successCnt = 0;
@@ -227,17 +309,36 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
          y1++, y2++) {
       uint32_t pixel1 = get_pixel(image1, x1, y1, width1);
       uint32_t pixel2 = get_pixel(image2, x2, y2, width2);
-      if (pixel1 != pixel2) {
+      bool correct;
+      if (must_decompose_colors) {
+        int8_t r1, g1, b1, a1;
+        int8_t r2, g2, b2, a2;
+        decompose_pixel(pixel1, r1, r1_idx, g1, g1_idx, b1, b1_idx, a1, a1_idx);
+        decompose_pixel(pixel2, r2, r2_idx, g2, g2_idx, b2, b2_idx, a2, a2_idx);
+        if ((r1 != r2) || (g1 != g2) || (b1 != b2) || (a1 != a2)) {
+          correct = false;
+        } else {
+          correct = true;
+        }
+      } else {
+        if (pixel1 != pixel2) {
+          correct = false;
+        } else {
+          correct = true;
+        }
+      }
+      if (!correct) {
         LOG_DEBUG << "errCnt: " << errCnt << " successCnt: " << successCnt
                   << " x1: " << x1 << " y1: " << y1 << " x2: " << x2
                   << " y2: " << y2 << " pixel1: 0x" << std::hex << pixel1
                   << " pixel2: 0x" << pixel2;
         errCnt++;
-      } else
+      } else {
         successCnt++;
+      }
     }
+    return errCnt;
   }
-  return errCnt;
 }
 
 }; // namespace level_zero_tests

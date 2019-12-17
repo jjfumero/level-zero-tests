@@ -119,13 +119,30 @@ protected:
   zeImageCreateCommon img;
 };
 
-void write_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp);
+// write_image_data_pattern() writes the image in the default color order,
+// that I define here:
+// a bits  0 ...  7
+// b bits  8 ... 15
+// g bits 16 ... 23
+// r bits 24 ... 31
+void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp);
+// The following uses arbitrary color order as defined in image_format:
+void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
+                              const ze_image_format_desc_t &image_format);
 
-// Returns number of errors found:
+// Returns number of errors found, assumes default color order:
 int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
                          const lzt::ImagePNG32Bit &imagepng2, int origin1X,
                          int origin1Y, int width1, int height1, int origin2X,
                          int origin2Y, int width2, int height2);
+// Returns number of errors found, color order for both images are
+// define in the image_format parameters:
+int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
+                         const ze_image_format_desc_t &image1_format,
+                         const lzt::ImagePNG32Bit &imagepng2,
+                         const ze_image_format_desc_t &image2_format,
+                         int origin1X, int origin1Y, int width1, int height1,
+                         int origin2X, int origin2Y, int width2, int height2);
 
 }; // namespace level_zero_tests
 

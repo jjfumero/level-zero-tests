@@ -27,6 +27,7 @@ add_lzt_test(
   GROUP "/conformance_tests/core"
   SOURCES
     src/test_image.cpp
+    src/test_image_copy_swizzle.cpp
     src/main.cpp
   LINK_LIBRARIES
     level_zero_tests::logging
