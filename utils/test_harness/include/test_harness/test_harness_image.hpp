@@ -94,7 +94,7 @@ void generate_ze_image_creation_flags_list(
 
 void create_ze_image(ze_image_handle_t &image);
 void create_ze_image(ze_image_handle_t &image,
-                     ze_image_desc_t *image_descriptor);
+                     const ze_image_desc_t *image_descriptor);
 void destroy_ze_image(ze_image_handle_t image);
 
 ze_image_properties_t get_ze_image_properties(ze_image_desc_t image_descriptor);
@@ -106,8 +106,9 @@ class zeImageCreateCommon {
 public:
   zeImageCreateCommon();
   ~zeImageCreateCommon();
-  ze_image_desc_t get_dflt_ze_image_desc(void) const;
+  static const ze_image_desc_t dflt_ze_image_desc;
 
+  static const int8_t dflt_data_pattern = 1;
   std::vector<ze_image_flag_t> image_creation_flags_list_;
   level_zero_tests::ImagePNG32Bit dflt_host_image_;
   ze_image_handle_t dflt_device_image_ = nullptr;
@@ -143,6 +144,17 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
                          const ze_image_format_desc_t &image2_format,
                          int origin1X, int origin1Y, int width1, int height1,
                          int origin2X, int origin2Y, int width2, int height2);
+
+// The following function, compares all of the pixels in image
+// against the pixels that are expected in the foreground and background of the
+// image. The foreground pixels are chosen when the pixels reside in the
+// specified region, else the background pixels are chosen. Returns number of
+// errors found:
+int compare_data_pattern(
+    const lzt::ImagePNG32Bit &image, const ze_image_region_t *region,
+    const lzt::ImagePNG32Bit &expected_fg, // expected foreground
+    const lzt::ImagePNG32Bit &expected_bg  // expected background
+);
 
 }; // namespace level_zero_tests
 

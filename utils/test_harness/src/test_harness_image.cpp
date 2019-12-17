@@ -63,7 +63,7 @@ void copy_image_to_mem(ze_image_handle_t input, lzt::ImagePNG32Bit output) {
 }
 
 void create_ze_image(ze_image_handle_t &image,
-                     ze_image_desc_t *image_descriptor) {
+                     const ze_image_desc_t *image_descriptor) {
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeImageCreate(lzt::zeDevice::get_instance()->get_device(),
                           image_descriptor, &image));
@@ -96,30 +96,28 @@ void generate_ze_image_creation_flags_list(
   }
 }
 
-ze_image_desc_t zeImageCreateCommon::get_dflt_ze_image_desc(void) const {
-  ze_image_desc_t image_desc;
+#define DEFAULT_WIDTH 128
+#define DEFAULT_HEIGHT 128
 
-  image_desc.version = ZE_IMAGE_DESC_VERSION_CURRENT;
-  image_desc.format.layout = ZE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
-  image_desc.flags = ZE_IMAGE_FLAG_PROGRAM_READ;
-  image_desc.type = ZE_IMAGE_TYPE_2D;
-  image_desc.format.type = ZE_IMAGE_FORMAT_TYPE_UNORM;
-  image_desc.format.x = ZE_IMAGE_FORMAT_SWIZZLE_R;
-  image_desc.format.y = ZE_IMAGE_FORMAT_SWIZZLE_G;
-  image_desc.format.z = ZE_IMAGE_FORMAT_SWIZZLE_B;
-  image_desc.format.w = ZE_IMAGE_FORMAT_SWIZZLE_A;
-  image_desc.width = dflt_host_image_.width();
-  image_desc.height = dflt_host_image_.height();
-  image_desc.depth = 1;
-  return image_desc;
-}
+const ze_image_desc_t zeImageCreateCommon::dflt_ze_image_desc = {
+    ZE_IMAGE_DESC_VERSION_CURRENT,
+    ZE_IMAGE_FLAG_PROGRAM_READ,
+    ZE_IMAGE_TYPE_2D,
+    {ZE_IMAGE_FORMAT_LAYOUT_8_8_8_8, ZE_IMAGE_FORMAT_TYPE_UNORM,
+     ZE_IMAGE_FORMAT_SWIZZLE_R, ZE_IMAGE_FORMAT_SWIZZLE_G,
+     ZE_IMAGE_FORMAT_SWIZZLE_B, ZE_IMAGE_FORMAT_SWIZZLE_A},
+    DEFAULT_WIDTH,
+    DEFAULT_HEIGHT,
+    1,
+    0,
+    0};
 
-zeImageCreateCommon::zeImageCreateCommon() : dflt_host_image_(128, 128) {
+zeImageCreateCommon::zeImageCreateCommon()
+    : dflt_host_image_(DEFAULT_WIDTH, DEFAULT_HEIGHT) {
   lzt::generate_ze_image_creation_flags_list(image_creation_flags_list_);
-  ze_image_desc_t image_desc = get_dflt_ze_image_desc();
-
-  create_ze_image(dflt_device_image_, &image_desc);
-  create_ze_image(dflt_device_image_2_, &image_desc);
+  create_ze_image(dflt_device_image_, &dflt_ze_image_desc);
+  create_ze_image(dflt_device_image_2_, &dflt_ze_image_desc);
+  write_image_data_pattern(dflt_host_image_, dflt_data_pattern);
 }
 
 zeImageCreateCommon::~zeImageCreateCommon() {
@@ -248,8 +246,7 @@ void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp,
 }
 
 void write_image_data_pattern(lzt::ImagePNG32Bit &image, int8_t dp) {
-  zeImageCreateCommon img;
-  ze_image_desc_t img_desc = img.get_dflt_ze_image_desc();
+  ze_image_desc_t img_desc = zeImageCreateCommon::dflt_ze_image_desc;
 
   write_image_data_pattern(image, dp, img_desc.format, 0, 0, image.width(),
                            image.height());
@@ -264,8 +261,7 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
                          const lzt::ImagePNG32Bit &imagepng2, int origin1X,
                          int origin1Y, int width1, int height1, int origin2X,
                          int origin2Y, int width2, int height2) {
-  zeImageCreateCommon img;
-  ze_image_desc_t img_desc = img.get_dflt_ze_image_desc();
+  ze_image_desc_t img_desc = zeImageCreateCommon::dflt_ze_image_desc;
 
   return compare_data_pattern(imagepng1, img_desc.format, imagepng2,
                               img_desc.format, origin1X, origin1Y, width1,
@@ -339,6 +335,61 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
     }
     return errCnt;
   }
+}
+
+int compare_data_pattern(
+    const lzt::ImagePNG32Bit &image, const ze_image_region_t *region,
+    const lzt::ImagePNG32Bit &expected_fg, // expected foreground
+    const lzt::ImagePNG32Bit &expected_bg) {
+  const ze_image_region_t full_image_region = {uint32_t(0),
+                                               uint32_t(0),
+                                               uint32_t(0),
+                                               uint32_t(image.width()),
+                                               uint32_t(image.height()),
+                                               uint32_t(1)};
+  if (region == nullptr) {
+    region = &full_image_region;
+  }
+  int errCnt = 0;
+  LOG_DEBUG << "region: originX: " << region->originX
+            << " originY: " << region->originY
+            << " originZ: " << region->originZ << " width: " << region->width
+            << " height: " << region->height << std::endl;
+  for (unsigned row = 0; row < image.height(); row++) {
+    for (unsigned column = 0; column < image.width(); column++) {
+      uint32_t pixel = image.get_pixel(column, row);
+      const lzt::ImagePNG32Bit *expected_image;
+      LOG_DEBUG << "row: " << row << " and column: " << column
+                << " corresponds to the ";
+      if ((row >= region->originY &&
+           row < (region->originY + region->height)) &&
+          (column >= region->originX &&
+           column < (region->originX + region->width))) {
+        // The pixel is expected to be in the foreground image:
+        LOG_DEBUG << "foreground." << std::endl;
+        expected_image = &expected_fg;
+      } else {
+        // The pixel is expected to be in the background image:
+        LOG_DEBUG << "background." << std::endl;
+        expected_image = &expected_bg;
+      }
+      if (row > expected_image->height() || column > expected_image->width()) {
+        LOG_DEBUG << "expected image does not have a pixel for row: " << row
+                  << " and column: " << column << std::endl;
+        errCnt++;
+      } else {
+        if (pixel != expected_image->get_pixel(column, row)) {
+          LOG_DEBUG << "image's pixel: " << pixel
+                    << " does not match expected image's pixel: "
+                    << expected_image->get_pixel(column, row)
+                    << " for row: " << row << " and column: " << column
+                    << std::endl;
+          errCnt++;
+        }
+      }
+    }
+  }
+  return errCnt;
 }
 
 }; // namespace level_zero_tests

@@ -551,136 +551,70 @@ protected:
                img.dflt_host_image_.width(), img.dflt_host_image_.height(), 0,
                0, img.dflt_host_image_.width(), img.dflt_host_image_.height()));
   }
-  void test_image_copy_region(TEST_IMAGE_COPY_REGION_USE_TYPE ticrut) {
-    ze_image_region_t source_region1, source_region2, *src_reg_1 = nullptr,
-                                                      *src_reg_2 = nullptr;
-    ze_image_region_t dest_region1, dest_region2, *dest_reg_1 = nullptr,
-                                                  *dest_reg_2 = nullptr;
-    // The host_image2 variable is also used on when the image copy test uses
-    // regions:
-    lzt::ImagePNG32Bit host_image2(img.dflt_host_image_.width(),
-                                   img.dflt_host_image_.height());
-    // The hTstImage variable is only used when the image copy test uses
-    // regions:
-    ze_image_handle_t hTstImage = nullptr;
-
-    if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS) {
-      // source_region1 and dest_region1 reference the upper part of the image:
-      source_region1.originX = 0;
-      source_region1.originY = 0;
-      source_region1.originZ = 0;
-      source_region1.width = img.dflt_host_image_.width();
-      source_region1.height = img.dflt_host_image_.height() / 2;
-      source_region1.depth = 1;
-
-      dest_region1.originX = 0;
-      dest_region1.originY = 0;
-      dest_region1.originZ = 0;
-      dest_region1.width = img.dflt_host_image_.width();
-      dest_region1.height = img.dflt_host_image_.height() / 2;
-      dest_region1.depth = 1;
-
-      // source_region2 and dest_region21 reference the lower part of the image:
-      source_region2.originX = 0;
-      source_region2.originY = img.dflt_host_image_.height() / 2;
-      source_region2.originZ = 0;
-      source_region2.width = img.dflt_host_image_.width();
-      source_region2.height = img.dflt_host_image_.height() / 2;
-      source_region2.depth = 1;
-
-      dest_region2.originX = 0;
-      dest_region2.originY = img.dflt_host_image_.height() / 2;
-      dest_region2.originZ = 0;
-      dest_region2.width = img.dflt_host_image_.width();
-      dest_region2.height = img.dflt_host_image_.height() / 2;
-      dest_region2.depth = 1;
-
-      src_reg_1 = &source_region1;
-      src_reg_2 = &source_region2;
-      dest_reg_1 = &dest_region1;
-      dest_reg_2 = &dest_region2;
-      lzt::write_image_data_pattern(host_image2, -1);
-    }
-
-    ze_image_desc_t image_desc = img.get_dflt_ze_image_desc();
-    create_ze_image(hTstImage, &image_desc);
-    // dest_host_image_upper is used to validate that the above image copy
+  void test_image_copy_region(const ze_image_region_t *region) {
+    ze_image_handle_t h_dest_image = nullptr;
+    ze_image_desc_t image_desc = zeImageCreateCommon::dflt_ze_image_desc;
+    create_ze_image(h_dest_image, &image_desc);
+    ze_image_handle_t h_source_image = nullptr;
+    create_ze_image(h_source_image, &image_desc);
+    // Define the three data patterns:
+    const int8_t background_dp = 1;
+    const int8_t foreground_dp = 2;
+    const int8_t scribble_dp = 3;
+    // The background image:
+    lzt::ImagePNG32Bit background_image(img.dflt_host_image_.width(),
+                                        img.dflt_host_image_.height());
+    // Initialize background image with background data pattern:
+    lzt::write_image_data_pattern(background_image, background_dp);
+    // The foreground image:
+    lzt::ImagePNG32Bit foreground_image(img.dflt_host_image_.width(),
+                                        img.dflt_host_image_.height());
+    // Initialize foreground image with foreground data pattern:
+    lzt::write_image_data_pattern(foreground_image, foreground_dp);
+    // new_host_image is used to validate that the image copy region
     // operation(s) were correct:
-    lzt::ImagePNG32Bit dest_host_image_upper(img.dflt_host_image_.width(),
-                                             img.dflt_host_image_.height());
-    // Scribble a known incorrect data pattern to dest_host_image_upper to
-    // ensure we are validating actual data from the L0 functionality:
-    lzt::write_image_data_pattern(dest_host_image_upper, -1);
-    // First, copy the default image from the host to the device:
+    lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
+                                      img.dflt_host_image_.height());
+    // Scribble a known incorrect data pattern to new_host_image to ensure we
+    // are validating actual data from the L0 functionality:
+    lzt::write_image_data_pattern(new_host_image, scribble_dp);
+    // First, copy the background image from the host to the device:
+    // This will serve as the BACKGROUND of the image.
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyFromMemory(
-                  cl.command_list_, img.dflt_device_image_,
-                  img.dflt_host_image_.raw_data(), nullptr, nullptr));
+                  cl.command_list_, h_dest_image, background_image.raw_data(),
+                  nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    if (dest_reg_2 != nullptr) {
-      // Next, copy the optional image from the host to the device:
-      EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeCommandListAppendImageCopyFromMemory(
-                    cl.command_list_, img.dflt_device_image_2_,
-                    host_image2.raw_data(), nullptr, nullptr));
-      append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    }
-    // Copy the upper portion of the image first:
+    // Next, copy the foreground image from the host to the device:
+    // This will serve as the FOREGROUND of the image.
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeCommandListAppendImageCopyRegion(
-                  cl.command_list_, hTstImage, img.dflt_device_image_,
-                  dest_reg_1, src_reg_1, nullptr));
+              zeCommandListAppendImageCopyFromMemory(
+                  cl.command_list_, h_source_image, foreground_image.raw_data(),
+                  nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    if (dest_reg_2 != nullptr) {
-      // Copy the lower portion of the image next:
-      EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeCommandListAppendImageCopyRegion(
-                    cl.command_list_, hTstImage, img.dflt_device_image_2_,
-                    dest_reg_2, src_reg_2, nullptr));
-      append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    }
-    // Finally, copy the image in hTstImage back to dest_host_image_upper for
+    // Copy the portion of the foreground image correspoding to the region:
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopyRegion(
+                                     cl.command_list_, h_dest_image,
+                                     h_source_image, region, region, nullptr));
+    append_barrier(cl.command_list_, nullptr, 0, nullptr);
+    // Finally, copy the image in hTstImage back to new_host_image for
     // validation:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyToMemory(
-                  cl.command_list_, dest_host_image_upper.raw_data(), hTstImage,
+                  cl.command_list_, new_host_image.raw_data(), h_dest_image,
                   nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-
     // Execute all of the commands involving copying of images
     close_command_list(cl.command_list_);
     execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
     synchronize(cq.command_queue_, UINT32_MAX);
-    // Validate the result of the above operations:
-    if (dest_reg_1 == nullptr) {
-      // If the operation is a straight image copy, or the second region is null
-      // then the result should be the same:
-      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
-                                        img.dflt_host_image_, 0, 0,
-                                        img.dflt_host_image_.width(),
-                                        img.dflt_host_image_.height(), 0, 0,
-                                        img.dflt_host_image_.width(),
-                                        img.dflt_host_image_.height()));
-    } else {
-      // Otherwise, the result of the operation should be the following:
-      // Compare the upper half of the resulting image with the upper portion of
-      // the source:
-      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
-                                        img.dflt_host_image_, 0, 0,
-                                        img.dflt_host_image_.width(),
-                                        img.dflt_host_image_.height() / 2, 0, 0,
-                                        img.dflt_host_image_.width(),
-                                        img.dflt_host_image_.height() / 2));
-      // Next, compare the lower half of the resulting image with the lower half
-      // of the source:
-      EXPECT_EQ(0, compare_data_pattern(
-                       dest_host_image_upper, host_image2, 0,
-                       host_image2.height() / 2, host_image2.width(),
-                       host_image2.height() / 2, 0, 0, host_image2.width(),
-                       host_image2.height() / 2));
-    }
-    if (hTstImage)
-      destroy_ze_image(hTstImage);
+
+    EXPECT_EQ(0, lzt::compare_data_pattern(new_host_image, region,
+                                           foreground_image, background_image));
+
+    destroy_ze_image(h_dest_image);
+    destroy_ze_image(h_source_image);
+    reset_command_list(cl.command_list_);
   }
   void test_image_copy_from_memory(TEST_IMAGE_COPY_MEMORY_TYPE tcmt,
                                    TEST_IMAGE_COPY_REGION_USE_TYPE ticrut) {
@@ -1014,18 +948,106 @@ TEST_F(
   test_image_copy();
 }
 
-// TEST_FAILS: For details on the failure, please see:
-// https://jira.devtools.intel.com/browse/LOKI-458
-TEST_F(
-    zeCommandListAppendImageCopyTests,
-    GivenDeviceImageAndHostImageWhenAppendingImageCopyRegionWithNonNullRegionsThenImageIsCorrectAndSuccessIsReturned) {
-  test_image_copy_region(TICRUT_IMAGE_COPY_REGION_USE_REGIONS);
+static inline ze_image_region_t init_region(uint32_t originX, uint32_t originY,
+                                            uint32_t originZ, uint32_t width,
+                                            uint32_t height, uint32_t depth) {
+  ze_image_region_t rv = {originX, originY, originZ, width, height, depth};
+  return rv;
 }
 
 TEST_F(
     zeCommandListAppendImageCopyTests,
-    GivenDeviceImageAndHostImageWhenAppendingImageCopyRegionWithNullRegionsThenImageIsCorrectAndSuccessIsReturned) {
-  test_image_copy_region(TICRUT_IMAGE_COPY_REGION_USE_NULL);
+    GivenDeviceImageAndHostImageWhenAppendingImageCopyRegionWithVariousRegionsThenImageIsCorrectAndSuccessIsReturned) {
+  //  (C 1)
+  LOG_DEBUG << "Starting test of nullptr region." << std::endl;
+  test_image_copy_region(nullptr);
+  LOG_DEBUG << "Completed test of nullptr region" << std::endl;
+  // Aliases to reduce widths of the following region initializers
+  const uint32_t width = img.dflt_host_image_.width();
+  const uint32_t height = img.dflt_host_image_.height();
+  ze_image_region_t regions[] = {
+      // Region correspond to the entire image (C 2) (0)
+      init_region(0, 0, 0, width, height, 1),
+
+      // Entire image less 1 pixel in height, top (region touches 3 out of 4
+      // borders): (C 3) (1)  Does not touch the bottom
+      init_region(0, 0, 0, width, height - 1, 1),
+      // Entire image less 1 pixel in height, bottom (region touches 3 out of 4
+      // borders): (C 4) (2) Does not touch the top
+      init_region(0, 1, 0, width, height - 1, 1),
+      // Entire image less 1 pixel in width, left (region touches 3 out of 4
+      // borders): (C 5) (3) Does not touch the right
+      init_region(0, 0, 0, width - 1, height, 1),
+      // Entire image less 1 pixel in width, right (region touches 3 out of 4
+      // borders): (C 6) (4) Does not touch the left
+      init_region(1, 0, 0, width - 1, height, 1),
+
+      // Entire image less (1 pixel in width and 1 pixel in height), top, left
+      // (region touches 2 out of 4 borders): (C 7) (5)
+      init_region(0, 0, 0, width - 1, height - 1, 1),
+      // Entire image less (1 pixel in width and 1 pixel in height), top, right
+      // (region touches 2 out of 4 borders): (C 8) (6)
+      init_region(1, 0, 0, width - 1, height - 1, 1),
+      // Entire image less (1 pixel in width and 1 pixel in height), bottom,
+      // right (region touches 2 out of 4 borders): (C 9) (7)
+      init_region(1, 1, 0, width - 1, height - 1, 1),
+      // Entire image less (1 pixel in width and 1 pixel in height), bottom,
+      // left (region touches 2 out of 4 borders): (C 10)
+      init_region(0, 1, 0, width - 1, height - 1, 1),
+      // Entire image less 2 pixels in width, top, bottom (region touches 2 out
+      // of 4 borders): (C 11)
+      init_region(0, 1, 0, width - 2, height, 1),
+      // Entire image less 2 pixels in height, right, left (region touches 2 out
+      // of 4 borders): (C 12)
+      init_region(1, 0, 0, width, height - 2, 1),
+
+      // Entire image less (2 pixels in width and 1 pixel in height), touches
+      // only top border (region touches 1 out of 4 borders): (C 13)
+      init_region(1, 0, 0, width - 2, height - 1, 1),
+      // Entire image less (2 pixels in width and 1 pixel in height), touches
+      // only bottom border (region touches 1 out of 4 borders): (C 14)
+      init_region(1, 1, 0, width - 2, height - 1, 1),
+      // Entire image less (1 pixel in width and 2 pixels in height), touches
+      // only left border (region touches 1 out of 4 borders): (C 15)
+      init_region(0, 1, 0, width - 1, height - 2, 1),
+      // Entire image less (1 pixel in width and 2 pixels in height), touches
+      // only right border (region touches 1 out of 4 borders): (C 16)
+      init_region(1, 1, 0, width - 1, height - 2, 1),
+
+      // Entire image less (2 pixels in width and 2 pixels in height), centered
+      // (region touches no borders): (C 17)
+      init_region(1, 1, 0, width - 2, height - 2, 1),
+      // Column, with width 1, left-most: (C 18)
+      init_region(0, 0, 0, 1, height, 1),
+      // Column, with width 1, right-most: (C 19)
+      init_region(width - 1, 0, 0, 1, height, 1),
+      // Column, with width 1, center: (C 20)
+      init_region(width / 2, 0, 0, 1, height, 1),
+      // Row, with height 1, top: (C 21)
+      init_region(0, 0, 0, width, 1, 1),
+      // Row, with height 1, bottom: (C 22)
+      init_region(0, height - 1, 0, width, 1, 1),
+      // Row, with height 1, center: (C 23)
+      init_region(0, height / 2, 0, width, 1, 1),
+
+      // One pixel, at center: (C 24)
+      init_region(width / 2, height / 2, 1, 1, 1, 1),
+
+      // One pixel, at upper-left: (C 25)
+      init_region(0, 0, 1, 1, 1, 1),
+      // One pixel, at upper-right: (C 26)
+      init_region(width - 1, 0, 1, 1, 1, 1),
+      // One pixel, at lower-right: (C 27)
+      init_region(width - 1, height - 1, 1, 1, 1, 1),
+      // One pixel, at lower-leftt: (C 28)
+      init_region(0, height - 1, 1, 1, 1, 1),
+  };
+
+  for (size_t i = 0; i < sizeof(regions) / sizeof(regions[0]); i++) {
+    LOG_DEBUG << "Starting test of region: " << i << std::endl;
+    test_image_copy_region(&(regions[i]));
+    LOG_DEBUG << "Completed test of region: " << i << std::endl;
+  }
 }
 
 TEST_F(

@@ -36,7 +36,8 @@ protected:
                                          img.dflt_host_image_.height());
     lzt::ImagePNG32Bit host_image_dest(img.dflt_host_image_.width(),
                                        img.dflt_host_image_.height());
-    ze_image_desc_t image_desc_source = img.get_dflt_ze_image_desc(),
+    ze_image_desc_t image_desc_source =
+                        lzt::zeImageCreateCommon::dflt_ze_image_desc,
                     image_desc_dest;
     ze_image_handle_t hImageSource = nullptr, hImageDest = nullptr;
 

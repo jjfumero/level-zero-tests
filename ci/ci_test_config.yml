@@ -76,4 +76,6 @@
     regression: {}
   xe_peer:
     regression: {}
+- zeCommandListAppendImageCopyTests.GivenDeviceImageAndHostImageWhenAppendingImageCopyRegionWithVariousRegionsThenImageIsCorrectAndSuccessIsReturned:
+    timeout: 160
 ...
