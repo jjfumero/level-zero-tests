@@ -33,8 +33,8 @@
 
 class XeImageCopy {
 public:
-	uint32_t width = 128 ;
-	uint32_t height = 128;
+	uint32_t width = 2048;
+	uint32_t height = 2048;
 	uint32_t depth  = 1;
 	uint32_t xOffset = 0;
 	uint32_t yOffset = 0;
