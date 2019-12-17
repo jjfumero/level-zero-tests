@@ -73,6 +73,7 @@ public:
   const T *raw_data() const override;
 
   bool operator==(const ImagePNG &rhs) const;
+  void dump_image() const;
 
 private:
   std::vector<T> pixels_;

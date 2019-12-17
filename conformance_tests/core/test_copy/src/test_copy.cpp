@@ -512,13 +512,13 @@ protected:
     TICMT_IMAGE_COPY_MEMORY_SHARED
   };
   void test_image_copy() {
-    // new_host_image is used to validate that the above image copy operation(s)
-    // were correct:
-    lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height());
-    // Scribble a known incorrect data pattern to new_host_image to ensure we
-    // are validating actual data from the L0 functionality:
-    lzt::write_image_data_pattern(new_host_image, -1);
+    // dest_host_image_upper is used to validate that the above image copy
+    // operation(s) were correct:
+    lzt::ImagePNG32Bit dest_host_image_upper(img.dflt_host_image_.width(),
+                                             img.dflt_host_image_.height());
+    // Scribble a known incorrect data pattern to dest_host_image_upper to
+    // ensure we are validating actual data from the L0 functionality:
+    lzt::write_image_data_pattern(dest_host_image_upper, -1);
 
     // First, copy the image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
@@ -531,11 +531,11 @@ protected:
                                      cl.command_list_, img.dflt_device_image_,
                                      img.dflt_device_image_2_, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    // Finally copy the image from the device to the new_host_image for
+    // Finally copy the image from the device to the dest_host_image_upper for
     // validation:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyToMemory(
-                  cl.command_list_, new_host_image.raw_data(),
+                  cl.command_list_, dest_host_image_upper.raw_data(),
                   img.dflt_device_image_, nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     // Execute all of the commands involving copying of images
@@ -545,11 +545,11 @@ protected:
     // Validate the result of the above operations:
     // If the operation is a straight image copy, or the second region is null
     // then the result should be the same:
-    EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                      0, img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height(), 0, 0,
-                                      img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height()));
+    EXPECT_EQ(
+        0, compare_data_pattern(
+               dest_host_image_upper, img.dflt_host_image_, 0, 0,
+               img.dflt_host_image_.width(), img.dflt_host_image_.height(), 0,
+               0, img.dflt_host_image_.width(), img.dflt_host_image_.height()));
   }
   void test_image_copy_region(TEST_IMAGE_COPY_REGION_USE_TYPE ticrut) {
     ze_image_region_t source_region1, source_region2, *src_reg_1 = nullptr,
@@ -604,13 +604,13 @@ protected:
 
     ze_image_desc_t image_desc = img.get_dflt_ze_image_desc();
     create_ze_image(hTstImage, &image_desc);
-    // new_host_image is used to validate that the above image copy operation(s)
-    // were correct:
-    lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height());
-    // Scribble a known incorrect data pattern to new_host_image to ensure we
-    // are validating actual data from the L0 functionality:
-    lzt::write_image_data_pattern(new_host_image, -1);
+    // dest_host_image_upper is used to validate that the above image copy
+    // operation(s) were correct:
+    lzt::ImagePNG32Bit dest_host_image_upper(img.dflt_host_image_.width(),
+                                             img.dflt_host_image_.height());
+    // Scribble a known incorrect data pattern to dest_host_image_upper to
+    // ensure we are validating actual data from the L0 functionality:
+    lzt::write_image_data_pattern(dest_host_image_upper, -1);
     // First, copy the default image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyFromMemory(
@@ -639,11 +639,11 @@ protected:
                     dest_reg_2, src_reg_2, nullptr));
       append_barrier(cl.command_list_, nullptr, 0, nullptr);
     }
-    // Finally, copy the image in hTstImage back to new_host_image for
+    // Finally, copy the image in hTstImage back to dest_host_image_upper for
     // validation:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyToMemory(
-                  cl.command_list_, new_host_image.raw_data(), hTstImage,
+                  cl.command_list_, dest_host_image_upper.raw_data(), hTstImage,
                   nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
 
@@ -655,8 +655,9 @@ protected:
     if (dest_reg_1 == nullptr) {
       // If the operation is a straight image copy, or the second region is null
       // then the result should be the same:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height(), 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height()));
@@ -664,33 +665,35 @@ protected:
       // Otherwise, the result of the operation should be the following:
       // Compare the upper half of the resulting image with the upper portion of
       // the source:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2, 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2));
       // Next, compare the lower half of the resulting image with the lower half
       // of the source:
       EXPECT_EQ(0, compare_data_pattern(
-                       new_host_image, host_image2, 0, host_image2.height() / 2,
-                       host_image2.width(), host_image2.height() / 2, 0, 0,
-                       host_image2.width(), host_image2.height() / 2));
+                       dest_host_image_upper, host_image2, 0,
+                       host_image2.height() / 2, host_image2.width(),
+                       host_image2.height() / 2, 0, 0, host_image2.width(),
+                       host_image2.height() / 2));
     }
     if (hTstImage)
       destroy_ze_image(hTstImage);
   }
   void test_image_copy_from_memory(TEST_IMAGE_COPY_MEMORY_TYPE tcmt,
                                    TEST_IMAGE_COPY_REGION_USE_TYPE ticrut) {
-    // For the tests involving image copy from & to memory
-    // hds_memory contains the allocation
+    // For the tests involving image copy from memory
+    // source_buff contains the allocation
     // for the host, or the device or shared memory, per the
     // TEST_IMAGE_COPY_MEMORY_TYPE specified
-    void *hds_memory = nullptr;
+    void *source_buff = nullptr;
     // For the tests involving image copy from memory
-    // And a non-null region is used, hds_memory_2 contains the allocation
+    // And a non-null region is used, source_buff_2 contains the allocation
     // for the host, or the device or shared memory, per the
     // TEST_IMAGE_COPY_MEMORY_TYPE specified:
-    void *hds_memory_2 = nullptr;
+    void *source_buff_2 = nullptr;
     // The following four regions are only used when the image copy test uses
     // regions (for the case: TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
     ze_image_region_t source_region1, source_region2, *src_reg_1 = nullptr,
@@ -743,24 +746,24 @@ protected:
       FAIL();
       break;
     case TICMT_IMAGE_COPY_MEMORY_HOST:
-      hds_memory =
+      source_buff =
           lzt::allocate_host_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        source_buff_2 =
             lzt::allocate_host_memory(img.dflt_host_image_.size_in_bytes());
       break;
     case TICMT_IMAGE_COPY_MEMORY_DEVICE:
-      hds_memory =
+      source_buff =
           lzt::allocate_device_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        source_buff_2 =
             lzt::allocate_device_memory(img.dflt_host_image_.size_in_bytes());
       break;
     case TICMT_IMAGE_COPY_MEMORY_SHARED:
-      hds_memory =
+      source_buff =
           lzt::allocate_shared_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        source_buff_2 =
             lzt::allocate_shared_memory(img.dflt_host_image_.size_in_bytes());
       break;
     }
@@ -769,44 +772,44 @@ protected:
     // In region operations, host_image2 references the lower part of the
     // image:
     lzt::write_image_data_pattern(host_image2, -1);
-    // new_host_image is used to validate that the above image copy operation(s)
-    // were correct:
-    lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height());
-    // Scribble a known incorrect data pattern to new_host_image to ensure we
-    // are validating actual data from the L0 functionality:
-    lzt::write_image_data_pattern(new_host_image, -1);
-    // First, copy the entire host image to hds_memory:
-    append_memory_copy(cl.command_list_, hds_memory,
+    // dest_host_image_upper is used to validate that the above image copy
+    // operation(s) were correct:
+    lzt::ImagePNG32Bit dest_host_image_upper(img.dflt_host_image_.width(),
+                                             img.dflt_host_image_.height());
+    // Scribble a known incorrect data pattern to dest_host_image_upper to
+    // ensure we are validating actual data from the L0 functionality:
+    lzt::write_image_data_pattern(dest_host_image_upper, -1);
+    // First, copy the entire host image to source_buff:
+    append_memory_copy(cl.command_list_, source_buff,
                        img.dflt_host_image_.raw_data(),
                        img.dflt_host_image_.size_in_bytes());
     append_barrier(cl.command_list_);
     if (dest_reg_2 != nullptr) {
-      // Next, copy the entire 2nd host image to hds_memory_2:
-      append_memory_copy(cl.command_list_, hds_memory_2, host_image2.raw_data(),
-                         host_image2.size_in_bytes());
+      // Next, copy the entire 2nd host image to source_buff_2:
+      append_memory_copy(cl.command_list_, source_buff_2,
+                         host_image2.raw_data(), host_image2.size_in_bytes());
       append_barrier(cl.command_list_);
     }
-    // Now, copy the image from hds_memory to the device image:
-    // (during a region copy, only the upper-half of hds_memory is copied to
+    // Now, copy the image from source_buff to the device image:
+    // (during a region copy, only the upper-half of source_buff is copied to
     // the device image):
     EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopyFromMemory(
                                      cl.command_list_, img.dflt_device_image_,
-                                     hds_memory, dest_reg_1, nullptr));
+                                     source_buff, dest_reg_1, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     if (dest_reg_2 != nullptr) {
-      // During a region copy, copy the upper portion of the hds_memory_2
+      // During a region copy, copy the upper portion of the source_buff_2
       // image to the device:
       EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopyFromMemory(
                                        cl.command_list_, img.dflt_device_image_,
-                                       hds_memory_2, dest_reg_2, nullptr));
+                                       source_buff_2, dest_reg_2, nullptr));
       append_barrier(cl.command_list_, nullptr, 0, nullptr);
     }
-    // Next, copy the image from the device to the new_host_image for
+    // Next, copy the image from the device to the dest_host_image_upper for
     // validation:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyToMemory(
-                  cl.command_list_, new_host_image.raw_data(),
+                  cl.command_list_, dest_host_image_upper.raw_data(),
                   img.dflt_device_image_, nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     // Execute all of the commands involving copying of images
@@ -817,8 +820,9 @@ protected:
     if ((dest_reg_1 == nullptr)) {
       // If the operation is a straight image copy, or the second region is null
       // then the result should be the same:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height(), 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height()));
@@ -826,80 +830,62 @@ protected:
       // Otherwise, the result of the operation should be the following:
       // Compare the upper half of the resulting image with the upper portion of
       // the source:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2, 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2));
       // Next, compare the lower half of the resulting image with the lower half
       // of the source:
       EXPECT_EQ(0, compare_data_pattern(
-                       new_host_image, host_image2, 0, host_image2.height() / 2,
-                       host_image2.width(), host_image2.height() / 2, 0, 0,
-                       host_image2.width(), host_image2.height() / 2));
+                       dest_host_image_upper, host_image2, 0,
+                       host_image2.height() / 2, host_image2.width(),
+                       host_image2.height() / 2, 0, 0, host_image2.width(),
+                       host_image2.height() / 2));
     }
-    if (hds_memory)
-      lzt::free_memory(hds_memory);
-    if (hds_memory_2)
-      lzt::free_memory(hds_memory_2);
+    if (source_buff)
+      lzt::free_memory(source_buff);
+    if (source_buff_2)
+      lzt::free_memory(source_buff_2);
   }
   void test_image_copy_to_memory(TEST_IMAGE_COPY_MEMORY_TYPE tcmt,
                                  TEST_IMAGE_COPY_REGION_USE_TYPE ticrut) {
-    // For the tests involving image copy from & to memory
-    // hds_memory contains the allocation
+    // For the tests involving image copy to memory
+    // dest_buff contains the allocation
     // for the host, or the device or shared memory, per the
     // TEST_IMAGE_COPY_MEMORY_TYPE specified
-    void *hds_memory = nullptr;
-    // For the tests involving image copy from & to memory
-    // And a non-null region is used, hds_memory_2 contains the allocation
+    void *dest_buff = nullptr;
+    // For the tests involving image copy to memory
+    // And a non-null region is used, dest_buff_2 contains the allocation
     // for the host, or the device or shared memory, per the
     // TEST_IMAGE_COPY_MEMORY_TYPE specified:
-    void *hds_memory_2 = nullptr;
-    // The following four regions are only used when the image copy test uses
+    void *dest_buff_2 = nullptr;
+    // The following regions are only used when the image copy test uses
     // regions (for the the case: TCT_COPY_REGION
-    ze_image_region_t source_region1, source_region2, *src_reg_1 = nullptr,
-                                                      *src_reg_2 = nullptr;
-    ze_image_region_t dest_region1, dest_region2, *dest_reg_1 = nullptr,
-                                                  *dest_reg_2 = nullptr;
+    ze_image_region_t upper_region, lower_region, *up_reg = nullptr,
+                                                  *low_reg = nullptr;
     // The host_image2 variable is also used on when the image copy test uses
     // regions:
     lzt::ImagePNG32Bit host_image2(img.dflt_host_image_.width(),
                                    img.dflt_host_image_.height());
     if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS) {
-      // source_region1 and dest_region1 reference the upper part of the image:
-      source_region1.originX = 0;
-      source_region1.originY = 0;
-      source_region1.originZ = 0;
-      source_region1.width = img.dflt_host_image_.width();
-      source_region1.height = img.dflt_host_image_.height() / 2;
-      source_region1.depth = 1;
+      upper_region.originX = 0;
+      upper_region.originY = 0;
+      upper_region.originZ = 0;
+      upper_region.width = img.dflt_host_image_.width();
+      upper_region.height = img.dflt_host_image_.height() / 2;
+      upper_region.depth = 1;
 
-      dest_region1.originX = 0;
-      dest_region1.originY = 0;
-      dest_region1.originZ = 0;
-      dest_region1.width = img.dflt_host_image_.width();
-      dest_region1.height = img.dflt_host_image_.height() / 2;
-      dest_region1.depth = 1;
+      lower_region.originX = 0;
+      lower_region.originY = img.dflt_host_image_.height() / 2;
+      lower_region.originZ = 0;
+      lower_region.width = img.dflt_host_image_.width();
+      lower_region.height = img.dflt_host_image_.height() / 2;
+      lower_region.depth = 1;
 
-      // source_region2 and dest_region21 reference the lower part of the image:
-      source_region2.originX = 0;
-      source_region2.originY = img.dflt_host_image_.height() / 2;
-      source_region2.originZ = 0;
-      source_region2.width = img.dflt_host_image_.width();
-      source_region2.height = img.dflt_host_image_.height() / 2;
-      source_region2.depth = 1;
-
-      dest_region2.originX = 0;
-      dest_region2.originY = img.dflt_host_image_.height() / 2;
-      dest_region2.originZ = 0;
-      dest_region2.width = img.dflt_host_image_.width();
-      dest_region2.height = img.dflt_host_image_.height() / 2;
-      dest_region2.depth = 1;
-
-      src_reg_1 = &source_region1;
-      src_reg_2 = &source_region2;
-      dest_reg_1 = &dest_region1;
-      dest_reg_2 = &dest_region2;
+      up_reg = &upper_region;
+      low_reg = &lower_region;
     }
 
     switch (tcmt) {
@@ -908,24 +894,24 @@ protected:
       FAIL();
       break;
     case TICMT_IMAGE_COPY_MEMORY_HOST:
-      hds_memory =
+      dest_buff =
           lzt::allocate_host_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        dest_buff_2 =
             lzt::allocate_host_memory(img.dflt_host_image_.size_in_bytes());
       break;
     case TICMT_IMAGE_COPY_MEMORY_DEVICE:
-      hds_memory =
+      dest_buff =
           lzt::allocate_device_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        dest_buff_2 =
             lzt::allocate_device_memory(img.dflt_host_image_.size_in_bytes());
       break;
     case TICMT_IMAGE_COPY_MEMORY_SHARED:
-      hds_memory =
+      dest_buff =
           lzt::allocate_shared_memory(img.dflt_host_image_.size_in_bytes());
       if (ticrut == TICRUT_IMAGE_COPY_REGION_USE_REGIONS)
-        hds_memory_2 =
+        dest_buff_2 =
             lzt::allocate_shared_memory(img.dflt_host_image_.size_in_bytes());
       break;
     }
@@ -934,20 +920,22 @@ protected:
     // In region operations, host_image2 references the lower part of the
     // image:
     lzt::write_image_data_pattern(host_image2, -1);
-    // new_host_image is used to validate that the above image copy operation(s)
-    // were correct:
-    lzt::ImagePNG32Bit new_host_image(img.dflt_host_image_.width(),
-                                      img.dflt_host_image_.height());
-    // Scribble a known incorrect data pattern to new_host_image to ensure we
-    // are validating actual data from the L0 functionality:
-    lzt::write_image_data_pattern(new_host_image, -1);
+    // dest_host_image_upper is used to validate that the above image copy
+    // operation(s) were correct:
+    lzt::ImagePNG32Bit dest_host_image_upper(img.dflt_host_image_.width(),
+                                             img.dflt_host_image_.height());
+    lzt::ImagePNG32Bit dest_host_image_lower(img.dflt_host_image_.width(),
+                                             img.dflt_host_image_.height());
+    // Scribble a known incorrect data pattern to dest_host_image_upper to
+    // ensure we are validating actual data from the L0 functionality:
+    lzt::write_image_data_pattern(dest_host_image_upper, -1);
     // Copy the image from the host to the device:
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeCommandListAppendImageCopyFromMemory(
                   cl.command_list_, img.dflt_device_image_,
                   img.dflt_host_image_.raw_data(), nullptr, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    if (dest_reg_2 != nullptr) {
+    if (low_reg != nullptr) {
       // Copy the second host image from the host to the device:
       EXPECT_EQ(ZE_RESULT_SUCCESS,
                 zeCommandListAppendImageCopyFromMemory(
@@ -955,35 +943,39 @@ protected:
                     host_image2.raw_data(), nullptr, nullptr));
       append_barrier(cl.command_list_, nullptr, 0, nullptr);
     }
-    // Next, copy the image from the device to hds_memory:
-    EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeCommandListAppendImageCopyToMemory(cl.command_list_, hds_memory,
-                                                   img.dflt_device_image_,
-                                                   dest_reg_1, nullptr));
+    // Next, copy the image from the device to dest_buff:
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopyToMemory(
+                                     cl.command_list_, dest_buff,
+                                     img.dflt_device_image_, up_reg, nullptr));
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
-    if (dest_reg_2 != nullptr) {
+    if (low_reg != nullptr) {
       // Copy the image from the host to the device:
       EXPECT_EQ(ZE_RESULT_SUCCESS,
                 zeCommandListAppendImageCopyToMemory(
-                    cl.command_list_, hds_memory, img.dflt_device_image_2_,
-                    dest_reg_2, nullptr));
+                    cl.command_list_, dest_buff_2, img.dflt_device_image_2_,
+                    low_reg, nullptr));
       append_barrier(cl.command_list_, nullptr, 0, nullptr);
     }
-    // Finally, copy the data from hds_memory to new_host_image_ for
+    // Finally, copy the data from dest_buff to dest_host_image_upper_ for
     // validation:
-    append_memory_copy(cl.command_list_, new_host_image.raw_data(), hds_memory,
-                       new_host_image.size_in_bytes());
+    append_memory_copy(cl.command_list_, dest_host_image_upper.raw_data(),
+                       dest_buff, dest_host_image_upper.size_in_bytes());
+    if (dest_buff_2) {
+      append_memory_copy(cl.command_list_, dest_host_image_lower.raw_data(),
+                         dest_buff_2, dest_host_image_upper.size_in_bytes());
+    }
     append_barrier(cl.command_list_);
     // Execute all of the commands involving copying of images
     close_command_list(cl.command_list_);
     execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
     synchronize(cq.command_queue_, UINT32_MAX);
     // Validate the result of the above operations:
-    if ((dest_reg_1 == nullptr)) {
+    if ((up_reg == nullptr)) {
       // If the operation is a straight image copy, or the second region is null
       // then the result should be the same:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height(), 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height()));
@@ -991,22 +983,24 @@ protected:
       // Otherwise, the result of the operation should be the following:
       // Compare the upper half of the resulting image with the upper portion of
       // the source:
-      EXPECT_EQ(0, compare_data_pattern(new_host_image, img.dflt_host_image_, 0,
-                                        0, img.dflt_host_image_.width(),
+      EXPECT_EQ(0, compare_data_pattern(dest_host_image_upper,
+                                        img.dflt_host_image_, 0, 0,
+                                        img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2, 0, 0,
                                         img.dflt_host_image_.width(),
                                         img.dflt_host_image_.height() / 2));
       // Next, compare the lower half of the resulting image with the lower half
       // of the source:
       EXPECT_EQ(0, compare_data_pattern(
-                       new_host_image, host_image2, 0, host_image2.height() / 2,
-                       host_image2.width(), host_image2.height() / 2, 0, 0,
-                       host_image2.width(), host_image2.height() / 2));
+                       dest_host_image_lower, host_image2, 0, 0,
+                       host_image2.width(), host_image2.height() / 2, 0,
+                       host_image2.height() / 2, host_image2.width(),
+                       host_image2.height() / 2));
     }
-    if (hds_memory)
-      lzt::free_memory(hds_memory);
-    if (hds_memory_2)
-      lzt::free_memory(hds_memory_2);
+    if (dest_buff)
+      lzt::free_memory(dest_buff);
+    if (dest_buff_2)
+      lzt::free_memory(dest_buff_2);
   }
   zeEventPool ep;
   zeCommandList cl;

@@ -303,10 +303,10 @@ int compare_data_pattern(const lzt::ImagePNG32Bit &imagepng1,
   const uint32_t *image1 = imagepng1.raw_data();
   const uint32_t *image2 = imagepng2.raw_data();
   int errCnt = 0, successCnt = 0;
-  for (int x1 = origin1X, x2 = origin2X; (x1 < width1) && (x2 < width2);
-       x1++, x2++) {
-    for (int y1 = origin1Y, y2 = origin2Y; (y1 < height1) && (y2 < height2);
-         y1++, y2++) {
+  for (int y1 = origin1Y, y2 = origin2Y;
+       (y1 < (origin1Y + height1)) && (y2 < (origin2Y + height2)); y1++, y2++) {
+    for (int x1 = origin1X, x2 = origin2X;
+         (x1 < (origin1X + width1)) && (x2 < (origin2X + width2)); x1++, x2++) {
       uint32_t pixel1 = get_pixel(image1, x1, y1, width1);
       uint32_t pixel2 = get_pixel(image2, x2, y2, width2);
       bool correct;

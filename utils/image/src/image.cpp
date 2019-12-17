@@ -21,6 +21,7 @@
  */
 
 #include "image/image.hpp"
+#include "logging/logging.hpp"
 
 #define png_infopp_NULL (png_infopp) NULL
 #define int_p_NULL (int *)NULL
@@ -156,6 +157,16 @@ template <typename T> const T *ImagePNG<T>::raw_data() const {
 template <typename T>
 bool ImagePNG<T>::operator==(const ImagePNG<T> &rhs) const {
   return pixels_ == rhs.pixels_;
+}
+
+template <typename T> void ImagePNG<T>::dump_image() const {
+  for (int y = 0; y < height(); y++) {
+    for (int x = 0; x < width(); x++) {
+      T pixel = get_pixel(x, y);
+      LOG_DEBUG << " x: " << x << " y: " << y << " pixel: 0x" << std::hex
+                << pixel;
+    }
+  }
 }
 
 template class ImagePNG<uint32_t>;
