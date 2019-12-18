@@ -44,6 +44,7 @@ namespace {
 class xeIpcMemHandleTests : public ::testing::Test {
 protected:
   void *memory_ = nullptr;
+  void *ipc_memory_ = nullptr;
   ze_ipc_mem_handle_t ipc_mem_handle_;
 };
 
@@ -70,7 +71,7 @@ protected:
         ZE_RESULT_SUCCESS,
         zeDriverOpenMemIpcHandle(lzt::get_default_driver(),
                                  lzt::zeDevice::get_instance()->get_device(),
-                                 ipc_mem_handle_, flags, &memory_));
+                                 ipc_mem_handle_, flags, &ipc_memory_));
   }
 
   void TearDown() { lzt::free_memory(memory_); }
@@ -80,7 +81,7 @@ TEST_F(
     xeIpcMemHandleCloseTests,
     GivenValidPointerToDeviceMemoryAllocationWhenClosingIpcHandleThenSuccessIsReturned) {
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverCloseMemIpcHandle(lzt::get_default_driver(), memory_));
+            zeDriverCloseMemIpcHandle(lzt::get_default_driver(), ipc_memory_));
 }
 
 class xeIpcMemAccessTests
