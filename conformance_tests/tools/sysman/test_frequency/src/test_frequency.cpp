@@ -303,4 +303,38 @@ TEST(
   }
 }
 
+TEST(
+    zetSysmanFrequencySetRangeTests,
+    GivenValidFrequencyRangeWhenRequestingSetFrequencyThenExpectUpdatedFrequencyInGetFrequencyCall) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+
+      zet_freq_range_t freqRange, freqRangeReset;
+      uint32_t count = 0;
+      auto frequency = lzt::get_available_clocks(*pFreqHandles.data(), count);
+      ASSERT_GT(frequency.size(), 0);
+      if (count == 1) {
+        freqRange.min = frequency[0];
+        freqRange.max = frequency[0];
+        lzt::set_freq_range(pFreqHandle, freqRange);
+        freqRangeReset = lzt::get_and_validate_freq_range(pFreqHandle);
+        EXPECT_EQ(freqRange.max, freqRangeReset.max);
+        EXPECT_EQ(freqRange.min, freqRangeReset.min);
+      } else {
+        for (uint32_t i = 1; i < count; i++) {
+          freqRange.min = frequency[i - 1];
+          freqRange.max = frequency[i];
+          lzt::set_freq_range(pFreqHandle, freqRange);
+          freqRangeReset = lzt::get_and_validate_freq_range(pFreqHandle);
+          EXPECT_EQ(freqRange.max, freqRangeReset.max);
+          EXPECT_EQ(freqRange.min, freqRangeReset.min);
+        }
+      }
+    }
+  }
+}
+
 } // namespace
