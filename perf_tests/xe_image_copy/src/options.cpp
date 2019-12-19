@@ -19,7 +19,7 @@
  * express and approved by Intel in writing.
  */
 
-#include "../include/xe_image_copy.h"
+#include "xe_image_copy.h"
 
 static const char *usage_str =
     "\n xe_image_copy [OPTIONS]"

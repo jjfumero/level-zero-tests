@@ -43,7 +43,9 @@ public:
     uint32_t warm_up_iterations = 10;
   XeImageCopy();
   ~XeImageCopy();
+  void measureHost2Device2Host(bool &validRet);
   void measureHost2Device(bool &validRet);
+  void measureDevice2Host(bool &validRet);
   int parse_arguments(int argc, char **argv);
  
 
@@ -51,6 +53,8 @@ private:
   XeApp *benchmark;
   ze_command_queue_handle_t command_queue;
   ze_command_list_handle_t command_list;
+  ze_command_list_handle_t command_list_a;
+  ze_command_list_handle_t command_list_b;
   ze_image_handle_t image;
 };
 
