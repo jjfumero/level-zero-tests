@@ -27,6 +27,7 @@ add_lzt_test(
   GROUP "/conformance_tests/tools/tracing"
   SOURCES
     src/test_api_tracing.cpp
+    src/test_api_tracing_threading.cpp
     src/main.cpp
   LINK_LIBRARIES
     level_zero_tests::logging
