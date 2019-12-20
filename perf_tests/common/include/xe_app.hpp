@@ -38,6 +38,8 @@ public:
   void memoryAlloc(size_t size, void **ptr);
   void memoryAlloc(ze_driver_handle_t driver, ze_device_handle_t device,
                    size_t size, void **ptr);
+  void memoryAllocHost(size_t size, void **ptr);
+  void memoryAllocHost(ze_driver_handle_t driver, size_t size, void **ptr);
   void memoryFree(const void *ptr);
   void memoryFree(ze_driver_handle_t driver, const void *ptr);
   void functionCreate(ze_kernel_handle_t *function, const char *pFunctionName);
@@ -58,7 +60,8 @@ public:
   void commandListAppendImageCopyFromMemory(
       ze_command_list_handle_t command_list, ze_image_handle_t image,
       uint8_t *srcBuffer, ze_image_region_t *Region);
-
+  void commandListAppendMemoryCopy(ze_command_list_handle_t command_list,
+                                   void *dstptr, void *srcptr, size_t size);
   void commandListAppendBarrier(ze_command_list_handle_t command_list);
 
   void commandListAppendImageCopyToMemory(ze_command_list_handle_t command_list,

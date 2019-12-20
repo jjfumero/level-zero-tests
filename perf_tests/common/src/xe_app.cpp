@@ -105,6 +105,17 @@ void XeApp::memoryAlloc(ze_driver_handle_t driver, ze_device_handle_t device,
       driver, device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0, size, 1, ptr));
 }
 
+void XeApp::memoryAllocHost(size_t size, void **ptr) {
+  assert(this->driver != nullptr);
+  memoryAllocHost(this->driver, size, ptr);
+}
+
+void XeApp::memoryAllocHost(ze_driver_handle_t driver, size_t size,
+                            void **ptr) {
+  SUCCESS_OR_TERMINATE(zeDriverAllocHostMem(
+      driver, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, size, 1, ptr));
+}
+
 void XeApp::memoryFree(const void *ptr) {
   assert(this->driver != nullptr);
   SUCCESS_OR_TERMINATE(zeDriverFreeMem(this->driver, const_cast<void *>(ptr)));
@@ -228,6 +239,13 @@ void XeApp::commandListAppendImageCopyToMemory(
     ze_image_handle_t image, ze_image_region_t *Region) {
   SUCCESS_OR_TERMINATE(zeCommandListAppendImageCopyToMemory(
       command_list, dstBuffer, image, Region, nullptr));
+}
+
+void XeApp::commandListAppendMemoryCopy(ze_command_list_handle_t command_list,
+                                        void *dstptr, void *srcptr,
+                                        size_t size) {
+  SUCCESS_OR_TERMINATE(zeCommandListAppendMemoryCopy(command_list, dstptr,
+                                                     srcptr, size, nullptr));
 }
 
 void XeApp::commandQueueCreate(const uint32_t command_queue_id,
