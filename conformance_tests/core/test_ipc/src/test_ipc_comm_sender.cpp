@@ -42,9 +42,10 @@ void run_sender(const ipc_test_parameters &parms,
   }
   LOG_DEBUG << "Allocated buffer to be sent";
 
+  const uint8_t dp = static_cast<uint8_t>(parms.data_pattern);
+
   // Initialize our buffer to a specific data pattern:
-  append_memory_set(ctx.command_list, our_buffer, parms.data_pattern,
-                    parms.size);
+  append_memory_set(ctx.command_list, our_buffer, &dp, parms.size);
   close_command_list(ctx.command_list);
   execute_command_lists(ctx.command_queue, 1, &ctx.command_list, nullptr);
   synchronize(ctx.command_queue, UINT32_MAX);

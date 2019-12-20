@@ -138,8 +138,9 @@ TEST(zeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
   auto cmdq = lzt::create_command_queue();
   const size_t size = 16;
   auto buffer = lzt::allocate_shared_memory(size);
+  const uint8_t one = 1;
 
-  lzt::append_memory_set(cmdlist, buffer, 0x1, size);
+  lzt::append_memory_set(cmdlist, buffer, &one, size);
   lzt::close_command_list(cmdlist);
 
   const int num_execute = 5;
@@ -192,11 +193,11 @@ TEST_P(
     EXPECT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0);
   }
   // Command list setup with only memory set and barrier
-  lzt::append_memory_set(cmdlist, buffer, set_succeed_1, size);
+  lzt::append_memory_set(cmdlist, buffer, &set_succeed_1, size);
   lzt::append_barrier(cmdlist, nullptr, 0, nullptr);
   lzt::close_command_list(cmdlist);
   // Attempt to append command list after close should fail
-  lzt::append_memory_set(cmdlist, buffer, set_fail_2, size);
+  lzt::append_memory_set(cmdlist, buffer, &set_fail_2, size);
   lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
   lzt::synchronize(cmdq, UINT32_MAX);
   for (size_t j = 0; j < size; j++) {
@@ -211,7 +212,7 @@ TEST_P(
   lzt::reset_command_list(cmdlist);
   lzt::close_command_list(cmdlist);
   // Attempt to append command list after close should fail
-  lzt::append_memory_set(cmdlist, buffer, set_fail_3, size);
+  lzt::append_memory_set(cmdlist, buffer, &set_fail_3, size);
   lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
   lzt::synchronize(cmdq, UINT32_MAX);
   // No commands should be executed by command queue
@@ -258,7 +259,7 @@ TEST_P(zeCommandListCloseAndResetTests,
       memset(buf, 0x0, size);
     }
     for (size_t i = 0; i < test_instr; i++) {
-      lzt::append_memory_set(cmdlist, buffer[i], val[test_instr - (i + 1)],
+      lzt::append_memory_set(cmdlist, buffer[i], &val[test_instr - (i + 1)],
                              size);
     }
     lzt::append_barrier(cmdlist, nullptr, 0, nullptr);

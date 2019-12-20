@@ -176,8 +176,7 @@ TEST_P(
       ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, dev1_.dev));
 
   // Set memory region on device 0 and copy to device 1
-  lzt::append_memory_set(dev0_.cmd_list, dev0_.src_region,
-                         static_cast<int>(value), mem_size_);
+  lzt::append_memory_set(dev0_.cmd_list, dev0_.src_region, &value, mem_size_);
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListAppendBarrier(dev0_.cmd_list, nullptr, 0, nullptr));
   lzt::append_memory_copy(dev0_.cmd_list, dev1_.dst_region, dev0_.src_region,

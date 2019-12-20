@@ -228,7 +228,7 @@ TEST_P(
                       ZE_EVENT_SCOPE_FLAG_HOST);
       lzt::append_wait_on_events(cmdlist[i], 1, &host_to_dev_event[i]);
     }
-    lzt::append_memory_set(cmdlist[i], buffer[i], val[i], size);
+    lzt::append_memory_set(cmdlist[i], buffer[i], &val[i], size);
     lzt::append_barrier(cmdlist[i], nullptr, 0, nullptr);
     lzt::close_command_list(cmdlist[i]);
     ordinal++;

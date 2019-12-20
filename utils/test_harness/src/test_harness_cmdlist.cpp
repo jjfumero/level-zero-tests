@@ -84,14 +84,15 @@ zeCommandList::~zeCommandList() {
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListDestroy(command_list_));
 }
 
-void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
-                       size_t size) {
+void append_memory_set(ze_command_list_handle_t cl, void *dstptr,
+                       const uint8_t *value, size_t size) {
   append_memory_set(cl, dstptr, value, size, nullptr);
 }
 
-void append_memory_set(ze_command_list_handle_t cl, void *dstptr, uint8_t value,
-                       size_t size, ze_event_handle_t hSignalEvent) {
-  append_memory_fill(cl, dstptr, &value, 1, size, hSignalEvent);
+void append_memory_set(ze_command_list_handle_t cl, void *dstptr,
+                       const uint8_t *value, size_t size,
+                       ze_event_handle_t hSignalEvent) {
+  append_memory_fill(cl, dstptr, value, 1, size, hSignalEvent);
 }
 
 void append_memory_fill(ze_command_list_handle_t cl, void *dstptr,

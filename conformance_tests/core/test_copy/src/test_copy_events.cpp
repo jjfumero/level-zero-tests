@@ -93,12 +93,13 @@ TEST_F(
   auto dst_buffer = lzt::allocate_shared_memory(size);
   memset(ref_buffer, 0x1, size);
   memset(dst_buffer, 0x0, size);
+  const uint8_t one = 1;
 
   // Verify Host Reads Event as unset
   EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventHostSynchronize(hEvent, 0));
 
   // Execute and verify GPU reads event
-  lzt::append_memory_set(cmdlist, dst_buffer, 0x1, size, hEvent);
+  lzt::append_memory_set(cmdlist, dst_buffer, &one, size, hEvent);
   lzt::append_wait_on_events(cmdlist, 1, &hEvent);
   lzt::close_command_list(cmdlist);
   lzt::execute_command_lists(cmdqueue, 1, &cmdlist, nullptr);

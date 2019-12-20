@@ -526,9 +526,9 @@ TEST_F(
 TEST_F(xeHostSystemMemoryDeviceTests,
        GivenHostSystemMemoryWhenSettingMemoryOnDeviceThenMemorySetCorrectly) {
   // This test case fails due to the memory not being set: LOKI-490
-  const int value = 0x55;
+  const uint8_t value = 0x55;
   lzt::write_data_pattern(memory_, size_, 1);
-  lzt::append_memory_set(cmdlist_.command_list_, memory_, value, size_);
+  lzt::append_memory_set(cmdlist_.command_list_, memory_, &value, size_);
   lzt::append_barrier(cmdlist_.command_list_, nullptr, 0, nullptr);
   lzt::close_command_list(cmdlist_.command_list_);
   lzt::execute_command_lists(cmdqueue_.command_queue_, 1,

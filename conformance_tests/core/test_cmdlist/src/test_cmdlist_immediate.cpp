@@ -45,6 +45,8 @@ TEST_P(
   const size_t size = 16;
   uint32_t timeout = UINT32_MAX;
   ze_command_queue_mode_t mode = GetParam();
+  const uint8_t one = 1;
+
   if (mode == ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     timeout = 0;
   } else {
@@ -63,7 +65,7 @@ TEST_P(
                                          mode, ZE_COMMAND_QUEUE_PRIORITY_NORMAL,
                                          0);
   // setting event on following instruction should flush memory
-  lzt::append_memory_set(cmdlist_immediate, buffer, 0x1, size * sizeof(int),
+  lzt::append_memory_set(cmdlist_immediate, buffer, &one, size * sizeof(int),
                          event0);
   // command queue execution should be immediate, and so no timeout required for
   // synchronize
