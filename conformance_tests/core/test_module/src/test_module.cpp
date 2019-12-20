@@ -459,7 +459,7 @@ protected:
                 zeKernelSetArgumentValue(mult_function, 1, sizeof(mult_in_int),
                                          &mult_in_int));
       EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeKernelSetGroupSize(mult_function, 1, 1, 1));
+                zeKernelSetGroupSize(mult_function, 16, 1, 1));
 
       arg_buffer_list.push_back(th_group_dim);
       ze_thread_group_dimensions_t mult_th_group_dim;
@@ -474,8 +474,7 @@ protected:
       EXPECT_EQ(ZE_RESULT_SUCCESS,
                 zeCommandListAppendLaunchMultipleKernelsIndirect(
                     cmd_list, 2, function_list.data(), num_launch_arg,
-                    arg_buffer_list.data(), signal_event, num_wait,
-                    p_wait_events));
+                    mult_tg_dim, signal_event, num_wait, p_wait_events));
 
       // Intentionally update args buffer and num_args after API
       num_launch_arg[0] = 2;
