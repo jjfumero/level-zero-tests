@@ -98,7 +98,8 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
   total_time_usec = timer.period_minus_overhead();
   total_time_s = total_time_usec / 1e6;
 
-  total_data_transfer = (size * number_iterations) /
+  /* Buffer size is multiplied by 2 to account for the round trip image copy */
+  total_data_transfer = (2 * size * number_iterations) /
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
