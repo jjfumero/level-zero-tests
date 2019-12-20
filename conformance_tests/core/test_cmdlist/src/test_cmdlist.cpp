@@ -134,32 +134,44 @@ TEST_F(zeCommandListResetTests,
 class zeCommandListReuseTests : public ::testing::Test {};
 
 TEST(zeCommandListReuseTests, GivenCommandListWhenItIsExecutedItCanBeRunAgain) {
-  auto cmdlist = lzt::create_command_list();
+  auto cmdlist_mem_set = lzt::create_command_list();
+  auto cmdlist_mem_zero = lzt::create_command_list();
   auto cmdq = lzt::create_command_queue();
   const size_t size = 16;
-  auto buffer = lzt::allocate_shared_memory(size);
+  auto device_buffer = lzt::allocate_device_memory(size);
+  auto host_buffer = lzt::allocate_host_memory(size);
   const uint8_t one = 1;
+  const uint8_t zero = 0;
 
-  lzt::append_memory_set(cmdlist, buffer, &one, size);
-  lzt::close_command_list(cmdlist);
+  lzt::append_memory_set(cmdlist_mem_set, device_buffer, &one, size);
+  lzt::append_barrier(cmdlist_mem_set);
+  lzt::append_memory_copy(cmdlist_mem_set, host_buffer, device_buffer, size);
+  lzt::close_command_list(cmdlist_mem_set);
+  lzt::append_memory_set(cmdlist_mem_zero, device_buffer, &zero, size);
+  lzt::append_barrier(cmdlist_mem_zero);
+  lzt::append_memory_copy(cmdlist_mem_zero, host_buffer, device_buffer, size);
+  lzt::close_command_list(cmdlist_mem_zero);
 
   const int num_execute = 5;
   for (int i = 0; i < num_execute; i++) {
-    memset(buffer, 0x0, size);
-    for (int j = 0; j < size; j++)
-      ASSERT_EQ(static_cast<uint8_t *>(buffer)[j], 0x0)
-          << "Memory Set did not match.";
-
-    lzt::execute_command_lists(cmdq, 1, &cmdlist, nullptr);
+    lzt::execute_command_lists(cmdq, 1, &cmdlist_mem_zero, nullptr);
     lzt::synchronize(cmdq, UINT32_MAX);
     for (int j = 0; j < size; j++)
-      ASSERT_EQ(static_cast<uint8_t *>(buffer)[j], 0x1)
+      ASSERT_EQ(static_cast<uint8_t *>(host_buffer)[j], 0x0)
+          << "Memory Set did not match.";
+
+    lzt::execute_command_lists(cmdq, 1, &cmdlist_mem_set, nullptr);
+    lzt::synchronize(cmdq, UINT32_MAX);
+    for (int j = 0; j < size; j++)
+      ASSERT_EQ(static_cast<uint8_t *>(host_buffer)[j], 0x1)
           << "Memory Set did not match.";
   }
 
-  lzt::destroy_command_list(cmdlist);
+  lzt::destroy_command_list(cmdlist_mem_set);
+  lzt::destroy_command_list(cmdlist_mem_zero);
   lzt::destroy_command_queue(cmdq);
-  lzt::free_memory(buffer);
+  lzt::free_memory(device_buffer);
+  lzt::free_memory(host_buffer);
 }
 
 class zeCommandListCloseAndResetTests
