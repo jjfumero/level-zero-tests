@@ -22,11 +22,28 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-#define level_zero_tests_TEST_HARNESS_SYSMAN_HPP
+#include "gmock/gmock.h"
+#include "logging/logging.hpp"
+#include "utils/utils.hpp"
 
-#include "gtest/gtest.h"
-#include "test_harness_sysman_frequency.hpp"
-#include "test_harness_sysman_init.hpp"
-#include "test_harness_sysman_standby.hpp"
-#endif
+int main(int argc, char **argv) {
+  ::testing::InitGoogleMock(&argc, argv);
+  std::vector<std::string> command_line(argv + 1, argv + argc);
+  level_zero_tests::init_logging(command_line);
+
+  ze_result_t result = zeInit(ZE_INIT_FLAG_NONE);
+  if (result) {
+    throw std::runtime_error("zeInit failed: " +
+                             level_zero_tests::to_string(result));
+  }
+  LOG_TRACE << "Driver initialized";
+
+  result = zetInit(ZE_INIT_FLAG_NONE);
+  if (result) {
+    throw std::runtime_error("zetInit failed: " +
+                             level_zero_tests::to_string(result));
+  }
+  LOG_TRACE << "Ze Tools API initialized";
+
+  return RUN_ALL_TESTS();
+}

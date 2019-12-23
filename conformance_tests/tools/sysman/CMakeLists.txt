@@ -24,3 +24,4 @@
 
 add_subdirectory(test_frequency)
 add_subdirectory(test_init)
+add_subdirectory(test_standby)

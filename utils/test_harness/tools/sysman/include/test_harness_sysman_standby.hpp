@@ -22,11 +22,18 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-#define level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-
+#ifndef level_zero_tests_ZE_TEST_HARNESS_SYSMAN_STANDBY_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_SYSMAN_STANDBY_HPP
+#include "ze_api.h"
 #include "gtest/gtest.h"
-#include "test_harness_sysman_frequency.hpp"
 #include "test_harness_sysman_init.hpp"
-#include "test_harness_sysman_standby.hpp"
+
+namespace level_zero_tests {
+uint32_t get_standby_handle_count(ze_device_handle_t device,
+                                  uint32_t pCount = 0);
+std::vector<zet_sysman_standby_handle_t>
+get_standby_handles(ze_device_handle_t device);
+
+} // namespace level_zero_tests
+
 #endif

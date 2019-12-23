@@ -49,6 +49,7 @@ add_core_library(test_harness
     "src/test_harness_ocl_interop.cpp"
     "tools/src/test_harness_api_tracing.cpp"
     "tools/sysman/src/test_harness_sysman_frequency.cpp"
+    "tools/sysman/src/test_harness_sysman_standby.cpp"
     "tools/sysman/src/test_harness_sysman_init.cpp"
 )
 target_link_libraries(test_harness
