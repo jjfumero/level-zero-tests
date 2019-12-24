@@ -70,4 +70,27 @@ TEST(
     EXPECT_EQ(tCount, pCount);
   }
 }
+TEST(
+    zetSysmanStandyGetModeTests,
+    GivenValidDeviceWhenRequestingModeThenExpectzetSysmanStandbyGetModeToReturnValidStandbyMode) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pHandles = lzt::get_standby_handles(device);
+    for (auto pHandle : pHandles) {
+      EXPECT_NE(nullptr, pHandle);
+      zet_standby_promo_mode_t standByMode;
+      standByMode = lzt::get_standby_mode(pHandle);
+      switch (standByMode) {
+      case ZET_STANDBY_PROMO_MODE_DEFAULT:
+        SUCCEED();
+        break;
+      case ZET_STANDBY_PROMO_MODE_NEVER:
+        SUCCEED();
+        break;
+      default:
+        FAIL();
+      }
+    }
+  }
+}
 } // namespace

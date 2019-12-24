@@ -33,7 +33,7 @@ uint32_t get_standby_handle_count(ze_device_handle_t device,
                                   uint32_t pCount = 0);
 std::vector<zet_sysman_standby_handle_t>
 get_standby_handles(ze_device_handle_t device);
-
+zet_standby_promo_mode_t get_standby_mode(zet_sysman_standby_handle_t pHnadle);
 } // namespace level_zero_tests
 
 #endif

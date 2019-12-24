@@ -45,4 +45,10 @@ get_standby_handles(ze_device_handle_t device) {
                                                    pStandbyHandles.data()));
   return pStandbyHandles;
 }
+zet_standby_promo_mode_t
+get_standby_mode(zet_sysman_standby_handle_t pStandByHandle) {
+  zet_standby_promo_mode_t pMode;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanStandbyGetMode(pStandByHandle, &pMode));
+  return pMode;
+}
 } // namespace level_zero_tests
