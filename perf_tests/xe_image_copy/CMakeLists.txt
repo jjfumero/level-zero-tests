@@ -18,6 +18,14 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+
+set(xe_imagecopy_libraries
+Boost::program_options
+${OS_SPECIFIC_LIBS}
+)
+
+
+
 add_lzt_test(
   NAME xe_image_copy
   GROUP "/perf_tests"
@@ -25,5 +33,5 @@ add_lzt_test(
     ../common/src/xe_app.cpp
     src/xe_image_copy.cpp
     src/options.cpp
-  LINK_LIBRARIES ${OS_SPECIFIC_LIBS}
+  LINK_LIBRARIES ${xe_imagecopy_libraries} 
 )

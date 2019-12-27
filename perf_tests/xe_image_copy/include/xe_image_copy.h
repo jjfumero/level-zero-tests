@@ -30,6 +30,9 @@
 #include <assert.h>
 #include <iomanip>
 #include <iostream>
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 
 class XeImageCopy {
 public:
@@ -46,7 +49,7 @@ public:
   void measureHost2Device2Host(bool &validRet);
   void measureHost2Device(bool &validRet);
   void measureDevice2Host(bool &validRet);
-  int parse_arguments(int argc, char **argv);
+  int parse_command_line(int argc, char **argv);
  
 
 private:

@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
   XeImageCopy Imagecopy;
   bool outputValidationSuccessful = false;
 
-  Imagecopy.parse_arguments(argc, argv);
+  SUCCESS_OR_TERMINATE(Imagecopy.parse_command_line(argc, argv));
 
   std::cout << "Host2Device2Host: Bandwidth copying the image buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"

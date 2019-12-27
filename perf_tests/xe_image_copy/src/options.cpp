@@ -21,85 +21,36 @@
 
 #include "xe_image_copy.h"
 
-static const char *usage_str =
-    "\n xe_image_copy [OPTIONS]"
-    "\n"
-    "\n OPTIONS:"
-    "\n  -w                          choose image width (default setting with "
-    "2048)"
-    "\n  -h                          choose image height (default setting with "
-    "2048)"
-    "\n  -d                          choose image depth (default setting with "
-    "1)"
-    "\n  -ox                         choose The origin x offset for region in "
-    "pixels (default setting with 0)"
-    "\n  -oy                         choose The origin y offset for region in "
-    "pixels (default setting with 0)"
-    "\n  -oz                         choose The origin z offset for region in "
-    "pixels (default setting with 0)"
-    "\n  -i                          set number of iterations to run[default: "
-    "50]"
-    "\n  -w                          set number of warmup iterations to "
-    "run[default: 10]"
-    "\n  --help                      display help message"
-    "\n";
+int XeImageCopy::parse_command_line(int argc, char **argv) {
 
-//---------------------------------------------------------------------
-// Utility function which parses the arguments to xe_peak and
-// sets the test parameters accordingly for main to execute the tests
-// with the correct environment.
-//---------------------------------------------------------------------
-int XeImageCopy::parse_arguments(int argc, char **argv) {
+  // Declare the supported options.
+  po::options_description desc("Allowed options");
+  desc.add_options()("help", "produce help message")(
+      "width,w", po::value<uint32_t>(&width)->default_value(2048),
+      "set image width")("height,h",
+                         po::value<uint32_t>(&height)->default_value(2048),
+                         "set image height")(
+      "depth,d", po::value<uint32_t>(&depth)->default_value(1),
+      "set image depth")("offx",
+                         po::value<uint32_t>(&xOffset)->default_value(0),
+                         "set image xoffset")(
+      "offy", po::value<uint32_t>(&yOffset)->default_value(0),
+      "set image yoffset")("offz",
+                           po::value<uint32_t>(&zOffset)->default_value(0),
+                           "set image zoffset")(
+      "warmup", po::value<uint32_t>(&warm_up_iterations)->default_value(10),
+      "set number of warmup operations")(
+      "iter", po::value<uint32_t>(&number_iterations)->default_value(50),
+      "set number of iterations");
 
-  for (int i = 1; i < argc; i++) {
-    if ((strcmp(argv[i], "--help") == 0)) {
-      std::cout << usage_str;
-      exit(0);
-    } else if (strcmp(argv[i], "-w") == 0) {
-      if ((i + 1) < argc) {
-        width = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-h") == 0) {
-      if ((i + 1) < argc) {
-        height = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-d") == 0) {
-      if ((i + 1) < argc) {
-        depth = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-ox") == 0) {
-      if ((i + 1) < argc) {
-        xOffset = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-oy") == 0) {
-      if ((i + 1) < argc) {
-        yOffset = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-oz") == 0) {
-      if ((i + 1) < argc) {
-        zOffset = static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-w") == 0) {
-      if ((i + 1) < argc) {
-        warm_up_iterations = static_cast<int>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else if (strcmp(argv[i], "-i") == 0) {
-      if ((i + 1) < argc) {
-        number_iterations =
-            static_cast<uint32_t>(strtoul(argv[i + 1], NULL, 0));
-        i++;
-      }
-    } else {
-      std::cout << usage_str;
-      exit(-1);
-    }
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+
+  if (vm.count("help")) {
+    std::cout << desc << "\n";
+    return 1;
   }
+
   return 0;
 }
