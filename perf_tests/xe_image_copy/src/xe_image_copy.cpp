@@ -63,6 +63,23 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
   ze_result_t result = ZE_RESULT_SUCCESS;
   ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
 
+  ze_image_format_desc_t formatDesc = {Imagelayout,
+                                       Imageformat,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
+
+  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
+                               Imageflags,
+                               Imagetype,
+                               formatDesc,
+                               width,
+                               height,
+                               depth,
+                               0,
+                               0};
+
   uint8_t *srcBuffer = new uint8_t[size];
   uint8_t *dstBuffer = new uint8_t[size];
   for (size_t i = 0; i < size; ++i) {
@@ -70,7 +87,7 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
     dstBuffer[i] = 0xff;
   }
 
-  benchmark->imageCreate(&this->image, width, height, depth);
+  benchmark->imageCreate(&imageDesc, &this->image);
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
   benchmark->commandListAppendImageCopyFromMemory(command_list, image,
@@ -124,6 +141,22 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
 
   ze_result_t result = ZE_RESULT_SUCCESS;
   ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
+  ze_image_format_desc_t formatDesc = {Imagelayout,
+                                       Imageformat,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
+
+  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
+                               Imageflags,
+                               Imagetype,
+                               formatDesc,
+                               width,
+                               height,
+                               depth,
+                               0,
+                               0};
 
   uint8_t *srcBuffer = new uint8_t[size];
   uint8_t *dstBuffer = new uint8_t[size];
@@ -132,7 +165,7 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
     dstBuffer[i] = 0xff;
   }
 
-  benchmark->imageCreate(&this->image, width, height, depth);
+  benchmark->imageCreate(&imageDesc, &this->image);
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
   benchmark->commandListReset(command_list_a);
@@ -193,7 +226,22 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
 
   ze_result_t result = ZE_RESULT_SUCCESS;
   ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
+  ze_image_format_desc_t formatDesc = {Imagelayout,
+                                       Imageformat,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
+                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
 
+  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
+                               Imageflags,
+                               Imagetype,
+                               formatDesc,
+                               width,
+                               height,
+                               depth,
+                               0,
+                               0};
   uint8_t *srcBuffer = new uint8_t[size];
   uint8_t *dstBuffer = new uint8_t[size];
   for (size_t i = 0; i < size; ++i) {
@@ -201,7 +249,7 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
     dstBuffer[i] = 0xff;
   }
 
-  benchmark->imageCreate(&this->image, width, height, depth);
+  benchmark->imageCreate(&imageDesc, &this->image);
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
 

@@ -282,6 +282,73 @@ std::string to_string(const ze_image_format_layout_t layout) {
   }
 }
 
+ze_image_format_layout_t to_layout(const std::string layout) {
+  if (layout == "8") {
+    return ZE_IMAGE_FORMAT_LAYOUT_8;
+  } else if (layout == "16") {
+    return ZE_IMAGE_FORMAT_LAYOUT_16;
+  } else if (layout == "32") {
+    return ZE_IMAGE_FORMAT_LAYOUT_32;
+  } else if (layout == "8_8") {
+    return ZE_IMAGE_FORMAT_LAYOUT_8_8;
+  } else if (layout == "8_8_8_8") {
+    return ZE_IMAGE_FORMAT_LAYOUT_8_8_8_8;
+  } else if (layout == "16_16") {
+    return ZE_IMAGE_FORMAT_LAYOUT_16_16;
+  } else if (layout == "16_16_16_16") {
+    return ZE_IMAGE_FORMAT_LAYOUT_16_16_16_16;
+  } else if (layout == "32_32") {
+    return ZE_IMAGE_FORMAT_LAYOUT_32_32;
+  } else if (layout == "32_32_32_32") {
+    return ZE_IMAGE_FORMAT_LAYOUT_32_32_32_32;
+  } else if (layout == "10_10_10_2") {
+    return ZE_IMAGE_FORMAT_LAYOUT_10_10_10_2;
+  } else if (layout == "11_11_10") {
+    return ZE_IMAGE_FORMAT_LAYOUT_11_11_10;
+  } else if (layout == "5_6_5") {
+    return ZE_IMAGE_FORMAT_LAYOUT_5_6_5;
+  } else if (layout == "5_5_5_1") {
+    return ZE_IMAGE_FORMAT_LAYOUT_5_5_5_1;
+  } else if (layout == "4_4_4_4") {
+    return ZE_IMAGE_FORMAT_LAYOUT_4_4_4_4;
+  } else if (layout == "Y8") {
+    return ZE_IMAGE_FORMAT_LAYOUT_Y8;
+  } else if (layout == "NV12") {
+    return ZE_IMAGE_FORMAT_LAYOUT_NV12;
+  } else if (layout == "YUYV") {
+    return ZE_IMAGE_FORMAT_LAYOUT_YUYV;
+  } else if (layout == "VYUY") {
+    return ZE_IMAGE_FORMAT_LAYOUT_VYUY;
+  } else if (layout == "YVYU") {
+    return ZE_IMAGE_FORMAT_LAYOUT_YVYU;
+  } else if (layout == "UYVY") {
+    return ZE_IMAGE_FORMAT_LAYOUT_UYVY;
+  } else if (layout == "AYUV") {
+    return ZE_IMAGE_FORMAT_LAYOUT_AYUV;
+  } else if (layout == "YUAV") {
+    return ZE_IMAGE_FORMAT_LAYOUT_YUAV;
+  } else if (layout == "P010") {
+    return ZE_IMAGE_FORMAT_LAYOUT_P010;
+  } else if (layout == "Y410") {
+    return ZE_IMAGE_FORMAT_LAYOUT_Y410;
+  } else if (layout == "P012") {
+    return ZE_IMAGE_FORMAT_LAYOUT_P012;
+  } else if (layout == "Y16") {
+    return ZE_IMAGE_FORMAT_LAYOUT_Y16;
+  } else if (layout == "P016") {
+    return ZE_IMAGE_FORMAT_LAYOUT_P016;
+  } else if (layout == "Y216") {
+    return ZE_IMAGE_FORMAT_LAYOUT_Y216;
+  } else if (layout == "P216") {
+    return ZE_IMAGE_FORMAT_LAYOUT_P216;
+  } else if (layout == "P416") {
+    return ZE_IMAGE_FORMAT_LAYOUT_P416;
+  } else {
+    std::cout << "Unknown ze_image_format_layout_t value: " << layout;
+    return static_cast<ze_image_format_layout_t>(-1);
+  }
+}
+
 std::string to_string(const ze_image_format_type_t type) {
   if (type == ZE_IMAGE_FORMAT_TYPE_UINT) {
     return "ZE_IMAGE_FORMAT_TYPE_UINT";
@@ -296,6 +363,23 @@ std::string to_string(const ze_image_format_type_t type) {
   } else {
     return "Unknown ze_image_format_type_t value: " +
            std::to_string(static_cast<int>(type));
+  }
+}
+
+ze_image_format_type_t to_format_type(const std::string format_type) {
+  if (format_type == "UINT") {
+    return ZE_IMAGE_FORMAT_TYPE_UINT;
+  } else if (format_type == "SINT") {
+    return ZE_IMAGE_FORMAT_TYPE_SINT;
+  } else if (format_type == "UNORM") {
+    return ZE_IMAGE_FORMAT_TYPE_UNORM;
+  } else if (format_type == "SNORM") {
+    return ZE_IMAGE_FORMAT_TYPE_SNORM;
+  } else if (format_type == "FLOAT") {
+    return ZE_IMAGE_FORMAT_TYPE_FLOAT;
+  } else {
+    std::cout << "Unknown ze_image_format_type_t value: ";
+    return (static_cast<ze_image_format_type_t>(-1));
   }
 }
 
@@ -338,6 +422,32 @@ std::string to_string(const ze_image_flag_t flag) {
   return flags;
 }
 
+ze_image_flag_t to_flag(const std::string flag) {
+
+  // by default setting to READ
+  ze_image_flag_t image_flags = ZE_IMAGE_FLAG_PROGRAM_READ;
+
+  // check if "READ" position is found in flag string
+  if (flag.find("READ") != std::string::npos) {
+    image_flags =
+        static_cast<ze_image_flag_t>(image_flags | ZE_IMAGE_FLAG_PROGRAM_READ);
+  }
+  if (flag.find("WRITE") != std::string::npos) {
+    image_flags =
+        static_cast<ze_image_flag_t>(image_flags | ZE_IMAGE_FLAG_PROGRAM_WRITE);
+  }
+  if (flag.find("CACHED") != std::string::npos) {
+    image_flags =
+        static_cast<ze_image_flag_t>(image_flags | ZE_IMAGE_FLAG_BIAS_CACHED);
+  }
+  if (flag.find("UNCACHED") != std::string::npos) {
+    image_flags =
+        static_cast<ze_image_flag_t>(image_flags | ZE_IMAGE_FLAG_BIAS_UNCACHED);
+  }
+
+  return image_flags;
+}
+
 std::string to_string(const ze_image_type_t type) {
   if (type == ZE_IMAGE_TYPE_1D) {
     return "ZE_IMAGE_TYPE_1D";
@@ -352,6 +462,23 @@ std::string to_string(const ze_image_type_t type) {
   } else {
     return "Unknown ze_image_type_t value: " +
            std::to_string(static_cast<int>(type));
+  }
+}
+
+ze_image_type_t to_image_type(const std::string type) {
+  if (type == "1D") {
+    return ZE_IMAGE_TYPE_1D;
+  } else if (type == "2D") {
+    return ZE_IMAGE_TYPE_2D;
+  } else if (type == "3D") {
+    return ZE_IMAGE_TYPE_3D;
+  } else if (type == "1DARRAY") {
+    return ZE_IMAGE_TYPE_1DARRAY;
+  } else if (type == "2DARRAY") {
+    return ZE_IMAGE_TYPE_2DARRAY;
+  } else {
+    std::cout << "Unknown ze_image_type_t value: ";
+    return (static_cast<ze_image_type_t>(-1));
   }
 }
 

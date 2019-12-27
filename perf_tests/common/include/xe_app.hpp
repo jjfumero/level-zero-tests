@@ -46,8 +46,11 @@ public:
   void functionCreate(ze_module_handle_t module, ze_kernel_handle_t *function,
                       const char *pFunctionName);
   void functionDestroy(ze_kernel_handle_t function);
-  void imageCreate(ze_image_handle_t *image);
-  void imageCreate(ze_device_handle_t device, ze_image_handle_t *image);
+  void imageCreate(const ze_image_desc_t *imageDesc, ze_image_handle_t *image);
+  void imageCreate(ze_device_handle_t device, const ze_image_desc_t *imageDesc,
+                   ze_image_handle_t *image);
+  void imageCreate(ze_device_handle_t device, ze_image_handle_t *image,
+                   uint32_t width, uint32_t height, uint32_t depth);
   void imageCreate(ze_image_handle_t *image, uint32_t width, uint32_t height,
                    uint32_t depth);
   void imageDestroy(ze_image_handle_t image);

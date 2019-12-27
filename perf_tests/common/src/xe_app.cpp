@@ -146,34 +146,21 @@ void XeApp::functionDestroy(ze_kernel_handle_t function) {
   SUCCESS_OR_TERMINATE(zeKernelDestroy(function));
 }
 
-void XeApp::imageCreate(ze_image_handle_t *image) {
+void XeApp::imageCreate(const ze_image_desc_t *imageDesc,
+                        ze_image_handle_t *image) {
   assert(this->device != nullptr);
-  imageCreate(this->device, image);
+  imageCreate(this->device, imageDesc, image);
 }
 
-void XeApp::imageCreate(ze_device_handle_t device, ze_image_handle_t *image) {
-  ze_image_format_desc_t formatDesc = {
-      ZE_IMAGE_FORMAT_LAYOUT_32, ZE_IMAGE_FORMAT_TYPE_FLOAT,
-      ZE_IMAGE_FORMAT_SWIZZLE_R, ZE_IMAGE_FORMAT_SWIZZLE_0,
-      ZE_IMAGE_FORMAT_SWIZZLE_0, ZE_IMAGE_FORMAT_SWIZZLE_1};
-
-  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
-                               ZE_IMAGE_FLAG_PROGRAM_READ,
-                               ZE_IMAGE_TYPE_2D,
-                               formatDesc,
-                               128,
-                               128,
-                               0,
-                               0,
-                               0};
-
-  zeImageCreate(device, &imageDesc, image);
+void XeApp::imageCreate(ze_device_handle_t device,
+                        const ze_image_desc_t *imageDesc,
+                        ze_image_handle_t *image) {
+  SUCCESS_OR_TERMINATE(zeImageCreate(device, imageDesc, image));
 }
 
-void XeApp::imageCreate(ze_image_handle_t *image, uint32_t width,
-                        uint32_t height, uint32_t depth) {
+void XeApp::imageCreate(ze_device_handle_t device, ze_image_handle_t *image,
+                        uint32_t width, uint32_t height, uint32_t depth) {
 
-  assert(this->device != nullptr);
   ze_image_format_desc_t formatDesc = {
       ZE_IMAGE_FORMAT_LAYOUT_32, ZE_IMAGE_FORMAT_TYPE_FLOAT,
       ZE_IMAGE_FORMAT_SWIZZLE_R, ZE_IMAGE_FORMAT_SWIZZLE_0,
@@ -189,7 +176,13 @@ void XeApp::imageCreate(ze_image_handle_t *image, uint32_t width,
                                0,
                                0};
 
-  zeImageCreate(this->device, &imageDesc, image);
+  imageCreate(device, &imageDesc, image);
+}
+
+void XeApp::imageCreate(ze_image_handle_t *image, uint32_t width,
+                        uint32_t height, uint32_t depth) {
+  assert(this->device != nullptr);
+  imageCreate(this->device, image, width, height, depth);
 }
 
 void XeApp::imageDestroy(ze_image_handle_t image) {

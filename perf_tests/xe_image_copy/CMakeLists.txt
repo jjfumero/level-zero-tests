@@ -22,6 +22,7 @@
 set(xe_imagecopy_libraries
 Boost::program_options
 ${OS_SPECIFIC_LIBS}
+utils
 )
 
 

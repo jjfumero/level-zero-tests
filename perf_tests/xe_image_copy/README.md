@@ -40,6 +40,12 @@ To use command line option features:
   --offz                      set image zoffset (by default it is 0)
   --warmup                    set number of warmup operations (by default it is 10)
   --iter                      set number of iterations (by default it is 50)
+  --layout                    image layout like 8/16/32/8_8/8_8_8_8/16_16/16_16_16_16/32_32/32_32_32_32/10_10_10_2/11_11_10/5_6_5/5_5_5_1/4_4_4_4/Y8/NV12/YUYV/VYUY/YVYU/UYVY/AY
+                              UV/YUAV/P010/Y410/P012/Y16/P016/Y216/P216/P416
+  --flags                     image program flags like READ/WRITE/CACHED/UNCACHED
+  --type arg                  Image  type like 1D/2D/3D/1DARRAY/2DARRAY
+  --format arg                image format like UINT/SINT/UNORM/SNORM/FLOAT
+
 
 For example to run a xe_image_copy with width 1024 height 1024:
 

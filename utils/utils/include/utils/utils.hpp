@@ -54,6 +54,10 @@ std::string to_string(const ze_image_format_swizzle_t swizzle);
 std::string to_string(const ze_image_flag_t flag);
 std::string to_string(const ze_image_type_t type);
 std::string to_string(const ze_image_desc_version_t version);
+ze_image_format_layout_t to_layout(const std::string layout);
+ze_image_format_type_t to_format_type(const std::string format_type);
+ze_image_flag_t to_flag(const std::string flag);
+ze_image_type_t to_image_type(const std::string type);
 
 void print_header_version();
 void print_driver_version();

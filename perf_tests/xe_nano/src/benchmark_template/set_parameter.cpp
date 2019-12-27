@@ -94,7 +94,7 @@ void parameter_image(XeApp *benchmark, probe_config_t &probe_setting) {
   ze_image_handle_t input_a;
 
   benchmark->functionCreate(&function, "function_parameter_image");
-  benchmark->imageCreate(&input_a);
+  benchmark->imageCreate(&input_a, 128, 128, 0);
 
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
