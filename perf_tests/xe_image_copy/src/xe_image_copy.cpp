@@ -226,6 +226,7 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
 
   ze_result_t result = ZE_RESULT_SUCCESS;
   ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
+
   ze_image_format_desc_t formatDesc = {Imagelayout,
                                        Imageformat,
                                        ZE_IMAGE_FORMAT_SWIZZLE_R,
@@ -334,6 +335,45 @@ int main(int argc, char **argv) {
   std::cout << "  Results validation "
             << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
   std::cout << std::endl;
+
+  // Measuring bandwidth for 1x1x1 image from Dev->Host & Host->Dev
+  {
+    Imagecopy.width = 1;
+    Imagecopy.height = 1;
+    Imagecopy.depth = 1;
+    Imagecopy.Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_32;
+    Imagecopy.Imageformat = ZE_IMAGE_FORMAT_TYPE_UINT;
+
+    std::cout << "Host2Device: Bandwidth copying the image buffer size "
+              << Imagecopy.width << "X" << Imagecopy.height << "X"
+              << Imagecopy.depth << "   Image format=  "
+              << level_zero_tests::to_string(Imagecopy.Imageformat)
+              << "  Image Layout=  "
+              << level_zero_tests::to_string(Imagecopy.Imagelayout)
+              << "  from Host->Device" << std::endl;
+
+    Imagecopy.measureHost2Device(outputValidationSuccessful);
+
+    std::cout << "  Results validation "
+              << (outputValidationSuccessful ? "PASSED" : "FAILED")
+              << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Device2Host: Bandwidth copying the image buffer size "
+              << Imagecopy.width << "X" << Imagecopy.height << "X"
+              << Imagecopy.depth << "   Image format=  "
+              << level_zero_tests::to_string(Imagecopy.Imageformat)
+              << "  Image Layout=  "
+              << level_zero_tests::to_string(Imagecopy.Imagelayout)
+              << "  from Device->Host" << std::endl;
+
+    Imagecopy.measureDevice2Host(outputValidationSuccessful);
+
+    std::cout << "  Results validation "
+              << (outputValidationSuccessful ? "PASSED" : "FAILED")
+              << std::endl;
+    std::cout << std::endl;
+  }
 
   return 0;
 }
