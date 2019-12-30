@@ -36,6 +36,9 @@ get_standby_handles(ze_device_handle_t device);
 zet_standby_promo_mode_t get_standby_mode(zet_sysman_standby_handle_t pHnadle);
 void set_standby_mode(zet_sysman_standby_handle_t pHnadle,
                       zet_standby_promo_mode_t pMode);
+zet_standby_properties_t
+get_standby_properties(zet_sysman_standby_handle_t pStandbyHandle);
+
 } // namespace level_zero_tests
 
 #endif

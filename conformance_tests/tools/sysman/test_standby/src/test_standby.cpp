@@ -114,4 +114,37 @@ TEST(
     }
   }
 }
+
+TEST(
+    zetSysmanStandByGetPropertiesTests,
+    GivenValidStandbyHandleWhenRetrievingStandbyPropertiesThenValidStandByPolicyIsReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pStandbyHandles = lzt::get_standby_handles(device);
+    for (auto pStandbyHandle : pStandbyHandles) {
+      EXPECT_NE(nullptr, pStandbyHandle);
+      auto properties = lzt::get_standby_properties(pStandbyHandle);
+      EXPECT_EQ(properties.type, ZET_STANDBY_TYPE_GLOBAL);
+    }
+  }
+}
+TEST(
+    zetSysmanStandByGetPropertiesTests,
+    GivenValidStandbyHandleWhenRetrievingStandbyPropertiesThenExpectSamePropertiesReturnedTwice) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pStandbyHandles = lzt::get_standby_handles(device);
+    for (auto pStandbyHandle : pStandbyHandles) {
+      EXPECT_NE(nullptr, pStandbyHandle);
+      auto propertiesInitial = lzt::get_standby_properties(pStandbyHandle);
+      auto propertiesLater = lzt::get_standby_properties(pStandbyHandle);
+      ASSERT_EQ(propertiesInitial.type, ZET_STANDBY_TYPE_GLOBAL);
+      EXPECT_EQ(propertiesInitial.type, propertiesLater.type);
+      EXPECT_EQ(propertiesInitial.onSubdevice, propertiesLater.onSubdevice);
+      if (propertiesInitial.onSubdevice == true &&
+          propertiesLater.onSubdevice == true)
+        EXPECT_EQ(propertiesInitial.subdeviceId, propertiesLater.subdeviceId);
+    }
+  }
+}
 } // namespace

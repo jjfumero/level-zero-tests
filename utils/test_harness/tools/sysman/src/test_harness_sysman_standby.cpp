@@ -55,4 +55,11 @@ void set_standby_mode(zet_sysman_standby_handle_t pStandByHandle,
                       zet_standby_promo_mode_t pMode) {
   EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanStandbySetMode(pStandByHandle, pMode));
 }
+zet_standby_properties_t
+get_standby_properties(zet_sysman_standby_handle_t pStandbyHandle) {
+  zet_standby_properties_t pProperties;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanStandbyGetProperties(pStandbyHandle, &pProperties));
+  return pProperties;
+}
 } // namespace level_zero_tests
