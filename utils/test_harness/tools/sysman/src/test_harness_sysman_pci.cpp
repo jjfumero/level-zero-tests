@@ -22,12 +22,20 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-#define level_zero_tests_TEST_HARNESS_SYSMAN_HPP
+#include "test_harness/test_harness.hpp"
 
-#include "gtest/gtest.h"
-#include "test_harness_sysman_pci.hpp"
-#include "test_harness_sysman_frequency.hpp"
-#include "test_harness_sysman_init.hpp"
-#include "test_harness_sysman_standby.hpp"
-#endif
+#include "ze_api.h"
+#include "utils/utils.hpp"
+
+namespace lzt = level_zero_tests;
+
+namespace level_zero_tests {
+
+zet_pci_properties_t get_pci_properties(ze_device_handle_t device) {
+  zet_pci_properties_t PciProps;
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPciGetProperties(hSysmanDevice, &PciProps));
+  return PciProps;
+}
+} // namespace level_zero_tests

@@ -22,12 +22,25 @@
  * must be express and approved by Intel in writing.
  */
 
-#ifndef level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-#define level_zero_tests_TEST_HARNESS_SYSMAN_HPP
+#ifndef level_zero_tests_ZE_TEST_HARNESS_SYSMAN_PCI_HPP
+#define level_zero_tests_ZE_TEST_HARNESS_SYSMAN_PCI_HPP
 
+#include "ze_api.h"
 #include "gtest/gtest.h"
-#include "test_harness_sysman_pci.hpp"
-#include "test_harness_sysman_frequency.hpp"
 #include "test_harness_sysman_init.hpp"
-#include "test_harness_sysman_standby.hpp"
+
+#define MAX_DOMAINs 65536
+#define MAX_BUSES_PER_DOMAIN 256
+#define MAX_DEVICES_PER_BUS 32
+#define MAX_FUNCTIONS_PER_DEVICE 8
+
+#define PCI_SPEED_MAX_LINK_GEN 5
+#define PCI_SPEED_MAX_LANE_WIDTH 16
+#define PCI_SPEED_MAX_BANDWIDTH_GT_S 32 // TODO: confirm for PCIe Gen 5,
+#define PCI_SPEED_MAX_PACKET_SIZE_128 128
+#define PCI_SPEED_MAX_PACKET_SIZE_256 256
+
+namespace level_zero_tests {
+zet_pci_properties_t get_pci_properties(ze_device_handle_t device);
+}
 #endif

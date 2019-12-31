@@ -51,6 +51,7 @@ add_core_library(test_harness
     "tools/sysman/src/test_harness_sysman_frequency.cpp"
     "tools/sysman/src/test_harness_sysman_standby.cpp"
     "tools/sysman/src/test_harness_sysman_init.cpp"
+    "tools/sysman/src/test_harness_sysman_pci.cpp"
 )
 target_link_libraries(test_harness
     PUBLIC

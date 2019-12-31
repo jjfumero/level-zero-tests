@@ -22,7 +22,13 @@
 # must be express and approved by Intel in writing.
 #
 
-add_subdirectory(test_pci)
-add_subdirectory(test_frequency)
-add_subdirectory(test_init)
-add_subdirectory(test_standby)
+add_lzt_test(
+  NAME test_pci
+  GROUP "/conformance_tests/tools/sysman"
+  SOURCES
+    src/test_pci.cpp
+    src/main.cpp
+  LINK_LIBRARIES
+    level_zero_tests::logging
+    level_zero_tests::utils
+)
