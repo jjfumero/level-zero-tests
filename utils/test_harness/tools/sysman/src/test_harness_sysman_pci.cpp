@@ -31,6 +31,13 @@ namespace lzt = level_zero_tests;
 
 namespace level_zero_tests {
 
+zet_pci_state_t get_pci_state(ze_device_handle_t device) {
+  zet_pci_state_t PciState;
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanPciGetState(hSysmanDevice, &PciState));
+  return PciState;
+}
+
 zet_pci_properties_t get_pci_properties(ze_device_handle_t device) {
   zet_pci_properties_t PciProps;
   zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
@@ -38,4 +45,5 @@ zet_pci_properties_t get_pci_properties(ze_device_handle_t device) {
             zetSysmanPciGetProperties(hSysmanDevice, &PciProps));
   return PciProps;
 }
+
 } // namespace level_zero_tests

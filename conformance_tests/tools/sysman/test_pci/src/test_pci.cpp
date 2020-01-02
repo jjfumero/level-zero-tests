@@ -35,6 +35,23 @@ namespace lzt = level_zero_tests;
 
 namespace {
 
+TEST(zetSysmanPciGetStateTests,
+     GivenSysmanHandleWhenRetrievingStateThenStateIsReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    zet_pci_properties_t PciProps;
+    PciProps = lzt::get_pci_properties(device);
+    zet_pci_state_t PciState;
+    PciState = lzt::get_pci_state(device);
+    EXPECT_LE(PciState.speed.gen, PciProps.maxSpeed.gen);
+    EXPECT_LE(PciState.speed.width, PciProps.maxSpeed.width);
+    EXPECT_LE(PciState.speed.maxBandwidth, PciProps.maxSpeed.maxBandwidth);
+    EXPECT_TRUE(
+        (PciState.speed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_128) ||
+        (PciState.speed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_256));
+  };
+}
+
 TEST(zetSysmanPciGetPropertiesTests,
      GivenSysmanHandleWhenRetrievingPCIPropertiesThenpropertiesIsReturned) {
   auto devices = lzt::get_ze_devices();
@@ -56,9 +73,7 @@ TEST(zetSysmanPciGetPropertiesTests,
     EXPECT_GT(PciProps.maxSpeed.width, 0);
     EXPECT_GT(PciProps.maxSpeed.maxBandwidth, 0);
     EXPECT_LE(PciProps.maxSpeed.maxBandwidth, PCI_SPEED_MAX_BANDWIDTH_GT_S);
-    EXPECT_TRUE(
-        (PciProps.maxSpeed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_128) ||
-        (PciProps.maxSpeed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_256));
   };
 }
+
 } // namespace

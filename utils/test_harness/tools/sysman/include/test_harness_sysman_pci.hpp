@@ -41,6 +41,7 @@
 #define PCI_SPEED_MAX_PACKET_SIZE_256 256
 
 namespace level_zero_tests {
+zet_pci_state_t get_pci_state(ze_device_handle_t device);
 zet_pci_properties_t get_pci_properties(ze_device_handle_t device);
-}
+} // namespace level_zero_tests
 #endif
