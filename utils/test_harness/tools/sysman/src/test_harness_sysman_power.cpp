@@ -21,14 +21,30 @@
  * estoppel or otherwise. Any license under such intellectual property rights
  * must be express and approved by Intel in writing.
  */
+#include "test_harness/test_harness.hpp"
 
-#ifndef level_zero_tests_TEST_HARNESS_SYSMAN_HPP
-#define level_zero_tests_TEST_HARNESS_SYSMAN_HPP
+#include "ze_api.h"
+#include "utils/utils.hpp"
 
-#include "gtest/gtest.h"
-#include "test_harness_sysman_pci.hpp"
-#include "test_harness_sysman_frequency.hpp"
-#include "test_harness_sysman_init.hpp"
-#include "test_harness_sysman_standby.hpp"
-#include "test_harness_sysman_power.hpp"
-#endif
+namespace lzt = level_zero_tests;
+
+namespace level_zero_tests {
+uint32_t get_power_handle_count(ze_device_handle_t device) {
+  uint32_t pCount = 0;
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGet(hSysmanDevice, &pCount, nullptr));
+  EXPECT_GT(pCount, 0);
+  return pCount;
+}
+std::vector<zet_sysman_pwr_handle_t>
+get_power_handles(ze_device_handle_t device, uint32_t &pCount) {
+  if (pCount = 0)
+    pCount = get_power_handle_count(device);
+  zet_sysman_handle_t hSysmanDevice = lzt::get_sysman_handle(device);
+  std::vector<zet_sysman_pwr_handle_t> pPowerHandles(pCount);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGet(hSysmanDevice, &pCount, pPowerHandles.data()));
+  return pPowerHandles;
+}
+} // namespace level_zero_tests
