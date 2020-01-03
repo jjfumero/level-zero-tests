@@ -47,4 +47,11 @@ get_power_handles(ze_device_handle_t device, uint32_t &pCount) {
             zetSysmanPowerGet(hSysmanDevice, &pCount, pPowerHandles.data()));
   return pPowerHandles;
 }
+zet_power_properties_t
+get_power_properties(zet_sysman_pwr_handle_t pPowerHandle) {
+  zet_power_properties_t pProperties;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGetProperties(pPowerHandle, &pProperties));
+  return pProperties;
+}
 } // namespace level_zero_tests

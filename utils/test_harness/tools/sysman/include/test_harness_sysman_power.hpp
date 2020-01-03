@@ -32,6 +32,8 @@ namespace level_zero_tests {
 uint32_t get_power_handle_count(ze_device_handle_t device);
 std::vector<zet_sysman_pwr_handle_t>
 get_power_handles(ze_device_handle_t device, uint32_t &count);
+zet_power_properties_t
+get_power_properties(zet_sysman_pwr_handle_t pPowerhandle);
 
 } // namespace level_zero_tests
 

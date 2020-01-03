@@ -79,4 +79,39 @@ TEST(
     }
   }
 }
+TEST(zetSysmanPowerGetTests,
+     GivenSamePowerHandleWhenRequestingPowerPropertiesThenExpectValidMaxLimit) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    uint32_t pCount = 0;
+    auto pPowerHandles = lzt::get_power_handles(device, pCount);
+    for (auto pPowerHandle : pPowerHandles) {
+      EXPECT_NE(nullptr, pPowerHandle);
+      auto properties = lzt::get_power_properties(pPowerHandle);
+      EXPECT_GT(properties.maxLimit, 0);
+    }
+  }
+}
+
+TEST(
+    zetSysmanPowerGetTests,
+    GivenSamePowerHandleWhenRequestingPowerPropertiesThenExpectSamePropertiesTwice) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    uint32_t pCount = 0;
+    auto pPowerHandles = lzt::get_power_handles(device, pCount);
+    for (auto pPowerHandle : pPowerHandles) {
+      EXPECT_NE(nullptr, pPowerHandle);
+      auto propertiesInitial = lzt::get_power_properties(pPowerHandle);
+      auto propertiesLater = lzt::get_power_properties(pPowerHandle);
+      EXPECT_EQ(propertiesInitial.onSubdevice, propertiesLater.onSubdevice);
+      EXPECT_EQ(propertiesInitial.subdeviceId, propertiesLater.subdeviceId);
+      EXPECT_EQ(propertiesInitial.canControl, propertiesLater.canControl);
+      EXPECT_EQ(propertiesInitial.isEnergyThresholdSupported,
+                propertiesLater.isEnergyThresholdSupported);
+      EXPECT_EQ(propertiesInitial.maxLimit, propertiesLater.maxLimit);
+    }
+  }
+}
+
 } // namespace
