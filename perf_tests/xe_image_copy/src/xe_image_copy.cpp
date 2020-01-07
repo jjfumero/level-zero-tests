@@ -54,7 +54,6 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
-  long double latency;
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
