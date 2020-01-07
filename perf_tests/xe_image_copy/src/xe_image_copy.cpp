@@ -1,6 +1,6 @@
 /*
  * INTEL CONFIDENTIAL
- * Copyright (c) 2019 Intel Corporation. All Rights Reserved.
+ * Copyright (c) 2019-2020 Intel Corporation. All Rights Reserved.
  *
  * The source code contained or described herein and all documents related to
  * the source code ("Material") are owned by Intel Corporation or its suppliers
@@ -121,10 +121,8 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
-  latency = total_time_usec / static_cast<long double>(number_iterations*2);
+
   std::cout << gbps << " GBPS\n";
-  std::cout << std::setprecision(11) << total_time_usec << " uS"
-            << " (Latency: Host->Device->Host)" << std::endl;
 
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
@@ -212,7 +210,7 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
   gbps = total_data_transfer / total_time_s;
   latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << gbps << " GBPS\n";
-  std::cout << std::setprecision(11) << latency << " uS"
+  std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Host->Device)" << std::endl;
 
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
@@ -302,7 +300,7 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
   gbps = total_data_transfer / total_time_s;
   latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << gbps << " GBPS\n";
-  std::cout << std::setprecision(11) << latency << " uS"
+  std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Device->Host)" << std::endl;
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
