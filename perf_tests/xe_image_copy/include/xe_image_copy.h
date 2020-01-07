@@ -69,6 +69,9 @@ private:
   ze_image_handle_t image;
 };
 
-
+class XeImageCopyLatency : public XeImageCopy {
+public:
+  XeImageCopyLatency();
+};
 
 #endif  /* XE_IMAGE_COPY_H */

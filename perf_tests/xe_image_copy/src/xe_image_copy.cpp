@@ -121,6 +121,8 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
 
   gbps = total_data_transfer / total_time_s;
   std::cout << gbps << " GBPS\n";
+  std::cout << std::setprecision(11) << total_time_usec << " uS"
+            << " (Latency: Host->Device->Host)" << std::endl;
 
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
@@ -206,6 +208,8 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
 
   gbps = total_data_transfer / total_time_s;
   std::cout << gbps << " GBPS\n";
+  std::cout << std::setprecision(11) << total_time_usec << " uS"
+            << " (Latency: Host->Device)" << std::endl;
 
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
@@ -292,7 +296,8 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
 
   gbps = total_data_transfer / total_time_s;
   std::cout << gbps << " GBPS\n";
-
+  std::cout << std::setprecision(11) << total_time_usec << " uS"
+            << " (Latency: Device->Host)" << std::endl;
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
   benchmark->imageDestroy(this->image);
@@ -300,13 +305,22 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
   delete[] dstBuffer;
 }
 
-int main(int argc, char **argv) {
+XeImageCopyLatency::XeImageCopyLatency() {
+  width = 1;
+  height = 1;
+  depth = 1;
+  Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_8;
+  Imageformat = ZE_IMAGE_FORMAT_TYPE_UINT;
+}
+
+void measure_bandwidth(int argc, char **argv) {
   XeImageCopy Imagecopy;
   bool outputValidationSuccessful = false;
 
   SUCCESS_OR_TERMINATE(Imagecopy.parse_command_line(argc, argv));
 
-  std::cout << "Host2Device2Host: Bandwidth copying the image buffer size "
+  std::cout << "Host2Device2Host: Measuring Bandwidth/Latency for copying the "
+               "image buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Host->Device->Host" << std::endl;
 
@@ -316,7 +330,8 @@ int main(int argc, char **argv) {
             << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Host2Device: Bandwidth copying the image buffer size "
+  std::cout << "Host2Device: Measuring Bandwidth/Latency for copying the image "
+               "buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Host->Device" << std::endl;
 
@@ -326,7 +341,8 @@ int main(int argc, char **argv) {
             << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Device2Host: Bandwidth copying the image buffer size "
+  std::cout << "Device2Host: Measurign Bandwidth/Latency for copying the image "
+               "buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Device->Host" << std::endl;
 
@@ -335,45 +351,46 @@ int main(int argc, char **argv) {
   std::cout << "  Results validation "
             << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
   std::cout << std::endl;
+}
 
-  // Measuring bandwidth for 1x1x1 image from Dev->Host & Host->Dev
-  {
-    Imagecopy.width = 1;
-    Imagecopy.height = 1;
-    Imagecopy.depth = 1;
-    Imagecopy.Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_32;
-    Imagecopy.Imageformat = ZE_IMAGE_FORMAT_TYPE_UINT;
+// Measuring bandwidth for 1x1x1 image from Dev->Host & Host->Dev
+void measure_latency() {
+  XeImageCopyLatency imageCopyLatency;
+  bool outputValidationSuccessful = false;
 
-    std::cout << "Host2Device: Bandwidth copying the image buffer size "
-              << Imagecopy.width << "X" << Imagecopy.height << "X"
-              << Imagecopy.depth << "   Image format=  "
-              << level_zero_tests::to_string(Imagecopy.Imageformat)
-              << "  Image Layout=  "
-              << level_zero_tests::to_string(Imagecopy.Imagelayout)
-              << "  from Host->Device" << std::endl;
+  std::cout << "Host2Device: Measuring Bandwidth/Latency for copying the image "
+               "buffer size "
+            << imageCopyLatency.width << "X" << imageCopyLatency.height << "X"
+            << imageCopyLatency.depth << "   Image format=  "
+            << level_zero_tests::to_string(imageCopyLatency.Imageformat)
+            << "  Image Layout=  "
+            << level_zero_tests::to_string(imageCopyLatency.Imagelayout)
+            << "  from Host->Device" << std::endl;
 
-    Imagecopy.measureHost2Device(outputValidationSuccessful);
+  imageCopyLatency.measureHost2Device(outputValidationSuccessful);
 
-    std::cout << "  Results validation "
-              << (outputValidationSuccessful ? "PASSED" : "FAILED")
-              << std::endl;
-    std::cout << std::endl;
+  std::cout << "  Results validation "
+            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
+  std::cout << std::endl;
 
-    std::cout << "Device2Host: Bandwidth copying the image buffer size "
-              << Imagecopy.width << "X" << Imagecopy.height << "X"
-              << Imagecopy.depth << "   Image format=  "
-              << level_zero_tests::to_string(Imagecopy.Imageformat)
-              << "  Image Layout=  "
-              << level_zero_tests::to_string(Imagecopy.Imagelayout)
-              << "  from Device->Host" << std::endl;
+  std::cout << "Device2Host: Measuring Bandwidth/Latency for copying the image "
+               "buffer size "
+            << imageCopyLatency.width << "X" << imageCopyLatency.height << "X"
+            << imageCopyLatency.depth << "   Image format=  "
+            << level_zero_tests::to_string(imageCopyLatency.Imageformat)
+            << "  Image Layout=  "
+            << level_zero_tests::to_string(imageCopyLatency.Imagelayout)
+            << "  from Device->Host" << std::endl;
 
-    Imagecopy.measureDevice2Host(outputValidationSuccessful);
+  imageCopyLatency.measureDevice2Host(outputValidationSuccessful);
 
-    std::cout << "  Results validation "
-              << (outputValidationSuccessful ? "PASSED" : "FAILED")
-              << std::endl;
-    std::cout << std::endl;
-  }
+  std::cout << "  Results validation "
+            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
+  std::cout << std::endl;
+}
 
+int main(int argc, char **argv) {
+  measure_bandwidth(argc, argv);
+  measure_latency();
   return 0;
 }
