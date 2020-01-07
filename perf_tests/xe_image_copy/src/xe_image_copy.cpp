@@ -54,6 +54,7 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
+  long double latency;
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -120,6 +121,7 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
+  latency = total_time_usec / static_cast<long double>(number_iterations*2);
   std::cout << gbps << " GBPS\n";
   std::cout << std::setprecision(11) << total_time_usec << " uS"
             << " (Latency: Host->Device->Host)" << std::endl;
@@ -135,6 +137,7 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
+  long double latency;
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -207,8 +210,9 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
+  latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << gbps << " GBPS\n";
-  std::cout << std::setprecision(11) << total_time_usec << " uS"
+  std::cout << std::setprecision(11) << latency << " uS"
             << " (Latency: Host->Device)" << std::endl;
 
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
@@ -222,6 +226,7 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
+  long double latency;
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -295,8 +300,9 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
+  latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << gbps << " GBPS\n";
-  std::cout << std::setprecision(11) << total_time_usec << " uS"
+  std::cout << std::setprecision(11) << latency << " uS"
             << " (Latency: Device->Host)" << std::endl;
   validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
 
