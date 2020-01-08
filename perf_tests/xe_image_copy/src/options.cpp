@@ -57,7 +57,9 @@ int XeImageCopy::parse_command_line(int argc, char **argv) {
       "type", po::value<string>(&type),
       "Image  type like 1D/2D/3D/1DARRAY/2DARRAY")(
       "format", po::value<string>(&format),
-      "image format like UINT/SINT/UNORM/SNORM/FLOAT");
+      "image format like UINT/SINT/UNORM/SNORM/FLOAT")(
+      "data-validation", po::value<uint32_t>(&data_validation),
+      "optional param for validating the copied image is correct or not");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);

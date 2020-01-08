@@ -48,15 +48,17 @@ public:
 	uint32_t zOffset = 0;
     uint32_t number_iterations = 50;
     uint32_t warm_up_iterations = 10;
+	uint32_t data_validation = 0;
+	bool validRet = false;
 	ze_image_format_layout_t Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_32;
 	ze_image_flag_t Imageflags = ZE_IMAGE_FLAG_PROGRAM_READ;
 	ze_image_type_t Imagetype = ZE_IMAGE_TYPE_2D;
 	ze_image_format_type_t  Imageformat = ZE_IMAGE_FORMAT_TYPE_FLOAT;
   XeImageCopy();
   ~XeImageCopy();
-  void measureHost2Device2Host(bool &validRet);
-  void measureHost2Device(bool &validRet);
-  void measureDevice2Host(bool &validRet);
+  void measureHost2Device2Host();
+  void measureHost2Device();
+  void measureDevice2Host();
   int parse_command_line(int argc, char **argv);
  
 

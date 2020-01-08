@@ -50,7 +50,7 @@ XeImageCopy ::~XeImageCopy() {
 }
 
 // It is image copy measure from Host->Device->Host
-void XeImageCopy::measureHost2Device2Host(bool &validRet) {
+void XeImageCopy::measureHost2Device2Host() {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
@@ -122,15 +122,16 @@ void XeImageCopy::measureHost2Device2Host(bool &validRet) {
   gbps = total_data_transfer / total_time_s;
 
   std::cout << gbps << " GBPS\n";
-
-  validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  if (this->data_validation) {
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  }
 
   benchmark->imageDestroy(this->image);
   delete[] srcBuffer;
   delete[] dstBuffer;
 }
 
-void XeImageCopy::measureHost2Device(bool &validRet) {
+void XeImageCopy::measureHost2Device() {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
@@ -211,15 +212,16 @@ void XeImageCopy::measureHost2Device(bool &validRet) {
   std::cout << gbps << " GBPS\n";
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Host->Device)" << std::endl;
-
-  validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  if (this->data_validation) {
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  }
 
   benchmark->imageDestroy(this->image);
   delete[] srcBuffer;
   delete[] dstBuffer;
 }
 
-void XeImageCopy::measureDevice2Host(bool &validRet) {
+void XeImageCopy::measureDevice2Host() {
 
   const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
   long double gbps;
@@ -301,7 +303,9 @@ void XeImageCopy::measureDevice2Host(bool &validRet) {
   std::cout << gbps << " GBPS\n";
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Device->Host)" << std::endl;
-  validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  if (this->data_validation) {
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+  }
 
   benchmark->imageDestroy(this->image);
   delete[] srcBuffer;
@@ -318,48 +322,54 @@ XeImageCopyLatency::XeImageCopyLatency() {
 
 void measure_bandwidth(int argc, char **argv) {
   XeImageCopy Imagecopy;
-  bool outputValidationSuccessful = false;
 
   SUCCESS_OR_TERMINATE(Imagecopy.parse_command_line(argc, argv));
 
-  std::cout << "Host2Device2Host: Measuring Bandwidth/Latency for copying the "
+  std::cout << "Host2Device2Host: Measuring Bandwidth for copying the "
                "image buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Host->Device->Host" << std::endl;
 
-  Imagecopy.measureHost2Device2Host(outputValidationSuccessful);
+  Imagecopy.measureHost2Device2Host();
 
-  std::cout << "  Results validation "
-            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
-  std::cout << std::endl;
+  if (Imagecopy.data_validation) {
+
+    std::cout << "  Results: Data validation "
+              << (Imagecopy.validRet ? "PASSED" : "FAILED") << std::endl;
+    std::cout << std::endl;
+  }
 
   std::cout << "Host2Device: Measuring Bandwidth/Latency for copying the image "
                "buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Host->Device" << std::endl;
 
-  Imagecopy.measureHost2Device(outputValidationSuccessful);
+  Imagecopy.measureHost2Device();
+  if (Imagecopy.data_validation) {
 
-  std::cout << "  Results validation "
-            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
-  std::cout << std::endl;
+    std::cout << "  Results: Data validation "
+              << (Imagecopy.validRet ? "PASSED" : "FAILED") << std::endl;
+    std::cout << std::endl;
+  }
 
   std::cout << "Device2Host: Measurign Bandwidth/Latency for copying the image "
                "buffer size "
             << Imagecopy.width << "X" << Imagecopy.height << "X"
             << Imagecopy.depth << " from Device->Host" << std::endl;
 
-  Imagecopy.measureDevice2Host(outputValidationSuccessful);
+  Imagecopy.measureDevice2Host();
 
-  std::cout << "  Results validation "
-            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
-  std::cout << std::endl;
+  if (Imagecopy.data_validation) {
+
+    std::cout << "  Results: Data validation "
+              << (Imagecopy.validRet ? "PASSED" : "FAILED") << std::endl;
+    std::cout << std::endl;
+  }
 }
 
-// Measuring bandwidth for 1x1x1 image from Dev->Host & Host->Dev
+// Measuring latency for 1x1x1 image from Dev->Host & Host->Dev
 void measure_latency() {
   XeImageCopyLatency imageCopyLatency;
-  bool outputValidationSuccessful = false;
 
   std::cout << "Host2Device: Measuring Bandwidth/Latency for copying the image "
                "buffer size "
@@ -370,11 +380,7 @@ void measure_latency() {
             << level_zero_tests::to_string(imageCopyLatency.Imagelayout)
             << "  from Host->Device" << std::endl;
 
-  imageCopyLatency.measureHost2Device(outputValidationSuccessful);
-
-  std::cout << "  Results validation "
-            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
-  std::cout << std::endl;
+  imageCopyLatency.measureHost2Device();
 
   std::cout << "Device2Host: Measuring Bandwidth/Latency for copying the image "
                "buffer size "
@@ -385,11 +391,7 @@ void measure_latency() {
             << level_zero_tests::to_string(imageCopyLatency.Imagelayout)
             << "  from Device->Host" << std::endl;
 
-  imageCopyLatency.measureDevice2Host(outputValidationSuccessful);
-
-  std::cout << "  Results validation "
-            << (outputValidationSuccessful ? "PASSED" : "FAILED") << std::endl;
-  std::cout << std::endl;
+  imageCopyLatency.measureDevice2Host();
 }
 
 int main(int argc, char **argv) {
