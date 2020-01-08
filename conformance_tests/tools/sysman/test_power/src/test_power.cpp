@@ -115,7 +115,7 @@ TEST(
 }
 
 TEST(
-    zetSysmanPowerGetTests,
+    zetSysmanPowerGetLimitsTests,
     GivenValidPowerHandleWhenRequestingPowerLimitsThenExpectzetSysmanPowerGetLimitsToReturnValidPowerLimits) {
   auto devices = lzt::get_ze_devices();
   for (auto device : devices) {
@@ -136,7 +136,7 @@ TEST(
   }
 }
 TEST(
-    zetSysmanPowerGetTests,
+    zetSysmanPowerGetLimitsTests,
     GivenValidPowerHandleWhenRequestingPowerLimitsThenExpectzetSysmanPowerGetLimitsToReturnSameValuesTwice) {
   auto devices = lzt::get_ze_devices();
   for (auto device : devices) {
