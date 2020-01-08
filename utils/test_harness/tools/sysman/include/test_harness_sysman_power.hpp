@@ -38,6 +38,11 @@ void get_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
                       zet_power_sustained_limit_t &pSustained,
                       zet_power_burst_limit_t &pBurst,
                       zet_power_peak_limit_t &pPeak);
+void set_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
+                      zet_power_sustained_limit_t &pSustained,
+                      zet_power_burst_limit_t &pBurst,
+                      zet_power_peak_limit_t &pPeak);
+
 } // namespace level_zero_tests
 
 #endif
