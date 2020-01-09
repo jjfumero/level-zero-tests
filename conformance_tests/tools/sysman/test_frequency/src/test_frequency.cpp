@@ -23,7 +23,7 @@
  */
 
 #include "gtest/gtest.h"
-
+#include <thread>
 #include "logging/logging.hpp"
 #include "utils/utils.hpp"
 #include "test_harness/test_harness.hpp"
@@ -331,6 +331,100 @@ TEST(
           freqRangeReset = lzt::get_and_validate_freq_range(pFreqHandle);
           EXPECT_EQ(freqRange.max, freqRangeReset.max);
           EXPECT_EQ(freqRange.min, freqRangeReset.min);
+        }
+      }
+    }
+  }
+}
+void load_for_gpu() {
+  int m, k, n;
+  m = k = n = 5000;
+  std::vector<float> a(m * k, 1);
+  std::vector<float> b(k * n, 1);
+  std::vector<float> c(m * n, 0);
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  void *a_buffer = lzt::allocate_host_memory(m * k * sizeof(float));
+  void *b_buffer = lzt::allocate_host_memory(k * n * sizeof(float));
+  void *c_buffer = lzt::allocate_host_memory(m * n * sizeof(float));
+  ze_module_handle_t module =
+      lzt::create_module(device, "ze_matrix_multiplication.spv",
+                         ZE_MODULE_FORMAT_IL_SPIRV, nullptr, nullptr);
+  ze_kernel_handle_t function =
+      lzt::create_function(module, "ze_matrix_multiplication");
+  lzt::set_group_size(function, 16, 16, 1);
+  lzt::set_argument_value(function, 0, sizeof(a_buffer), &a_buffer);
+  lzt::set_argument_value(function, 1, sizeof(b_buffer), &b_buffer);
+  lzt::set_argument_value(function, 2, sizeof(m), &m);
+  lzt::set_argument_value(function, 3, sizeof(k), &k);
+  lzt::set_argument_value(function, 4, sizeof(n), &n);
+  lzt::set_argument_value(function, 5, sizeof(c_buffer), &c_buffer);
+  ze_command_list_handle_t cmd_list = lzt::create_command_list(device);
+  std::memcpy(a_buffer, a.data(), a.size() * sizeof(float));
+  std::memcpy(b_buffer, b.data(), b.size() * sizeof(float));
+  lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+  const int group_count_x = m / 16;
+  const int group_count_y = n / 16;
+  ze_thread_group_dimensions_t tg;
+  tg.groupCountX = group_count_x;
+  tg.groupCountY = group_count_y;
+  tg.groupCountZ = 1;
+  zeCommandListAppendLaunchKernel(cmd_list, function, &tg, nullptr, 0, nullptr);
+  lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
+  lzt::close_command_list(cmd_list);
+  ze_command_queue_handle_t cmd_q = lzt::create_command_queue(device);
+  lzt::execute_command_lists(cmd_q, 1, &cmd_list, nullptr);
+  lzt::synchronize(cmd_q, UINT32_MAX);
+  std::memcpy(c.data(), c_buffer, c.size() * sizeof(float));
+  lzt::destroy_command_queue(cmd_q);
+  lzt::destroy_command_list(cmd_list);
+  lzt::destroy_function(function);
+  lzt::free_memory(a_buffer);
+  lzt::free_memory(b_buffer);
+  lzt::free_memory(c_buffer);
+  lzt::destroy_module(module);
+}
+void get_throttle_time_init(zet_sysman_freq_handle_t pFreqHandle,
+                            zet_freq_throttle_time_t &throttletime) {
+  EXPECT_EQ(lzt::check_for_throttling(pFreqHandle), true);
+  throttletime = lzt::get_throttle_time(pFreqHandle);
+  EXPECT_GT(throttletime.throttleTime, 0);
+  EXPECT_GT(throttletime.timestamp, 0);
+}
+
+TEST(zetSysmanFrequencyGetThrottleTimeTests,
+     GivenValidFrequencyHandleThenCheckForThrottling) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    auto pFreqHandles = lzt::get_freq_handles(device);
+    for (auto pFreqHandle : pFreqHandles) {
+      EXPECT_NE(nullptr, pFreqHandle);
+      {
+        uint32_t pcount = 0;
+        auto pPowerHandles = lzt::get_power_handles(device, pcount);
+        for (auto pPowerHandle : pPowerHandles) {
+          EXPECT_NE(nullptr, pPowerHandle);
+          zet_power_sustained_limit_t power_sustained_limit_Initial;
+          lzt::get_power_limits(pPowerHandle, &power_sustained_limit_Initial,
+                                nullptr, nullptr);
+          // TODO: will fix this once API gets implemented
+          zet_power_sustained_limit_t power_sustained_limit_set;
+          power_sustained_limit_set.power = 0;
+          lzt::set_power_limits(pPowerHandle, &power_sustained_limit_set,
+                                nullptr, nullptr);
+          auto before_throttletime = lzt::get_throttle_time(pFreqHandle);
+          zet_freq_throttle_time_t throttletime;
+          std::thread first(load_for_gpu);
+          std::thread second(get_throttle_time_init, pFreqHandle,
+                             std::ref(throttletime));
+          first.join();
+          second.join();
+          auto after_throttletime = lzt::get_throttle_time(pFreqHandle);
+          EXPECT_LT(before_throttletime.throttleTime,
+                    after_throttletime.throttleTime);
+          EXPECT_NE(before_throttletime.timestamp,
+                    after_throttletime.timestamp);
+          lzt::set_power_limits(pPowerHandle, &power_sustained_limit_Initial,
+                                nullptr, nullptr);
         }
       }
     }

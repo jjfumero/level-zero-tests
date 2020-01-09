@@ -35,13 +35,13 @@ get_power_handles(ze_device_handle_t device, uint32_t &count);
 zet_power_properties_t
 get_power_properties(zet_sysman_pwr_handle_t pPowerhandle);
 void get_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
-                      zet_power_sustained_limit_t &pSustained,
-                      zet_power_burst_limit_t &pBurst,
-                      zet_power_peak_limit_t &pPeak);
+                      zet_power_sustained_limit_t *pSustained,
+                      zet_power_burst_limit_t *pBurst,
+                      zet_power_peak_limit_t *pPeak);
 void set_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
-                      zet_power_sustained_limit_t &pSustained,
-                      zet_power_burst_limit_t &pBurst,
-                      zet_power_peak_limit_t &pPeak);
+                      zet_power_sustained_limit_t *pSustained,
+                      zet_power_burst_limit_t *pBurst,
+                      zet_power_peak_limit_t *pPeak);
 
 } // namespace level_zero_tests
 

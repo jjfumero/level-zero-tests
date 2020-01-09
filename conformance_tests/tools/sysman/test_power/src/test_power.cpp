@@ -126,8 +126,8 @@ TEST(
       zet_power_sustained_limit_t power_sustained_limit;
       zet_power_burst_limit_t power_burst_limit;
       zet_power_peak_limit_t power_peak_limit;
-      lzt::get_power_limits(pPowerHandle, power_sustained_limit,
-                            power_burst_limit, power_peak_limit);
+      lzt::get_power_limits(pPowerHandle, &power_sustained_limit,
+                            &power_burst_limit, &power_peak_limit);
       auto properties = lzt::get_power_properties(pPowerHandle);
       EXPECT_LE(power_sustained_limit.power, power_burst_limit.power);
       EXPECT_LE(power_burst_limit.power, power_peak_limit.powerAC);
@@ -147,14 +147,14 @@ TEST(
       zet_power_sustained_limit_t power_sustained_limit_Initial;
       zet_power_burst_limit_t power_burst_limit_Initial;
       zet_power_peak_limit_t power_peak_limit_Initial;
-      lzt::get_power_limits(pPowerHandle, power_sustained_limit_Initial,
-                            power_burst_limit_Initial,
-                            power_peak_limit_Initial);
+      lzt::get_power_limits(pPowerHandle, &power_sustained_limit_Initial,
+                            &power_burst_limit_Initial,
+                            &power_peak_limit_Initial);
       zet_power_sustained_limit_t power_sustained_limit_Later;
       zet_power_burst_limit_t power_burst_limit_Later;
       zet_power_peak_limit_t power_peak_limit_Later;
-      lzt::get_power_limits(pPowerHandle, power_sustained_limit_Later,
-                            power_burst_limit_Later, power_peak_limit_Later);
+      lzt::get_power_limits(pPowerHandle, &power_sustained_limit_Later,
+                            &power_burst_limit_Later, &power_peak_limit_Later);
 
       EXPECT_EQ(power_sustained_limit_Initial.enabled,
                 power_sustained_limit_Later.enabled);
@@ -185,9 +185,9 @@ TEST(
       zet_power_burst_limit_t power_burst_limit_Initial;
       zet_power_peak_limit_t power_peak_limit_Initial;
       lzt::get_power_limits(
-          pPowerHandle, power_sustained_limit_Initial,
-          power_burst_limit_Initial,
-          power_peak_limit_Initial); // get default power values
+          pPowerHandle, &power_sustained_limit_Initial,
+          &power_burst_limit_Initial,
+          &power_peak_limit_Initial); // get default power values
       auto properties = lzt::get_power_properties(pPowerHandle);
       zet_power_sustained_limit_t power_sustained_limit_set;
       zet_power_burst_limit_t power_burst_limit_set;
@@ -206,15 +206,15 @@ TEST(
       power_burst_limit_set.power = properties.maxLimit;
       power_peak_limit_set.powerAC = properties.maxLimit;
       power_peak_limit_set.powerDC = power_peak_limit_Initial.powerDC;
-      lzt::set_power_limits(pPowerHandle, power_sustained_limit_set,
-                            power_burst_limit_set,
-                            power_peak_limit_set); // Set power values
+      lzt::set_power_limits(pPowerHandle, &power_sustained_limit_set,
+                            &power_burst_limit_set,
+                            &power_peak_limit_set); // Set power values
       zet_power_sustained_limit_t power_sustained_limit_get;
       zet_power_burst_limit_t power_burst_limit_get;
       zet_power_peak_limit_t power_peak_limit_get;
-      lzt::get_power_limits(pPowerHandle, power_sustained_limit_get,
-                            power_burst_limit_get,
-                            power_peak_limit_get); // Get power values
+      lzt::get_power_limits(pPowerHandle, &power_sustained_limit_get,
+                            &power_burst_limit_get,
+                            &power_peak_limit_get); // Get power values
       EXPECT_EQ(power_sustained_limit_get.enabled,
                 power_sustained_limit_set.enabled);
       EXPECT_EQ(power_sustained_limit_get.power,
@@ -227,9 +227,9 @@ TEST(
       EXPECT_EQ(
           power_peak_limit_get.powerDC,
           power_peak_limit_set.powerDC); // Verify whether values match or not
-      lzt::set_power_limits(pPowerHandle, power_sustained_limit_Initial,
-                            power_burst_limit_Initial,
-                            power_peak_limit_Initial); // Set values to default
+      lzt::set_power_limits(pPowerHandle, &power_sustained_limit_Initial,
+                            &power_burst_limit_Initial,
+                            &power_peak_limit_Initial); // Set values to default
     }
   }
 }

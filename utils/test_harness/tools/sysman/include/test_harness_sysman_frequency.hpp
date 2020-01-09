@@ -49,6 +49,9 @@ get_and_validate_freq_range(zet_sysman_freq_handle_t pFreqHandle);
 uint32_t get_available_clock_count(zet_sysman_freq_handle_t pFreqHandle);
 std::vector<double> get_available_clocks(zet_sysman_freq_handle_t pFreqHandle,
                                          uint32_t &count);
+bool check_for_throttling(zet_sysman_freq_handle_t pFreqHandle);
+zet_freq_throttle_time_t
+get_throttle_time(zet_sysman_freq_handle_t pFreqHandle);
 
 } // namespace level_zero_tests
 

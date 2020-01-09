@@ -55,18 +55,18 @@ get_power_properties(zet_sysman_pwr_handle_t pPowerHandle) {
   return pProperties;
 }
 void get_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
-                      zet_power_sustained_limit_t &pSustained,
-                      zet_power_burst_limit_t &pBurst,
-                      zet_power_peak_limit_t &pPeak) {
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanPowerGetLimits(
-                                   pPowerHandle, &pSustained, &pBurst, &pPeak));
+                      zet_power_sustained_limit_t *pSustained,
+                      zet_power_burst_limit_t *pBurst,
+                      zet_power_peak_limit_t *pPeak) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGetLimits(pPowerHandle, pSustained, pBurst, pPeak));
 }
 void set_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
-                      zet_power_sustained_limit_t &pSustained,
-                      zet_power_burst_limit_t &pBurst,
-                      zet_power_peak_limit_t &pPeak) {
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zetSysmanPowerSetLimits(
-                                   pPowerHandle, &pSustained, &pBurst, &pPeak));
+                      zet_power_sustained_limit_t *pSustained,
+                      zet_power_burst_limit_t *pBurst,
+                      zet_power_peak_limit_t *pPeak) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerSetLimits(pPowerHandle, pSustained, pBurst, pPeak));
 }
 
 } // namespace level_zero_tests

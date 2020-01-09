@@ -148,5 +148,23 @@ void idle_check(zet_sysman_freq_handle_t pFreqHandle) {
     wait += IDLE_WAIT_TIMESTEP_MSEC;
   } while (wait < IDLE_WAIT_TIMEOUT_MSEC);
 }
+bool check_for_throttling(zet_sysman_freq_handle_t pFreqHandle) {
+  int wait = 0;
+  do {
+    zet_freq_state_t state = get_freq_state(pFreqHandle);
+    if (state.throttleReasons != ZET_FREQ_THROTTLE_REASONS_NONE)
+      return true;
+    std::this_thread::sleep_for(std::chrono::microseconds(1000 * 10));
+    wait += 10;
+  } while (wait < (IDLE_WAIT_TIMEOUT_MSEC * 2));
+  return false;
+}
+zet_freq_throttle_time_t
+get_throttle_time(zet_sysman_freq_handle_t pFreqHandle) {
+  zet_freq_throttle_time_t pThrottletime;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanFrequencyGetThrottleTime(pFreqHandle, &pThrottletime));
+  return pThrottletime;
+}
 
-}; // namespace level_zero_tests
+} // namespace level_zero_tests
