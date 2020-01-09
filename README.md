@@ -21,4 +21,4 @@ Build instructions in [BUILD](BUILD.md) file.
 ## Maintainers
 
 Instructions on how to configure the git repo & generate source tarballs is
-contained in the [MAINTAINERS](MAINTAINERS.md) file.
+contained in the [CONTRIBUTING](CONTRIBUTING.md) file.
