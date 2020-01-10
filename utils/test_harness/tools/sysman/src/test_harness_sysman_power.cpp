@@ -68,5 +68,10 @@ void set_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zetSysmanPowerSetLimits(pPowerHandle, pSustained, pBurst, pPeak));
 }
+void get_power_energy_counter(zet_sysman_pwr_handle_t pPowerHandle,
+                              zet_power_energy_counter_t *pEnergy) {
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGetEnergyCounter(pPowerHandle, pEnergy));
+}
 
 } // namespace level_zero_tests
