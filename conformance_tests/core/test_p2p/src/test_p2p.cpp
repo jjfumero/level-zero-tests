@@ -218,7 +218,8 @@ TEST_P(xeP2PTests,
   std::string func_name = "multi_device_function";
 
   // zero memory region on device 1
-  lzt::append_memory_set(dev1_.cmd_list, dev1_.src_region, 0, mem_size_);
+  uint8_t value = 0;
+  lzt::append_memory_set(dev1_.cmd_list, dev1_.src_region, &value, mem_size_);
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListAppendBarrier(dev1_.cmd_list, nullptr, 0, nullptr));
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListClose(dev1_.cmd_list));
