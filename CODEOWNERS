@@ -13,10 +13,10 @@
 /ci/ @ledettwy @jchodor @nrspruit
 
 # test code
-conformance_tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
-conformance_tests/core/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
-conformance_tests/tools/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger @macabral @mraghuwa @tvilvara @jitendra @kondasai @guptasa2 @jacekjan
-conformance_tests/tools/sysman/ @wjordan @macabral @mraghuwa @tvilvara @jitendra @kondasai @guptasa2 @jacekjan @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
-conformance_tests/tools/test_api_tracing/ @davidoli @macabral @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
+conformance_tests/ @nrspruit @jarteaga @jlockett @byates @johnfalk
+conformance_tests/core/ @nrspruit @jarteaga @jlockett @byates @johnfalk
+conformance_tests/tools/ @nrspruit @jarteaga @jlockett @byates @johnfalk @macabral @mraghuwa @tvilvara @jitendra @kondasai @guptasa2 @jacekjan
+conformance_tests/tools/sysman/ @wjordan @macabral @mraghuwa @tvilvara @jitendra @kondasai @guptasa2 @jacekjan @nrspruit @jarteaga @jlockett @byates @johnfalk
+conformance_tests/tools/test_api_tracing/ @davidoli @macabral @nrspruit @jarteaga @jlockett @byates @johnfalk
 perf_tests/ @rwmcguir @sanchez1 @jarteaga
-utils/ @nrspruit @jarteaga @jlockett @byates @johnfalk @pjreger
+utils/ @nrspruit @jarteaga @jlockett @byates @johnfalk
