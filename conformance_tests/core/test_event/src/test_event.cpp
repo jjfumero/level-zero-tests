@@ -341,7 +341,7 @@ TEST_F(zeEventSignalingTests,
   lzt::write_data_pattern(dst_buff, copy_size, 0);
   for (size_t i = 0; i < num_loop; i++) {
     for (size_t j = 0; j < num_event; j++) {
-      EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(device_event[i]));
+      EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(device_event[j]));
     }
     lzt::append_signal_event(cmd_list, device_event[i]);
     lzt::append_wait_on_events(cmd_list, num_event, device_event.data());
