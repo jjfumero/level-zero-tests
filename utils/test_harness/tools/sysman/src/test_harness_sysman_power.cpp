@@ -73,5 +73,11 @@ void get_power_energy_counter(zet_sysman_pwr_handle_t pPowerHandle,
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zetSysmanPowerGetEnergyCounter(pPowerHandle, pEnergy));
 }
-
+zet_energy_threshold_t
+get_power_energy_threshold(zet_sysman_pwr_handle_t pPowerHandle) {
+  zet_energy_threshold_t pThreshold;
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zetSysmanPowerGetEnergyThreshold(pPowerHandle, &pThreshold));
+  return pThreshold;
+}
 } // namespace level_zero_tests

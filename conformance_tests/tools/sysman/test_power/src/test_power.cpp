@@ -237,5 +237,39 @@ TEST(
     }
   }
 }
-
+TEST(
+    zetSysmanPowerGetEnergyThresholdTests,
+    GivenValidPowerHandleWhenGettingEnergyThresholdThenSuccessIsReturnedAndParameterValuesAreValid) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    uint32_t count = 0;
+    auto pPowerHandles = lzt::get_power_handles(device, count);
+    for (auto pPowerHandle : pPowerHandles) {
+      EXPECT_NE(nullptr, pPowerHandle);
+      auto pThreshold = lzt::get_power_energy_threshold(pPowerHandle);
+      ASSERT_GE(pThreshold.threshold, 0);
+      if (pThreshold.threshold > 0)
+        EXPECT_LT(pThreshold.processId, UINT32_MAX);
+      else
+        EXPECT_EQ(pThreshold.processId, UINT32_MAX);
+    }
+  }
+}
+TEST(
+    zetSysmanPowerGetEnergyThresholdTests,
+    GivenValidPowerHandleWhenGettingEnergyThresholdTwiceThenSameValueReturned) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    uint32_t count = 0;
+    auto pPowerHandles = lzt::get_power_handles(device, count);
+    for (auto pPowerHandle : pPowerHandles) {
+      EXPECT_NE(nullptr, pPowerHandle);
+      auto pThresholdInitial = lzt::get_power_energy_threshold(pPowerHandle);
+      auto pThresholdLater = lzt::get_power_energy_threshold(pPowerHandle);
+      EXPECT_EQ(pThresholdInitial.enable, pThresholdLater.enable);
+      EXPECT_EQ(pThresholdInitial.threshold, pThresholdLater.threshold);
+      EXPECT_EQ(pThresholdInitial.processId, pThresholdLater.processId);
+    }
+  }
+}
 } // namespace

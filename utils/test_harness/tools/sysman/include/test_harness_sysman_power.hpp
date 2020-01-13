@@ -44,6 +44,8 @@ void set_power_limits(zet_sysman_pwr_handle_t pPowerHandle,
                       zet_power_peak_limit_t *pPeak);
 void get_power_energy_counter(zet_sysman_pwr_handle_t pPowerHandle,
                               zet_power_energy_counter_t *pEnergy);
+zet_energy_threshold_t
+get_power_energy_threshold(zet_sysman_pwr_handle_t pPowerHandle);
 } // namespace level_zero_tests
 
 #endif
