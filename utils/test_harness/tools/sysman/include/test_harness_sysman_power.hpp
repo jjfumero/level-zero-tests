@@ -1,7 +1,7 @@
 /*
  * INTEL CONFIDENTIAL
  *
- * Copyright 2019 Intel Corporation All Rights Reserved.
+ * Copyright 2020 Intel Corporation All Rights Reserved.
  *
  * The source code contained or described herein and all documents related to
  * the source code (Material) are owned by Intel Corporation or its
@@ -46,6 +46,8 @@ void get_power_energy_counter(zet_sysman_pwr_handle_t pPowerHandle,
                               zet_power_energy_counter_t *pEnergy);
 zet_energy_threshold_t
 get_power_energy_threshold(zet_sysman_pwr_handle_t pPowerHandle);
+void set_power_energy_threshold(zet_sysman_pwr_handle_t pPowerHandle,
+                                double threshold);
 } // namespace level_zero_tests
 
 #endif

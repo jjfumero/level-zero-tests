@@ -1,7 +1,7 @@
 /*
  * INTEL CONFIDENTIAL
  *
- * Copyright 2019 Intel Corporation All Rights Reserved.
+ * Copyright 2020 Intel Corporation All Rights Reserved.
  *
  * The source code contained or described herein and all documents related to
  * the source code (Material) are owned by Intel Corporation or its
@@ -269,6 +269,30 @@ TEST(
       EXPECT_EQ(pThresholdInitial.enable, pThresholdLater.enable);
       EXPECT_EQ(pThresholdInitial.threshold, pThresholdLater.threshold);
       EXPECT_EQ(pThresholdInitial.processId, pThresholdLater.processId);
+    }
+  }
+}
+TEST(
+    zetSysmanPowerSetEnergyThresholdTests,
+    GivenValidPowerHandleWhenSettingEnergyValuesThenExpectzetSysmanPowerSetEnergyThresholdFollowedByzetSysmanPowerGetEnergyThresholdToMatch) {
+  auto devices = lzt::get_ze_devices();
+  for (auto device : devices) {
+    uint32_t count = 0;
+    auto pPowerHandles = lzt::get_power_handles(device, count);
+    for (auto pPowerHandle : pPowerHandles) {
+      EXPECT_NE(nullptr, pPowerHandle);
+      auto pThresholdInitial =
+          lzt::get_power_energy_threshold(pPowerHandle); // get initial value
+      double threshold = 0;
+      lzt::set_power_energy_threshold(pPowerHandle, threshold); // set test
+                                                                // value
+      auto pThresholdGet =
+          lzt::get_power_energy_threshold(pPowerHandle); // get test value
+      EXPECT_EQ(pThresholdGet.threshold, threshold); // match both the values
+      EXPECT_EQ(pThresholdGet.processId, UINT32_MAX);
+      lzt::set_power_energy_threshold(
+          pPowerHandle,
+          pThresholdInitial.threshold); // reset to initial value
     }
   }
 }
