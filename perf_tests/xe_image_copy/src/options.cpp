@@ -59,7 +59,9 @@ int XeImageCopy::parse_command_line(int argc, char **argv) {
       "format", po::value<string>(&format),
       "image format like UINT/SINT/UNORM/SNORM/FLOAT")(
       "data-validation", po::value<uint32_t>(&data_validation),
-      "optional param for validating the copied image is correct or not");
+      "optional param for validating the copied image is correct or not")(
+      "json-output-file", po::value<string>(&JsonFileName),
+      "test output format file name to be specified");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);

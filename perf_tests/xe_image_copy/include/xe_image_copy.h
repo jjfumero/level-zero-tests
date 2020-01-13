@@ -31,11 +31,15 @@
 #include <iomanip>
 #include <iostream>
 #include <boost/program_options.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/optional.hpp>
 #include "utils/utils.hpp"
 
 namespace po = boost::program_options;
+namespace pt = boost::property_tree;
 using namespace std;
-
+using namespace pt;
 
 
 class XeImageCopy {
@@ -48,18 +52,27 @@ public:
 	uint32_t zOffset = 0;
     uint32_t number_iterations = 50;
     uint32_t warm_up_iterations = 10;
-	uint32_t data_validation = 0;
-	bool validRet = false;
+    uint32_t data_validation = 0;
+    bool validRet = false;
+    long double gbps;
+    long double latency;
+    ptree test_tree_1;
+    ptree test_tree_2;
+    ptree test_tree_3;
+    ptree param_array;
+    ptree main_tree;
 	ze_image_format_layout_t Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_32;
 	ze_image_flag_t Imageflags = ZE_IMAGE_FLAG_PROGRAM_READ;
 	ze_image_type_t Imagetype = ZE_IMAGE_TYPE_2D;
 	ze_image_format_type_t  Imageformat = ZE_IMAGE_FORMAT_TYPE_FLOAT;
+    string JsonFileName;
   XeImageCopy();
   ~XeImageCopy();
   void measureHost2Device2Host();
   void measureHost2Device();
   void measureDevice2Host();
   int parse_command_line(int argc, char **argv);
+  bool is_json_output_enabled();
  
 
 private:
