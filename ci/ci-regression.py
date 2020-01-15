@@ -1,19 +1,13 @@
 #! /usr/bin/env python3
 
-from ci import (
-  AubGenTestExecutor,
-  FulsimTestExecutor,
-  get_tests,
-  IsReadableDirPath,
-  IsReadableWritableDirPath,
-  IsWritableFilePath,
-  Mode,
-  Platform,
-  vis)
+from pylzt import AubGenTestExecutor, FulsimTestExecutor, get_tests
 import argparse
 from concurrent.futures import as_completed
 import os
 import junitparser
+
+def vis(obj):
+    return [val for key, val in obj.__dict__.items() if not key.startswith('__')]
 
 class TestResult:
     Pass = 'PASS'
@@ -21,6 +15,40 @@ class TestResult:
     Stall = 'STALL'
     Crash = 'CRASH'
 
+class Mode:
+    AubGen = 'aub'
+    Fulsim = 'fulsim'
+    Simics = 'simics'
+    Native = 'native'
+
+class Platform:
+    skl = 'skl'
+    ats = 'ats'
+
+def IsReadableDirPath(path: str):
+    if not os.access(path, os.R_OK):
+        raise argparse.ArgumentTypeError(path + ' is not readable')
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(path + ' is not a directory')
+    return os.path.abspath(path)
+
+def IsReadableWritableDirPath(path: str):
+    if not os.access(path, os.R_OK):
+        raise argparse.ArgumentTypeError(path + ' is not readable')
+    if not os.access(path, os.W_OK):
+        raise argparse.ArgumentTypeError(path + ' is not writable')
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(path + ' is not a directory')
+    return os.path.abspath(path)
+
+def IsWritableFilePath(path: str):
+    try:
+        f = open(path, 'w')
+    except Exception as e:
+        raise argparse.ArgumentTypeError(path + ' cannot be opened for writing: ' + str(e))
+    else:
+        f.close()
+        return os.path.abspath(path)
 result_max_str_len = max(len(str(result)) for result in vis(TestResult))
 
 mode_platform_max_str_len = max(
@@ -81,11 +109,19 @@ if __name__ == '__main__':
 
     level_zero_lib_dir = get_level_zero_lib_dir(args.root_dir)
 
-    tests = get_tests(
-      root_dir = args.root_dir,
-      binary_dir = args.binary_dir,
-      lib_dirs = [level_zero_lib_dir],
-      runtime_image = args.runtime_image)
+    with open(os.path.join(args.binary_dir, 'manifest.txt'), 'r') as f:
+        executables = [
+          line.strip()
+          for line in f
+          if line.strip() != '' and line.strip()[0] != '#']
+
+    with open(os.path.join(args.root_dir, 'ci', 'ci_test_config.yml'), 'r') as test_config_io:
+        tests = get_tests(
+          binary_dir = args.binary_dir,
+          runtime_image = args.runtime_image,
+          executables = executables,
+          test_config_io = test_config_io,
+          lib_dirs = [level_zero_lib_dir])
 
     executors = {
       (Mode.Fulsim, Platform.skl): FulsimTestExecutor(

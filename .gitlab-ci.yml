@@ -30,7 +30,7 @@ build-windows:
         -t %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
         -t %BUILDER_IMAGE%:latest
         --build-arg VS2019PRO_PRODUCT_KEY=%VS2019PRO_PRODUCT_KEY%
-        .\docker\%CI_JOB_NAME%
+        - < .\docker\%CI_JOB_NAME%.Dockerfile
     - docker run
         --rm
         -v %cd%:C:\project
@@ -81,26 +81,15 @@ build-ubuntu1804:
   script:
     - docker info
     - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    # Create the builder image, potentially using prior versions as a cache.
-    # Two tags are considered for image caching:
-    #   - ${CI_COMMIT_REF_SLUG}, which corresponds to the latest (if any)
-    #     version of this build image used on this ref/branch. This allows
-    #     development branches that make major changes to the dockerfiles to not
-    #     interfere too much with other branches.
-    #   - latest, which is just whatever the most recent version of this build
-    #     image that was built is, regardless of ref/branch. This is a fallback
-    #     in the event that the job is the first job to be run for a particular
-    #     ref/branch.
     - docker pull ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG} ||
-      docker pull ${BUILDER_IMAGE}:latest ||
+      docker pull ${BUILDER_IMAGE}:master ||
       true
     - docker build
         --cache-from ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${BUILDER_IMAGE}:latest
+        --cache-from ${BUILDER_IMAGE}:master
         -t ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-        -t ${BUILDER_IMAGE}:latest
-        ./docker/${CI_JOB_NAME}
-    # Perform the build inside the builder image
+        - < ./docker/${CI_JOB_NAME}.Dockerfile
+    - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
     - docker run
         --rm
         -v $PWD:$PWD
@@ -112,9 +101,6 @@ build-ubuntu1804:
         -e IREPO_CACHE_DIR=/irepo-cache
         ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
         ./ci/ci-build-linux.sh $PWD/out/ubuntu1804
-    # Upload the builder images used only if the build succeeded
-    - docker push ${BUILDER_IMAGE}:${CI_COMMIT_REF_SLUG}
-    - docker push ${BUILDER_IMAGE}:latest
   artifacts:
     name: "$CI_JOB_NAME"
     when: always
@@ -125,7 +111,7 @@ build-ubuntu1804:
       - out/ubuntu1804
       - build/clang_format_results.patch
 
-run-linux:
+run-regression:
   stage: run
   image: docker:19.03.1
   only:
@@ -154,60 +140,55 @@ run-linux:
   script:
     - docker info
     - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
+    - for image_type in pylzt-regression fulsim-gen9-r36707 runtime-ubuntu1804; do
           IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
           docker pull ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG} ||
-          docker pull ${IMAGE_NAME}:latest ||
+          docker pull ${IMAGE_NAME}:master ||
           true;
       done
-    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-ci-run;
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-pylzt-regression;
+      echo "RUN pip install junitparser" >> ./docker/pylzt.Dockerfile;
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${IMAGE_NAME}:latest
+        --cache-from ${IMAGE_NAME}:master
+        --build-arg PYLZT_GITLABTOKEN_USER
+        --build-arg PYLZT_GITLABTOKEN_PASSWORD
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        -t ${IMAGE_NAME}:latest
-        ./docker/ci-run
+        - < ./docker/pylzt.Dockerfile
     - IMAGE_NAME=${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707;
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${IMAGE_NAME}:latest
+        --cache-from ${IMAGE_NAME}:master
         --build-arg ARTIFACTORY_USER
         --build-arg ARTIFACTORY_PASSWORD
         --build-arg FULSIM_NAME=gen9
         --build-arg FULSIM_VERSION=r36707
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        -t ${IMAGE_NAME}:latest
-        ./docker/fulsim
+        - < ./docker/fulsim.Dockerfile
     - IMAGE_NAME=${IMAGE_NAME_PREFIX}-runtime-ubuntu1804;
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${IMAGE_NAME}:latest
+        --cache-from ${IMAGE_NAME}:master
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        -t ${IMAGE_NAME}:latest
-        ./docker/runtime-ubuntu1804
-    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
+        - < ./docker/runtime-ubuntu1804.Dockerfile
+    - for image_type in pylzt-regression fulsim-gen9-r36707 runtime-ubuntu1804; do
           IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
           docker push ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG};
       done
-    - mkdir case_logs;
-      time docker run
+    - time docker run
         --rm
         -v ${PWD}:${PWD}
         -w ${PWD}
         -v /var/run/docker.sock:/var/run/docker.sock
-        ${IMAGE_NAME_PREFIX}-ci-run:${CI_COMMIT_REF_SLUG}
+        ${IMAGE_NAME_PREFIX}-pylzt-regression:${CI_COMMIT_REF_SLUG}
         ./ci/ci-regression.py
           $PWD
           $PWD/out/ubuntu1804
-          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804:${CI_COMMIT_REF_SLUG}
           --parallelism 16
-          --fulsim-skl-image ${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707
+          --fulsim-skl-image ${IMAGE_NAME_PREFIX}-fulsim-gen9-r36707:${CI_COMMIT_REF_SLUG}
           --fulsim-skl-cmd 'AubLoad -device skl.2.a0 -socket tcp'
           --output-junit-xml test_results.xml
-    - for image_type in ci-run fulsim-gen9-r36707 runtime-ubuntu1804; do
-          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
-          docker push ${IMAGE_NAME}:latest;
-      done
   artifacts:
     paths:
       - test_results.xml
@@ -249,6 +230,42 @@ create-legacy-artifacts:
     paths:
       - archived
 
+deploy-runtime-image:
+  stage: deploy
+  image: docker:19.03.1
+  only:
+    - master
+  tags:
+    - caas
+    - dind
+    - docker
+    - linux
+    - privileged
+    - production
+  services:
+    - amr-registry.caas.intel.com/caas/docker:19.03.1-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""  # https://about.gitlab.com/2019/07/31/docker-in-docker-with-docker-19-dot-03/
+    DOCKER_HOST: tcp://localhost:2375/
+    DOCKER_DRIVER: overlay2  # better performance for dind
+    IMAGE_NAME_PREFIX: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_NAME}
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
+    HARBOR_USER2: ${HARBOR_USER}
+    HARBOR_TOKEN2: ${HARBOR_TOKEN}
+    IMAGE_NAME: ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+  script:
+    - docker info
+    - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
+    - docker pull ${IMAGE_NAME}:master ||
+      true
+    - docker build
+        --cache-from ${IMAGE_NAME}:master
+        -t ${IMAGE_NAME}:${CI_COMMIT_SHA}
+        -t ${IMAGE_NAME}:master
+        - < ./docker/runtime-ubuntu1804.Dockerfile
+    - docker push ${IMAGE_NAME}:${CI_COMMIT_SHA};
+      docker push ${IMAGE_NAME}:master
+
 gen-deploy-aubs:
   stage: deploy
   image: docker:19.03.1
@@ -275,27 +292,27 @@ gen-deploy-aubs:
   script:
     - docker info
     - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    - for image_type in ci-run runtime-ubuntu1804; do
+    - for image_type in pylzt-aubgen runtime-ubuntu1804; do
           IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
           docker pull ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG} ||
-          docker pull ${IMAGE_NAME}:latest ||
+          docker pull ${IMAGE_NAME}:master ||
           true;
       done
-    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-ci-run;
+    - IMAGE_NAME=${IMAGE_NAME_PREFIX}-pylzt-aubgen;
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${IMAGE_NAME}:latest
+        --cache-from ${IMAGE_NAME}:master
+        --build-arg PYLZT_GITLABTOKEN_USER
+        --build-arg PYLZT_GITLABTOKEN_PASSWORD
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        -t ${IMAGE_NAME}:latest
-        ./docker/ci-run
+        - < ./docker/pylzt.Dockerfile
     - IMAGE_NAME=${IMAGE_NAME_PREFIX}-runtime-ubuntu1804;
       docker build
         --cache-from ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        --cache-from ${IMAGE_NAME}:latest
+        --cache-from ${IMAGE_NAME}:master
         -t ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}
-        -t ${IMAGE_NAME}:latest
-        ./docker/runtime-ubuntu1804
-    - for image_type in ci-run runtime-ubuntu1804; do
+        - < ./docker/runtime-ubuntu1804.Dockerfile
+    - for image_type in pylzt-aubgen runtime-ubuntu1804; do
           IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
           docker push ${IMAGE_NAME}:${CI_COMMIT_REF_SLUG};
       done
@@ -306,17 +323,13 @@ gen-deploy-aubs:
         -v ${PWD}:${PWD}
         -w ${PWD}
         -v /var/run/docker.sock:/var/run/docker.sock
-        ${IMAGE_NAME_PREFIX}-ci-run:${CI_COMMIT_REF_SLUG}
+        ${IMAGE_NAME_PREFIX}-pylzt-aubgen:${CI_COMMIT_REF_SLUG}
         ./ci/ci-generate-aubs.py
           $PWD
           $PWD/out/ubuntu1804
-          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
+          ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804:${CI_COMMIT_REF_SLUG}
           $PWD/aubs
           --parallelism 2
-    - for image_type in ci-run runtime-ubuntu1804; do
-          IMAGE_NAME=${IMAGE_NAME_PREFIX}-$image_type;
-          docker push ${IMAGE_NAME}:latest;
-      done
     # Upload AUBs
     # This isn't a separate step because GitLab has a very low size limit for
     # artifacts. This is faster anyways.

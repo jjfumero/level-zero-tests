@@ -1,17 +1,45 @@
 #! /usr/bin/env python3
 
-from ci import (
-  AubGenTestExecutor,
-  get_tests,
-  IsReadableDirPath,
-  IsWritableDirPath,
-  IsReadableWritableDirPath,
-  Mode,
-  Platform,
-  vis)
+from pylzt import AubGenTestExecutor, get_tests
 import argparse
 from concurrent.futures import as_completed
 import os
+
+def vis(obj):
+    return [val for key, val in obj.__dict__.items() if not key.startswith('__')]
+
+class Mode:
+    AubGen = 'aub'
+    Fulsim = 'fulsim'
+    Simics = 'simics'
+    Native = 'native'
+
+class Platform:
+    skl = 'skl'
+    ats = 'ats'
+
+def IsReadableDirPath(path: str):
+    if not os.access(path, os.R_OK):
+        raise argparse.ArgumentTypeError(path + ' is not readable')
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(path + ' is not a directory')
+    return os.path.abspath(path)
+
+def IsWritableDirPath(path: str):
+    if not os.access(path, os.W_OK):
+        raise argparse.ArgumentTypeError(path + ' is not writable')
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(path + ' is not a directory')
+    return os.path.abspath(path)
+
+def IsReadableWritableDirPath(path: str):
+    if not os.access(path, os.R_OK):
+        raise argparse.ArgumentTypeError(path + ' is not readable')
+    if not os.access(path, os.W_OK):
+        raise argparse.ArgumentTypeError(path + ' is not writable')
+    if not os.path.isdir(path):
+        raise argparse.ArgumentTypeError(path + ' is not a directory')
+    return os.path.abspath(path)
 
 platform_max_str_len = max(len(platform) for platform in vis(Platform))
 
@@ -54,11 +82,19 @@ if __name__ == '__main__':
 
     level_zero_lib_dir = get_level_zero_lib_dir(args.root_dir)
 
-    tests = get_tests(
-      root_dir = args.root_dir,
-      binary_dir = args.binary_dir,
-      lib_dirs = [level_zero_lib_dir],
-      runtime_image = args.runtime_image)
+    with open(os.path.join(args.binary_dir, 'manifest.txt'), 'r') as f:
+        executables = [
+          line.strip()
+          for line in f
+          if line.strip() != '' and line.strip()[0] != '#']
+
+    with open(os.path.join(args.root_dir, 'ci', 'ci_test_config.yml'), 'r') as test_config_io:
+        tests = get_tests(
+          binary_dir = args.binary_dir,
+          runtime_image = args.runtime_image,
+          executables = executables,
+          test_config_io = test_config_io,
+          lib_dirs = [level_zero_lib_dir])
 
     def get_aub_path(context):
         test_name, platform = context
