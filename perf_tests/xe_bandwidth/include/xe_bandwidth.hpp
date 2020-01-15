@@ -33,7 +33,7 @@ public:
 
   std::vector<size_t> transfer_size;
   size_t transfer_lower_limit = 1;
-  size_t transfer_upper_limit = (1 << 30);
+  size_t transfer_upper_limit = (1 << 28);
   bool verify = false;
   bool run_host2dev = true;
   bool run_dev2host = true;
@@ -44,7 +44,7 @@ private:
                           void *source_buffer, long double &total_time_nsec);
   void transfer_size_test_verify(size_t size, long double &host2dev_time_nsec,
                                  long double &dev2host_time_nsec);
-  long double measure_transfer(size_t buffer_size, uint32_t num_transfer);
+  long double measure_transfer(uint32_t num_transfer);
   void measure_transfer_verify(size_t buffer_size, uint32_t num_transfer,
                                long double &host2dev_time_nsec,
                                long double &dev2host_time_nsec);

@@ -118,8 +118,7 @@ void XeBandwidth::measure_transfer_verify(size_t buffer_size,
   }
 }
 
-long double XeBandwidth::measure_transfer(size_t buffer_size,
-                                          uint32_t num_transfer) {
+long double XeBandwidth::measure_transfer(uint32_t num_transfer) {
   Timer<std::chrono::nanoseconds::period> timer;
 
   timer.start();
@@ -165,13 +164,13 @@ void XeBandwidth::transfer_size_test(size_t size, void *destination_buffer,
                                          source_buffer, buffer_size);
   benchmark->commandListClose(command_list);
 
-  total_time_nsec = measure_transfer(buffer_size, number_iterations);
+  total_time_nsec = measure_transfer(number_iterations);
   benchmark->commandListReset(command_list);
 }
 
 void XeBandwidth::test_host2device(void) {
-  long double total_bandwidth = 0;
-  long double total_latency = 0;
+  long double total_bandwidth = 0.0;
+  long double total_latency = 0.0;
 
   std::cout << std::endl;
   if (verify) {
