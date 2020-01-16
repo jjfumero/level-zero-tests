@@ -27,7 +27,6 @@
 #define __TEST_IPC_COMM_HPP__
 
 #include "ze_memory.h" /* for ze_memory_type_t */
-#include "test_ipc_comm.hpp"
 #include <cstddef>
 #include "ze_api.h"
 #include <boost/asio.hpp>
@@ -97,6 +96,11 @@ size_t read_from_socket(boost_ip::tcp::socket &socket, uint8_t *buffer,
 
 size_t write_to_socket(boost_ip::tcp::socket &socket, uint8_t *buffer,
                        size_t size);
+
+#ifdef __linux__
+int read_fd_from_socket(int socket);
+int write_fd_to_socket(int socket, int fd);
+#endif
 
 /*
 

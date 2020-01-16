@@ -30,8 +30,9 @@
 #include <cstring>
 
 namespace level_zero_tests {
-
+const char *socket_path = "/tmp/ipc_socket";
 void run_receiver(ipc_test_parameters &parms, write_rndv_comm_context &ctx) {
+
   boost::asio::io_service io_service;
   boost_ip::tcp::socket comm_socket(io_service);
   boost_ip::tcp::acceptor acceptor(
@@ -45,6 +46,7 @@ void run_receiver(ipc_test_parameters &parms, write_rndv_comm_context &ctx) {
                        sizeof(rp)) != sizeof(rp)) {
     throw std::runtime_error("Client: reading stream message");
   }
+
   if (rp.opcode != RSO_RTS) {
     unexpected_opcode(rp, __LINE__);
   }
@@ -56,10 +58,44 @@ void run_receiver(ipc_test_parameters &parms, write_rndv_comm_context &ctx) {
                                   RTS_msg.destination_type, RTS_msg.size);
 
   rp.opcode = RSO_CTS;
-  if (write_to_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
-                      sizeof(rp)) != sizeof(rp)) {
-    throw std::runtime_error("Receiver: writing on stream socket");
+
+#ifdef __linux__
+  /* Share the ipc handle
+     If linux, do this as usual,
+     if windows, then we can't do this yet, so send back a nak
+  */
+  /* Create a unix socket for streaming */
+  struct sockaddr_un remote_addr;
+  remote_addr.sun_family = AF_UNIX;
+  strcpy(remote_addr.sun_path, lzt::socket_path);
+
+  int unix_send_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (unix_send_socket < 0)
+    throw std::runtime_error("Client: Could not create socket");
+
+  LOG_DEBUG << "4";
+
+  int len;
+  len = strlen(remote_addr.sun_path) + sizeof(remote_addr.sun_family);
+  if (connect(unix_send_socket, (struct sockaddr *)&remote_addr,
+              sizeof(remote_addr)) == -1)
+    throw std::runtime_error("Client: Error connecting to socket");
+
+  int ipc_handle_id;
+  memcpy(static_cast<void *>(&ipc_handle_id), &rp.payload.ipc_mem_handle,
+         sizeof(ipc_handle_id));
+  if (write_fd_to_socket(unix_send_socket, static_cast<int>(ipc_handle_id)) <
+      0) {
+    throw std::runtime_error("Client: writing on unix stream socket");
   }
+  LOG_DEBUG << "Wrote ipc descriptor to socket";
+
+#endif
+
+  /*  if (write_to_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
+                        sizeof(rp)) != sizeof(rp)) {
+      throw std::runtime_error("Receiver: writing on stream socket");
+    }*/
   if (read_from_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
                        sizeof(rp)) != sizeof(rp)) {
     throw std::runtime_error("Client: reading stream message");

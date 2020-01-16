@@ -24,6 +24,9 @@
 
 #include <chrono>
 #include <thread>
+#ifdef __linux__
+#include <sys/socket.h>
+#endif
 #include "test_ipc_comm.hpp"
 #include "logging/logging.hpp"
 #include "gtest/gtest.h"
@@ -80,6 +83,68 @@ size_t write_to_socket(boost_ip::tcp::socket &socket, uint8_t *buffer,
   }
   return sent_bytes;
 }
+
+#ifdef __linux__
+
+int read_fd_from_socket(int unix_socket) {
+  // call recvmsg to receive the descriptor on the unix_socket
+  int fd = -1;
+  char recv_buff[sizeof(ze_ipc_mem_handle_t)] = {};
+  char cmsg_buff[CMSG_SPACE(sizeof(ze_ipc_mem_handle_t))];
+
+  struct iovec msg_buffer;
+  msg_buffer.iov_base = recv_buff;
+  msg_buffer.iov_len = sizeof(recv_buff);
+
+  struct msghdr msg_header = {};
+  msg_header.msg_iov = &msg_buffer;
+  msg_header.msg_iovlen = 1;
+  msg_header.msg_control = cmsg_buff;
+  msg_header.msg_controllen = CMSG_LEN(sizeof(fd));
+
+  size_t bytes = recvmsg(unix_socket, &msg_header, 0);
+  if (bytes < 0) {
+    throw std::runtime_error("Client: Error receiving ipc handle");
+  }
+
+  struct cmsghdr *control_header = CMSG_FIRSTHDR(&msg_header);
+  memmove(&fd, CMSG_DATA(control_header), sizeof(int));
+  return fd;
+}
+
+int write_fd_to_socket(int unix_socket,
+                       int fd) { // fd is the ipc handle
+  char send_buff[sizeof(ze_ipc_mem_handle_t)];
+  char cmsg_buff[CMSG_SPACE(sizeof(ze_ipc_mem_handle_t))];
+
+  struct iovec msg_buffer;
+  msg_buffer.iov_base = send_buff;
+  msg_buffer.iov_len = sizeof(*send_buff);
+
+  // build a msghdr containing the desriptor (fd)
+  // fd is sent as ancillary data, i.e. msg_control
+  // member of msghdr
+  struct msghdr msg_header = {};
+  msg_header.msg_iov = &msg_buffer;
+  msg_header.msg_iovlen = 1;
+  msg_header.msg_control = cmsg_buff;
+  msg_header.msg_controllen = CMSG_LEN(sizeof(fd));
+
+  struct cmsghdr *control_header = CMSG_FIRSTHDR(&msg_header);
+  control_header->cmsg_type = SCM_RIGHTS;
+  control_header->cmsg_level = SOL_SOCKET;
+  control_header->cmsg_len = CMSG_LEN(sizeof(fd));
+
+  *(int *)CMSG_DATA(control_header) = fd;
+  // call sendmsg to send descriptor across socket
+  ssize_t bytesSent = sendmsg(unix_socket, &msg_header, 0);
+  if (bytesSent < 0) {
+    return -1;
+  }
+
+  return 0;
+}
+#endif
 
 void init_comm(write_rndv_comm_context &ctx) {
   ctx.driver_handle = lzt::get_default_driver();

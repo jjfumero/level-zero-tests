@@ -28,10 +28,17 @@
 #include "test_harness/test_harness.hpp"
 #include "gtest/gtest.h"
 
+#ifdef __linux__
+#include <sys/socket.h>
+#include <sys/types.h>
+#endif
+
 namespace level_zero_tests {
+const char *socket_path = "/tmp/ipc_socket";
 
 void run_sender(const ipc_test_parameters &parms,
                 write_rndv_comm_context &ctx) {
+
   void *our_buffer, *dest_buffer;
   // Allocate our buffer:
   if (parms.source_type == ZE_MEMORY_TYPE_UNKNOWN) {
@@ -71,19 +78,55 @@ void run_sender(const ipc_test_parameters &parms,
     throw std::runtime_error("Client: writing RTS message");
   }
   LOG_DEBUG << "Transmitted RTS to receiver";
-  if (read_from_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
-                       sizeof(rp)) != sizeof(rp)) {
-    throw std::runtime_error("Client: reading stream message");
+
+  ze_ipc_mem_handle_t ipc_mem_handle;
+
+#ifdef __linux__
+  /* Create a unix socket for streaming */
+
+  struct sockaddr_un local_addr, remote_addr;
+  local_addr.sun_family = AF_UNIX;
+  strcpy(local_addr.sun_path, lzt::socket_path);
+  unlink(local_addr.sun_path);
+
+  int unix_rcv_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (unix_rcv_socket < 0)
+    throw std::runtime_error("Client: Could not create socket");
+
+  bind(unix_rcv_socket, (struct sockaddr *)&local_addr,
+       strlen(local_addr.sun_path) + sizeof(local_addr.sun_family));
+  LOG_DEBUG << "Unix Socket Listening...";
+  listen(unix_rcv_socket, 1);
+
+  int len = sizeof(struct sockaddr_un);
+  auto other_socket = accept(unix_rcv_socket, (struct sockaddr *)&remote_addr,
+                             (socklen_t *)&len);
+  LOG_DEBUG << "Connection accepted";
+
+  int ipc_descriptor;
+
+  if ((ipc_descriptor = read_fd_from_socket(other_socket)) < 0) {
+
+    throw std::runtime_error("Client: reading unix stream message");
   }
-  if (rp.opcode != RSO_CTS) {
-    unexpected_opcode(rp, __LINE__);
-  }
-  LOG_DEBUG << "Received CTS from receiver";
+  LOG_DEBUG << "Received ipc descriptor from receiver";
+  memcpy(&ipc_mem_handle, static_cast<void *>(&ipc_descriptor),
+         sizeof(ipc_descriptor));
+#endif
+
+  // if (read_from_socket(comm_socket, reinterpret_cast<uint8_t *>(&rp),
+  //                      sizeof(rp)) != sizeof(rp)) {
+  //   throw std::runtime_error("Client: reading stream message");
+  // }
+  // if (rp.opcode != RSO_CTS) {
+  //   unexpected_opcode(rp, __LINE__);
+  // }
 
   {
-    ze_result_t result = zeDriverOpenMemIpcHandle(
-        ctx.driver_handle, ctx.device, rp.payload.ipc_mem_handle,
-        ZE_IPC_MEMORY_FLAG_NONE, &dest_buffer);
+    ze_result_t result =
+        zeDriverOpenMemIpcHandle(ctx.driver_handle, ctx.device,
+                                 ipc_mem_handle /*rp.payload.ipc_mem_handle*/,
+                                 ZE_IPC_MEMORY_FLAG_NONE, &dest_buffer);
     if (result != ZE_RESULT_SUCCESS) {
       send_nak(result, comm_socket);
       FAIL();

@@ -26,7 +26,6 @@
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
-#include <boost/process.hpp>
 namespace bp = boost::process;
 
 #include "gtest/gtest.h"
@@ -105,12 +104,19 @@ TEST_P(
   lzt::write_rndv_comm_context ctx;
 
   init_comm(ctx);
-  fs::path p = bp::search_path("./ipc/test_ipc_helper");
+  fs::path my_path(boost::filesystem::current_path() / "ipc");
+  std::vector<boost::filesystem::path> paths;
+  paths.push_back(my_path);
+  fs::path p = bp::search_path("test_ipc_helper", paths);
+  LOG_DEBUG << "Searching for child";
   if (p.empty()) {
     FAIL() << "Cannot find test_ipc_helper on PATH";
   } else {
+    LOG_DEBUG << "Starting child, run sender sockets";
     bp::child c(p);
+    LOG_DEBUG << "Running sender sockets";
     run_sender_sockets(test_parameters);
+    LOG_DEBUG << "Started child, run sender sockets";
     run_receiver(test_parameters, ctx);
     c.wait();
   }
