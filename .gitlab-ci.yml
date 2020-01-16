@@ -252,19 +252,20 @@ deploy-runtime-image:
     # Workaround for https://gitlab.com/gitlab-org/gitlab-ce/issues/27436
     HARBOR_USER2: ${HARBOR_USER}
     HARBOR_TOKEN2: ${HARBOR_TOKEN}
-    IMAGE_NAME: ${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
   script:
+    # Workaround for https://gitlab.com/gitlab-org/gitlab-runner/issues/1809
+    - export IMAGE_NAME=${IMAGE_NAME_PREFIX}-runtime-ubuntu1804
     - docker info
     - docker login -u ${HARBOR_USER2} -p ${HARBOR_TOKEN2} ${HARBOR_HOST}
-    - docker pull ${IMAGE_NAME}:master ||
+    - docker pull $IMAGE_NAME:master ||
       true
     - docker build
-        --cache-from ${IMAGE_NAME}:master
-        -t ${IMAGE_NAME}:${CI_COMMIT_SHA}
-        -t ${IMAGE_NAME}:master
+        --cache-from $IMAGE_NAME:master
+        -t $IMAGE_NAME:${CI_COMMIT_SHA}
+        -t $IMAGE_NAME:master
         - < ./docker/runtime-ubuntu1804.Dockerfile
-    - docker push ${IMAGE_NAME}:${CI_COMMIT_SHA};
-      docker push ${IMAGE_NAME}:master
+    - docker push $IMAGE_NAME:${CI_COMMIT_SHA};
+      docker push $IMAGE_NAME:master
 
 gen-deploy-aubs:
   stage: deploy
