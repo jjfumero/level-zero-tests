@@ -431,23 +431,17 @@ void measure_bandwidth(XeImageCopy &Imagecopy) {
   }
 }
 
-// Measuring latency for 1x1x1 image from Dev->Host & Host->Dev
-void measure_latency(XeImageCopyLatency &imageCopyLatency) {
-
+void measure_latency_Host2Device(XeImageCopyLatency &imageCopyLatency,
+                                 ptree *test_ptree) {
   if (imageCopyLatency.is_json_output_enabled()) {
-    pt::read_json(imageCopyLatency.JsonFileName, imageCopyLatency.main_tree);
-  }
-  std::stringstream Image_dimensions;
-  Image_dimensions << imageCopyLatency.width << "X" << imageCopyLatency.height
-                   << "X" << imageCopyLatency.depth;
-  if (imageCopyLatency.is_json_output_enabled()) {
-    imageCopyLatency.test_tree_1.put(
-        "Name", "Host2Device: Measuring Latency for copying the image ");
-    imageCopyLatency.test_tree_1.put("Image size", Image_dimensions.str());
-    imageCopyLatency.test_tree_1.put("Image format",
-                                     imageCopyLatency.Imageformat);
-    imageCopyLatency.test_tree_1.put("Image Layout",
-                                     imageCopyLatency.Imagelayout);
+    std::stringstream Image_dimensions;
+    Image_dimensions << imageCopyLatency.width << "X" << imageCopyLatency.height
+                     << "X" << imageCopyLatency.depth;
+    test_ptree->put("Name",
+                    "Host2Device: Measuring Latency for copying the image ");
+    test_ptree->put("Image size", Image_dimensions.str());
+    test_ptree->put("Image format", imageCopyLatency.Imageformat);
+    test_ptree->put("Image Layout", imageCopyLatency.Imagelayout);
   } else {
     std::cout
         << "Host2Device: Measuring Bandwidth/Latency for copying the image "
@@ -459,22 +453,28 @@ void measure_latency(XeImageCopyLatency &imageCopyLatency) {
         << level_zero_tests::to_string(imageCopyLatency.Imagelayout)
         << "  from Host->Device" << std::endl;
   }
+
   imageCopyLatency.measureHost2Device();
-  if (imageCopyLatency.is_json_output_enabled()) {
-    imageCopyLatency.test_tree_1.put("Latency", imageCopyLatency.latency);
-    if (imageCopyLatency.data_validation)
-      imageCopyLatency.test_tree_1.put(
-          "Result", (imageCopyLatency.validRet ? "PASSED" : "FAILED"));
-  }
 
   if (imageCopyLatency.is_json_output_enabled()) {
-    imageCopyLatency.test_tree_2.put(
-        "Name", "Device2Host: Measuring Latency for copying the image");
-    imageCopyLatency.test_tree_2.put("Image size", Image_dimensions.str());
-    imageCopyLatency.test_tree_2.put("Image format",
-                                     imageCopyLatency.Imageformat);
-    imageCopyLatency.test_tree_2.put("Image Layout",
-                                     imageCopyLatency.Imagelayout);
+    test_ptree->put("Latency", imageCopyLatency.latency);
+    if (imageCopyLatency.data_validation)
+      test_ptree->put("Result",
+                      (imageCopyLatency.validRet ? "PASSED" : "FAILED"));
+  }
+}
+
+void measure_latency_Device2Host(XeImageCopyLatency &imageCopyLatency,
+                                 ptree *test_ptree) {
+  if (imageCopyLatency.is_json_output_enabled()) {
+    std::stringstream Image_dimensions;
+    Image_dimensions << imageCopyLatency.width << "X" << imageCopyLatency.height
+                     << "X" << imageCopyLatency.depth;
+    test_ptree->put("Name",
+                    "Device2Host: Measuring Latency for copying the image");
+    test_ptree->put("Image size", Image_dimensions.str());
+    test_ptree->put("Image format", imageCopyLatency.Imageformat);
+    test_ptree->put("Image Layout", imageCopyLatency.Imagelayout);
   } else {
     std::cout
         << "Device2Host: Measuring Bandwidth/Latency for copying the image "
@@ -488,22 +488,33 @@ void measure_latency(XeImageCopyLatency &imageCopyLatency) {
   }
 
   imageCopyLatency.measureDevice2Host();
-  if (imageCopyLatency.is_json_output_enabled()) {
-    imageCopyLatency.test_tree_2.put("Latency", imageCopyLatency.latency);
-    if (imageCopyLatency.data_validation)
-      imageCopyLatency.test_tree_2.put(
-          "Result", (imageCopyLatency.validRet ? "PASSED" : "FAILED"));
-  }
 
   if (imageCopyLatency.is_json_output_enabled()) {
-    imageCopyLatency.param_array.push_back(
-        std::make_pair("", imageCopyLatency.test_tree_1));
-    imageCopyLatency.param_array.push_back(
-        std::make_pair("", imageCopyLatency.test_tree_2));
-    imageCopyLatency.main_tree.put_child("Performance Benchmark.latency",
-                                         imageCopyLatency.param_array);
-    pt::write_json(imageCopyLatency.JsonFileName.c_str(),
-                   imageCopyLatency.main_tree);
+    test_ptree->put("Latency", imageCopyLatency.latency);
+    if (imageCopyLatency.data_validation)
+      test_ptree->put("Result",
+                      (imageCopyLatency.validRet ? "PASSED" : "FAILED"));
+  }
+}
+
+// Measuring latency for 1x1x1 image from Dev->Host & Host->Dev
+void measure_latency(XeImageCopyLatency &imageCopyLatency) {
+  ptree ptree_Host2Device;
+  ptree ptree_Device2Host;
+  ptree ptree_main;
+  ptree ptree_param_array;
+
+  if (imageCopyLatency.is_json_output_enabled()) {
+    pt::read_json(imageCopyLatency.JsonFileName, ptree_main);
+  }
+  measure_latency_Host2Device(imageCopyLatency, &ptree_Host2Device);
+  measure_latency_Device2Host(imageCopyLatency, &ptree_Device2Host);
+
+  if (imageCopyLatency.is_json_output_enabled()) {
+    ptree_param_array.push_back(std::make_pair("", ptree_Host2Device));
+    ptree_param_array.push_back(std::make_pair("", ptree_Device2Host));
+    ptree_main.put_child("Performance Benchmark.latency", ptree_param_array);
+    pt::write_json(imageCopyLatency.JsonFileName.c_str(), ptree_main);
   }
 }
 

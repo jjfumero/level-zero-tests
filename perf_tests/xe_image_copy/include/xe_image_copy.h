@@ -56,11 +56,7 @@ public:
     bool validRet = false;
     long double gbps;
     long double latency;
-    ptree test_tree_1;
-    ptree test_tree_2;
-    ptree test_tree_3;
     ptree param_array;
-    ptree main_tree;
 	ze_image_format_layout_t Imagelayout = ZE_IMAGE_FORMAT_LAYOUT_32;
 	ze_image_flag_t Imageflags = ZE_IMAGE_FLAG_PROGRAM_READ;
 	ze_image_type_t Imagetype = ZE_IMAGE_TYPE_2D;
