@@ -318,7 +318,7 @@ XeImageCopyLatency::XeImageCopyLatency() {
   Imageformat = ZE_IMAGE_FORMAT_TYPE_UINT;
 }
 
-void measure_bandwidth(XeImageCopy Imagecopy) {
+void measure_bandwidth(XeImageCopy &Imagecopy) {
   std::stringstream Image_dimensions;
 
   Image_dimensions << Imagecopy.width << "X" << Imagecopy.height << "X"
@@ -411,7 +411,7 @@ void measure_bandwidth(XeImageCopy Imagecopy) {
 }
 
 // Measuring latency for 1x1x1 image from Dev->Host & Host->Dev
-void measure_latency(XeImageCopyLatency imageCopyLatency) {
+void measure_latency(XeImageCopyLatency &imageCopyLatency) {
 
   if (true == imageCopyLatency.is_json_output_enabled()) {
     pt::read_json(imageCopyLatency.JsonFileName, imageCopyLatency.main_tree);
