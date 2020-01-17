@@ -39,7 +39,6 @@ XeImageCopy ::XeImageCopy() {
 }
 
 XeImageCopy ::~XeImageCopy() {
-
   benchmark->commandQueueDestroy(this->command_queue);
   benchmark->commandListDestroy(this->command_list);
   benchmark->commandListDestroy(this->command_list_a);
@@ -53,10 +52,45 @@ bool XeImageCopy::is_json_output_enabled(void) {
   return JsonFileName.size() != 0;
 }
 
+void XeImageCopy::test_initialize(void) {
+  buffer_size = 4 * width * height * depth; /* 4 channels per pixel */
+  region = {xOffset, yOffset, zOffset, width, height, depth};
+  formatDesc = {Imagelayout,
+                Imageformat,
+                ZE_IMAGE_FORMAT_SWIZZLE_R,
+                ZE_IMAGE_FORMAT_SWIZZLE_0,
+                ZE_IMAGE_FORMAT_SWIZZLE_0,
+                ZE_IMAGE_FORMAT_SWIZZLE_1};
+
+  imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
+               Imageflags,
+               Imagetype,
+               formatDesc,
+               width,
+               height,
+               depth,
+               0,
+               0};
+
+  srcBuffer = new uint8_t[buffer_size];
+  dstBuffer = new uint8_t[buffer_size];
+  for (size_t i = 0; i < this->buffer_size; ++i) {
+    srcBuffer[i] = static_cast<uint8_t>(i);
+    dstBuffer[i] = 0xff;
+  }
+
+  benchmark->imageCreate(&imageDesc, &this->image);
+}
+
+void XeImageCopy::test_cleanup(void) {
+  delete[] srcBuffer;
+  delete[] dstBuffer;
+  benchmark->imageDestroy(this->image);
+  image = nullptr;
+}
+
 // It is image copy measure from Host->Device->Host
 void XeImageCopy::measureHost2Device2Host() {
-
-  const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -64,40 +98,14 @@ void XeImageCopy::measureHost2Device2Host() {
   long double total_data_transfer;
 
   ze_result_t result = ZE_RESULT_SUCCESS;
-  ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
-
-  ze_image_format_desc_t formatDesc = {Imagelayout,
-                                       Imageformat,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
-
-  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
-                               Imageflags,
-                               Imagetype,
-                               formatDesc,
-                               width,
-                               height,
-                               depth,
-                               0,
-                               0};
-
-  uint8_t *srcBuffer = new uint8_t[size];
-  uint8_t *dstBuffer = new uint8_t[size];
-  for (size_t i = 0; i < size; ++i) {
-    srcBuffer[i] = static_cast<uint8_t>(i);
-    dstBuffer[i] = 0xff;
-  }
-
-  benchmark->imageCreate(&imageDesc, &this->image);
+  this->test_initialize();
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
   benchmark->commandListAppendImageCopyFromMemory(command_list, image,
-                                                  srcBuffer, &Region);
+                                                  srcBuffer, &this->region);
   benchmark->commandListAppendBarrier(command_list);
   benchmark->commandListAppendImageCopyToMemory(command_list, dstBuffer, image,
-                                                &Region);
+                                                &this->region);
   benchmark->commandListClose(command_list);
 
   /* Warm up */
@@ -119,24 +127,19 @@ void XeImageCopy::measureHost2Device2Host() {
   total_time_s = total_time_usec / 1e6;
 
   /* Buffer size is multiplied by 2 to account for the round trip image copy */
-  total_data_transfer = (2 * size * number_iterations) /
+  total_data_transfer = (2 * this->buffer_size * number_iterations) /
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
 
   std::cout << gbps << " GBPS\n";
   if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, this->buffer_size));
   }
-
-  benchmark->imageDestroy(this->image);
-  delete[] srcBuffer;
-  delete[] dstBuffer;
+  this->test_cleanup();
 }
 
 void XeImageCopy::measureHost2Device() {
-
-  const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -144,44 +147,19 @@ void XeImageCopy::measureHost2Device() {
   long double total_data_transfer;
 
   ze_result_t result = ZE_RESULT_SUCCESS;
-  ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
-  ze_image_format_desc_t formatDesc = {Imagelayout,
-                                       Imageformat,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
-
-  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
-                               Imageflags,
-                               Imagetype,
-                               formatDesc,
-                               width,
-                               height,
-                               depth,
-                               0,
-                               0};
-
-  uint8_t *srcBuffer = new uint8_t[size];
-  uint8_t *dstBuffer = new uint8_t[size];
-  for (size_t i = 0; i < size; ++i) {
-    srcBuffer[i] = static_cast<uint8_t>(i);
-    dstBuffer[i] = 0xff;
-  }
-
-  benchmark->imageCreate(&imageDesc, &this->image);
+  this->test_initialize();
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
   benchmark->commandListReset(command_list_a);
   for (int i = 0; i < number_iterations; i++) {
     benchmark->commandListAppendImageCopyFromMemory(command_list_a, image,
-                                                    srcBuffer, &Region);
+                                                    srcBuffer, &this->region);
   }
   benchmark->commandListClose(command_list_a);
 
   benchmark->commandListReset(command_list_b);
   benchmark->commandListAppendImageCopyToMemory(command_list_b, dstBuffer,
-                                                image, &Region);
+                                                image, &this->region);
   benchmark->commandListClose(command_list_b);
 
   /* Warm up */
@@ -205,7 +183,7 @@ void XeImageCopy::measureHost2Device() {
   total_time_usec = timer.period_minus_overhead();
   total_time_s = total_time_usec / 1e6;
 
-  total_data_transfer = (size * number_iterations) /
+  total_data_transfer = (buffer_size * number_iterations) /
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
@@ -214,17 +192,12 @@ void XeImageCopy::measureHost2Device() {
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Host->Device)" << std::endl;
   if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, buffer_size));
   }
-
-  benchmark->imageDestroy(this->image);
-  delete[] srcBuffer;
-  delete[] dstBuffer;
+  this->test_cleanup();
 }
 
 void XeImageCopy::measureDevice2Host() {
-
-  const size_t size = 4 * width * height * depth; /* 4 channels per pixel */
 
   Timer<std::chrono::microseconds::period> timer;
   long double total_time_usec;
@@ -232,32 +205,7 @@ void XeImageCopy::measureDevice2Host() {
   long double total_data_transfer;
 
   ze_result_t result = ZE_RESULT_SUCCESS;
-  ze_image_region_t Region = {xOffset, yOffset, zOffset, width, height, depth};
-
-  ze_image_format_desc_t formatDesc = {Imagelayout,
-                                       Imageformat,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_R,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_0,
-                                       ZE_IMAGE_FORMAT_SWIZZLE_1};
-
-  ze_image_desc_t imageDesc = {ZE_IMAGE_DESC_VERSION_CURRENT,
-                               Imageflags,
-                               Imagetype,
-                               formatDesc,
-                               width,
-                               height,
-                               depth,
-                               0,
-                               0};
-  uint8_t *srcBuffer = new uint8_t[size];
-  uint8_t *dstBuffer = new uint8_t[size];
-  for (size_t i = 0; i < size; ++i) {
-    srcBuffer[i] = static_cast<uint8_t>(i);
-    dstBuffer[i] = 0xff;
-  }
-
-  benchmark->imageCreate(&imageDesc, &this->image);
+  this->test_initialize();
 
   // Copy from srcBuffer->Image->dstBuffer, so at the end dstBuffer = srcBuffer
 
@@ -265,7 +213,7 @@ void XeImageCopy::measureDevice2Host() {
   // operations on host2device
   benchmark->commandListReset(command_list_a);
   benchmark->commandListAppendImageCopyFromMemory(command_list_a, image,
-                                                  srcBuffer, &Region);
+                                                  srcBuffer, &this->region);
   benchmark->commandListClose(command_list_a);
 
   // commandListReset to make sure resetting the command_list_b from previous
@@ -273,7 +221,7 @@ void XeImageCopy::measureDevice2Host() {
   benchmark->commandListReset(command_list_b);
   for (int i = 0; i < number_iterations; i++) {
     benchmark->commandListAppendImageCopyToMemory(command_list_b, dstBuffer,
-                                                  image, &Region);
+                                                  image, &this->region);
   }
   benchmark->commandListClose(command_list_b);
 
@@ -294,7 +242,7 @@ void XeImageCopy::measureDevice2Host() {
   total_time_usec = timer.period_minus_overhead();
   total_time_s = total_time_usec / 1e6;
 
-  total_data_transfer = (size * number_iterations) /
+  total_data_transfer = (this->buffer_size * number_iterations) /
                         static_cast<long double>(1e9); /* Units in Gigabytes */
 
   gbps = total_data_transfer / total_time_s;
@@ -303,11 +251,9 @@ void XeImageCopy::measureDevice2Host() {
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Device->Host)" << std::endl;
   if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, size));
+    validRet = (0 == memcmp(srcBuffer, dstBuffer, this->buffer_size));
   }
-  benchmark->imageDestroy(this->image);
-  delete[] srcBuffer;
-  delete[] dstBuffer;
+  this->test_cleanup();
 }
 
 XeImageCopyLatency::XeImageCopyLatency() {

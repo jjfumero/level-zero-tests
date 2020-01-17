@@ -69,15 +69,25 @@ public:
   void measureDevice2Host();
   int parse_command_line(int argc, char **argv);
   bool is_json_output_enabled();
- 
 
 private:
+  void initialize_buffer(void);
+  void test_initialize(void);
+  void test_cleanup(void);
+
   XeApp *benchmark;
   ze_command_queue_handle_t command_queue;
   ze_command_list_handle_t command_list;
   ze_command_list_handle_t command_list_a;
   ze_command_list_handle_t command_list_b;
   ze_image_handle_t image;
+
+  ze_image_region_t region;
+  ze_image_format_desc_t formatDesc;
+  ze_image_desc_t imageDesc;
+  uint8_t *srcBuffer;
+  uint8_t *dstBuffer;
+  size_t buffer_size;
 };
 
 class XeImageCopyLatency : public XeImageCopy {
