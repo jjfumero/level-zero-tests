@@ -89,6 +89,13 @@ void XeImageCopy::test_cleanup(void) {
   image = nullptr;
 }
 
+void XeImageCopy::validate_data_buffer(void) {
+  if (this->data_validation) {
+    validRet =
+        (0 == memcmp(this->srcBuffer, this->dstBuffer, this->buffer_size));
+  }
+}
+
 // It is image copy measure from Host->Device->Host
 void XeImageCopy::measureHost2Device2Host() {
 
@@ -133,9 +140,7 @@ void XeImageCopy::measureHost2Device2Host() {
   gbps = total_data_transfer / total_time_s;
 
   std::cout << gbps << " GBPS\n";
-  if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, this->buffer_size));
-  }
+  this->validate_data_buffer();
   this->test_cleanup();
 }
 
@@ -191,9 +196,7 @@ void XeImageCopy::measureHost2Device() {
   latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Host->Device)" << std::endl;
-  if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, buffer_size));
-  }
+  this->validate_data_buffer();
   this->test_cleanup();
 }
 
@@ -250,9 +253,7 @@ void XeImageCopy::measureDevice2Host() {
   latency = total_time_usec / static_cast<long double>(number_iterations);
   std::cout << std::setprecision(11) << latency << " us"
             << " (Latency: Device->Host)" << std::endl;
-  if (this->data_validation) {
-    validRet = (0 == memcmp(srcBuffer, dstBuffer, this->buffer_size));
-  }
+  this->validate_data_buffer();
   this->test_cleanup();
 }
 

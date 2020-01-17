@@ -74,6 +74,7 @@ private:
   void initialize_buffer(void);
   void test_initialize(void);
   void test_cleanup(void);
+  void validate_data_buffer(void);
 
   XeApp *benchmark;
   ze_command_queue_handle_t command_queue;
