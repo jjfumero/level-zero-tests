@@ -522,9 +522,11 @@ int main(int argc, char **argv) {
   XeImageCopy Imagecopy;
   SUCCESS_OR_TERMINATE(Imagecopy.parse_command_line(argc, argv));
   measure_bandwidth(Imagecopy);
+
   XeImageCopyLatency imageCopyLatency;
   imageCopyLatency.JsonFileName =
       Imagecopy.JsonFileName; // need to add latency values to the same file
   measure_latency(imageCopyLatency);
+
   return 0;
 }
