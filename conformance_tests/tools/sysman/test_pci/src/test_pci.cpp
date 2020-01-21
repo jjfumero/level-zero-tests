@@ -46,9 +46,6 @@ TEST(zetSysmanPciGetStateTests,
     EXPECT_LE(PciState.speed.gen, PciProps.maxSpeed.gen);
     EXPECT_LE(PciState.speed.width, PciProps.maxSpeed.width);
     EXPECT_LE(PciState.speed.maxBandwidth, PciProps.maxSpeed.maxBandwidth);
-    EXPECT_TRUE(
-        (PciState.speed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_128) ||
-        (PciState.speed.maxPacketSize == PCI_SPEED_MAX_PACKET_SIZE_256));
   };
 }
 
