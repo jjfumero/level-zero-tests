@@ -61,7 +61,7 @@ RUN git clone https://gitlab.devtools.intel.com/ledettwy/devtool.git C:\devtool;
     cmd /c dt self-install; `
     [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\devtool;C:\devtool\.deps\tools\gta-asset', [EnvironmentVariableTarget]::Machine)
 
-FROM toolchain AS build_deps
+FROM toolchain AS toolchain_deps_zlib
 
 # install zlib
 SHELL ["powershell"]
@@ -74,15 +74,17 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     . 'C:\Program Files\7-Zip\7z.exe' x zlib1211.zip; `
     rm zlib1211.zip
 SHELL ["cmd", "/S", "/C"]
-ENV ZLIB_ROOT "C:\zlib"
 RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     cd C:\TEMP\zlib-1.2.11 && `
     mkdir build && `
     cd build && `
-    cmake .. -A x64 -T host=x64  -DCMAKE_INSTALL_PREFIX:PATH=%ZLIB_ROOT% && `
-    cmake --build . --target INSTALL --config Release && `
-    cd C:\ && `
-    rmdir /S /Q TEMP\zlib-1.2.11
+    cmake .. -A x64 -T host=x64 `
+      -D BUILD_SHARED_LIBS=YES `
+      -D CMAKE_INSTALL_PREFIX:PATH=/zlib && `
+    cmake --build . --target INSTALL --config Release
+ENV CMAKE_PREFIX_PATH /zlib
+
+FROM toolchain_deps_zlib AS toolchain_deps_libpng
 
 # install libpng
 SHELL ["powershell"]
@@ -95,22 +97,14 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     . 'C:\Program Files\7-Zip\7z.exe' x lpng1637.zip; `
     rm lpng1637.zip
 SHELL ["cmd", "/S", "/C"]
-ENV LIBPNG_ROOT "C:\libpng"
 RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     cd C:\TEMP\lpng1637 && `
     mkdir build && `
     cd build && `
-    cmake .. `
-      -T host=x64 `
-      -A x64 `
-      -DPNG_BUILD_ZLIB=ON `
-      -DZLIB_INCLUDE_DIR=%ZLIB_ROOT%\include `
-      -DZLIB_LIBRARY=%ZLIB_ROOT%\lib\zlibstatic.lib `
-      -DPNG_SHARED=OFF `
-      -DCMAKE_INSTALL_PREFIX:PATH=%LIBPNG_ROOT% && `
-    cmake --build . --target INSTALL --config Release && `
-    cd C:\ && `
-    rmdir /S /Q TEMP\lpng1637
+    cmake .. -T host=x64 -A x64 -D CMAKE_INSTALL_PREFIX:PATH=/libpng && `
+    cmake --build . --target INSTALL --config Release
+
+FROM toolchain AS toolchain_deps_opencl
 
 # install OpenCL headers
 SHELL ["powershell"]
@@ -121,9 +115,8 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
       -OutFile OpenCL-Headers.zip; `
     . 'C:\Program Files\7-Zip\7z.exe' x OpenCL-Headers.zip; `
     rm OpenCL-Headers.zip;
-ENV OPENCL_ROOT "C:\opencl"
-RUN mkdir $ENV:OPENCL_ROOT\include -Force | Out-Null; `
-    mv C:\TEMP\OpenCL-Headers-de26592167b9fdea503885e40e8755393c56523d\CL $ENV:OPENCL_ROOT\include\CL;
+RUN mkdir /opencl/include -Force | Out-Null; `
+    mv C:\TEMP\OpenCL-Headers-de26592167b9fdea503885e40e8755393c56523d\CL /opencl/include/CL;
 
 # install OpenCL ICD Loader
 SHELL ["powershell"]
@@ -143,12 +136,12 @@ RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     cmake .. `
       -T host=x64 `
       -A x64 `
-      -DOPENCL_INCLUDE_DIRS="%OPENCL_ROOT%\include" `
-      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY="%OPENCL_ROOT%\lib" `
-      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE="%OPENCL_ROOT%\lib" && `
-    cmake --build . --config Release && `
-    cd C:\ && `
-    rmdir /S /Q TEMP\OpenCL-ICD-Loader-b342ff7b7f70a4b3f2cfc53215af8fa20adc3d86
+      -D OPENCL_INCLUDE_DIRS="/opencl/include" `
+      -D CMAKE_ARCHIVE_OUTPUT_DIRECTORY="/opencl/lib" `
+      -D CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE="/opencl/lib" && `
+    cmake --build . --config Release
+
+FROM toolchain AS toolchain_deps_boost
 
 # install boost
 SHELL ["powershell"]
@@ -161,7 +154,6 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     . 'C:\Program Files\7-Zip\7z.exe' x boost_1_70_0.zip; `
     rm boost_1_70_0.zip
 SHELL ["cmd", "/S", "/C"]
-ENV BOOST_ROOT "C:\boost"
 RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     call "%VCInstallDir%\Auxiliary\Build\vcvars64.bat" && `
     cd C:\TEMP\boost_1_70_0 && `
@@ -169,21 +161,21 @@ RUN cd C:\VS\Common7\Tools & VsDevCmd && `
     .\b2 install `
       -j 4 `
       address-model=64 `
-      --prefix=%BOOST_ROOT% `
+      --prefix=/boost `
       --with-chrono `
       --with-log `
       --with-program_options `
       --with-system `
-      --with-timer && `
-    cd C:\ && `
-    rmdir /S /Q TEMP\boost_1_70_0
+      --with-timer
 
 FROM toolchain AS dev
 
-COPY --from=build_deps C:\zlib C:\zlib
-COPY --from=build_deps C:\libpng C:\libpng
-COPY --from=build_deps C:\opencl C:\opencl
-COPY --from=build_deps C:\boost C:\boost
+COPY --from=toolchain_deps_boost ["/boost", "/boost"]
+COPY --from=toolchain_deps_zlib ["/zlib", "/zlib"]
+COPY --from=toolchain_deps_libpng ["/libpng", "/libpng"]
+COPY --from=toolchain_deps_opencl ["/opencl", "/opencl"]
+
+ENV CMAKE_PREFIX_PATH "/boost;/zlib;/libpng;/opencl"
 
 SHELL ["cmd", "/S", "/C"]
 

@@ -8,8 +8,7 @@ stages:
 build-windows:
   stage: build
   tags:
-    - ilab
-    - win
+    - l0win-2-dockerupdate
   only:
     - merge_requests
     - master
@@ -27,8 +26,12 @@ build-windows:
     # build cache from being used if cache-from is specified, so the better
     # caching option for now is to stick to a single local build cache.
     - docker build
-        -t %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
-        -t %BUILDER_IMAGE%:latest
+        --target toolchain
+        -t %BUILDER_IMAGE%-toolchain:%CI_COMMIT_REF_SLUG%
+        --build-arg VS2019PRO_PRODUCT_KEY=%VS2019PRO_PRODUCT_KEY%
+        - < .\docker\%CI_JOB_NAME%.Dockerfile
+    - docker build
+        -t %BUILDER_IMAGE%-dev:%CI_COMMIT_REF_SLUG%
         --build-arg VS2019PRO_PRODUCT_KEY=%VS2019PRO_PRODUCT_KEY%
         - < .\docker\%CI_JOB_NAME%.Dockerfile
     - docker run
@@ -40,7 +43,7 @@ build-windows:
         -e CLCACHE_OBJECT_CACHE_TIMEOUT_MS=30000
         -v C:\devtool-cache:C:\devtool-cache
         -e DEVTOOL_CACHE_DIR=C:\devtool-cache
-        %BUILDER_IMAGE%:%CI_COMMIT_REF_SLUG%
+        %BUILDER_IMAGE%-dev:%CI_COMMIT_REF_SLUG%
         .\ci\ci-build-windows.bat
     # Use a file to signal success/fail because error codes do not correctly
     # propagate

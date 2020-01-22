@@ -15,13 +15,9 @@ set CXX=clcache
 
 call cmake ^
   -G Ninja ^
-  -DCMAKE_BUILD_TYPE=Release ^
-  -DL0_ROOT=%cd%/../third_party/level_zero_windows ^
-  -DREQUIRE_LEVELZERO_OPENCL_INTEROP=YES ^
-  -DBOOST_ROOT=C:\boost ^
-  -DZLIB_ROOT=C:\zlib ^
-  -DPNG_ROOT=C:\libpng ^
-  -DOPENCL_ROOT=C:\opencl ^
+  -D CMAKE_BUILD_TYPE=Release ^
+  -D L0_ROOT=%cd%/../third_party/level_zero_windows ^
+  -D REQUIRE_LEVELZERO_OPENCL_INTEROP=YES ^
   -D GROUP=/conformance_tests ^
   -D CMAKE_INSTALL_PREFIX=%cd%/../out/windows/conformance_tests ^
   .. || exit /b
@@ -29,13 +25,9 @@ call cmake --build . --config Release --target install || exit /b
 
 call cmake ^
   -G Ninja ^
-  -DCMAKE_BUILD_TYPE=Release ^
-  -DL0_ROOT=%cd%/../third_party/level_zero_windows ^
-  -DREQUIRE_LEVELZERO_OPENCL_INTEROP=YES ^
-  -DBOOST_ROOT=C:\boost ^
-  -DZLIB_ROOT=C:\zlib ^
-  -DPNG_ROOT=C:\libpng ^
-  -DOPENCL_ROOT=C:\opencl ^
+  -D CMAKE_BUILD_TYPE=Release ^
+  -D L0_ROOT=%cd%/../third_party/level_zero_windows ^
+  -D REQUIRE_LEVELZERO_OPENCL_INTEROP=YES ^
   -D GROUP=/perf_tests ^
   -D CMAKE_INSTALL_PREFIX=%cd%/../out/windows/perf_tests ^
   .. || exit /b

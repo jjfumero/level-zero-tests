@@ -29,18 +29,6 @@ include(clang_tools)
 include(custom_functions)
 include(vs2019_missing_redist_workaround)
 
-# FindPNG doesn't listen to PNG_ROOT, so use CMAKE_PREFIX_PATH for it
-if(PNG_ROOT)
-    list(APPEND CMAKE_PREFIX_PATH "${PNG_ROOT}")
-endif()
-# Older versions of the FindPNG module don't search for the static libraries, so
-# help it out
-find_library(PNG_LIBRARY
-  NAMES libpng.a libpng16_static libpng16_staticd
-  PATHS "${PNG_ROOT}"
-  PATH_SUFFIXES lib
-  NO_DEFAULT_PATH
-)
 find_package(PNG REQUIRED)
 
 if(NOT TARGET GTest::GTest AND NOT TARGET GMock::GMock)
