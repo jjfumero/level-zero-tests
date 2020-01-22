@@ -28,6 +28,8 @@
 #include "test_harness/test_harness.hpp"
 #include "gtest/gtest.h"
 #include <cstring>
+#include <thread>
+#include <chrono>
 
 namespace level_zero_tests {
 const char *socket_path = "/tmp/ipc_socket";
@@ -70,16 +72,25 @@ void run_receiver(ipc_test_parameters &parms, write_rndv_comm_context &ctx) {
   strcpy(remote_addr.sun_path, lzt::socket_path);
 
   int unix_send_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (unix_send_socket < 0)
+  if (unix_send_socket < 0) {
+    perror("Client Connection Error");
     throw std::runtime_error("Client: Could not create socket");
-
-  LOG_DEBUG << "4";
+  }
 
   int len;
+  std::chrono::milliseconds wait = std::chrono::milliseconds(0);
   len = strlen(remote_addr.sun_path) + sizeof(remote_addr.sun_family);
-  if (connect(unix_send_socket, (struct sockaddr *)&remote_addr,
-              sizeof(remote_addr)) == -1)
-    throw std::runtime_error("Client: Error connecting to socket");
+  while (connect(unix_send_socket, (struct sockaddr *)&remote_addr,
+                 sizeof(remote_addr)) == -1) {
+    // An error occurred, probably missing socket
+    LOG_DEBUG << "Sleeping 1 second.." << std::endl;
+    std::this_thread::sleep_for(CONNECTION_WAIT);
+    wait += CONNECTION_WAIT;
+    if (wait > CONNECTION_TIMEOUT) {
+      perror("Client Connection Error");
+      throw std::runtime_error("Client: Could not connect to socket");
+    }
+  }
 
   int ipc_handle_id;
   memcpy(static_cast<void *>(&ipc_handle_id), &rp.payload.ipc_mem_handle,
@@ -89,6 +100,7 @@ void run_receiver(ipc_test_parameters &parms, write_rndv_comm_context &ctx) {
     throw std::runtime_error("Client: writing on unix stream socket");
   }
   LOG_DEBUG << "Wrote ipc descriptor to socket";
+  close(unix_send_socket);
 
 #endif
 

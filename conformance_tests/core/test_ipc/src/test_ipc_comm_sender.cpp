@@ -90,11 +90,16 @@ void run_sender(const ipc_test_parameters &parms,
   unlink(local_addr.sun_path);
 
   int unix_rcv_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (unix_rcv_socket < 0)
+  if (unix_rcv_socket < 0) {
+    perror("Server Connection Error");
     throw std::runtime_error("Client: Could not create socket");
+  }
 
-  bind(unix_rcv_socket, (struct sockaddr *)&local_addr,
-       strlen(local_addr.sun_path) + sizeof(local_addr.sun_family));
+  if (bind(unix_rcv_socket, (struct sockaddr *)&local_addr,
+           strlen(local_addr.sun_path) + sizeof(local_addr.sun_family)) == -1) {
+    perror("Server Bind Error");
+    throw std::runtime_error("Server: Could not bind to socket");
+  }
   LOG_DEBUG << "Unix Socket Listening...";
   listen(unix_rcv_socket, 1);
 
@@ -106,10 +111,12 @@ void run_sender(const ipc_test_parameters &parms,
   int ipc_descriptor;
 
   if ((ipc_descriptor = read_fd_from_socket(other_socket)) < 0) {
-
+    perror("Server Connection Error");
     throw std::runtime_error("Client: reading unix stream message");
   }
   LOG_DEBUG << "Received ipc descriptor from receiver";
+  close(other_socket);
+  close(unix_rcv_socket);
   memcpy(&ipc_mem_handle, static_cast<void *>(&ipc_descriptor),
          sizeof(ipc_descriptor));
 #endif

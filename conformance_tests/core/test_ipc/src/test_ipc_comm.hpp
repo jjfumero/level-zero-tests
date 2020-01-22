@@ -30,6 +30,8 @@
 #include <cstddef>
 #include "ze_api.h"
 #include <boost/asio.hpp>
+#include <chrono>
+
 namespace boost_ip = boost::asio::ip;
 
 namespace level_zero_tests {
@@ -102,6 +104,9 @@ int read_fd_from_socket(int socket);
 int write_fd_to_socket(int socket, int fd);
 #endif
 
+const std::chrono::milliseconds CONNECTION_WAIT =
+    std::chrono::milliseconds(1000);
+const std::chrono::milliseconds CONNECTION_TIMEOUT = CONNECTION_WAIT * 10;
 /*
 
   Two peers, the 'sender' and the 'receiver', running in separate processes do
