@@ -936,6 +936,56 @@ protected:
     if (dest_buff_2)
       lzt::free_memory(dest_buff_2);
   }
+
+  void image_region_copy(const ze_image_region_t &in_region,
+                         const ze_image_region_t &out_region) {
+    // Create and initialize input and output images.
+    lzt::ImagePNG32Bit in_image =
+        lzt::ImagePNG32Bit(in_region.width, in_region.height);
+    lzt::ImagePNG32Bit out_image =
+        lzt::ImagePNG32Bit(out_region.width, out_region.height);
+
+    for (auto y = 0; y < in_region.height; y++)
+      for (auto x = 0; x < in_region.width; x++)
+        in_image.set_pixel(x, y, x + (y * in_region.width));
+
+    for (auto y = 0; y < out_region.height; y++)
+      for (auto x = 0; x < out_region.width; x++)
+        out_image.set_pixel(x, y, 0xffffffff);
+
+    // Copy from host image to to device image region
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopyFromMemory(
+                                     cl.command_list_, img.dflt_device_image_,
+                                     in_image.raw_data(), &in_region, nullptr));
+
+    append_barrier(cl.command_list_, nullptr, 0, nullptr);
+
+    // Copy from image region to output host image
+    EXPECT_EQ(ZE_RESULT_SUCCESS,
+              zeCommandListAppendImageCopyToMemory(
+                  cl.command_list_, out_image.raw_data(),
+                  img.dflt_device_image_, &out_region, nullptr));
+
+    // Execute
+    close_command_list(cl.command_list_);
+    execute_command_lists(cq.command_queue_, 1, &cl.command_list_, nullptr);
+    synchronize(cq.command_queue_, UINT32_MAX);
+
+    // Verify output image matches initial host image.
+    // Output image contains input image data shifted by in_region's origin
+    // minus out_region's origin.  Some of the original data may not make it
+    // to the output due to sizes and offests, and there may be junk data in
+    // parts of the output image that don't have coresponding pixels in the
+    // input; we will ignore those.
+    // We may pass negative origin coordinates to compare_data_pattern; in that
+    // case, it will skip over any negative-index pixels.
+    EXPECT_EQ(0, compare_data_pattern(in_image, out_image, 0, 0,
+                                      in_region.width, in_region.height,
+                                      in_region.originX - out_region.originX,
+                                      in_region.originY - out_region.originY,
+                                      out_region.width, out_region.height));
+  }
+
   zeEventPool ep;
   zeCommandList cl;
   zeCommandQueue cq;
@@ -1266,6 +1316,26 @@ TEST_F(zeCommandListAppendImageCopyTests,
                                    cl.command_list_, img.dflt_device_image_,
                                    img.dflt_device_image_2_, hEvent));
   ep.destroy_event(hEvent);
+}
+
+TEST_F(
+    zeCommandListAppendImageCopyTests,
+    GivenDeviceImageWhenAppendingImageCopyToMemoryAndFromMemoryWithOffsetsImageIsCorrectAndSuccessIsReturned) {
+
+  int full_width = img.dflt_host_image_.width();
+  int full_height = img.dflt_host_image_.height();
+
+  EXPECT_GE(full_width, 10);
+  EXPECT_GE(full_height, 10);
+
+  // To verify regions are respected, we use input and output host images
+  // that are slightly smaller than the full width of the device image, and
+  // small arbitrary offsets of the origin.  These should be chosen to fit
+  // within the 10x10 minimum size we've checked for above.
+  auto in_region = init_region(2, 5, 0, full_width - 8, full_height - 7, 1);
+  auto out_region = init_region(3, 1, 0, full_width - 6, full_height - 2, 1);
+
+  image_region_copy(in_region, out_region);
 }
 
 } // namespace
