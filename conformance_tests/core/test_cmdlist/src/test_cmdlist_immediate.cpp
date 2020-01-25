@@ -149,14 +149,14 @@ TEST_P(zeImmediateCommandListExecutionTests,
   lzt::append_memory_copy(cmdlist_immediate, device_memory, host_memory1.data(),
                           lzt::size_in_bytes(host_memory1), event0);
 
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS) {
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
     zeEventReset(event0);
   }
   lzt::append_memory_copy(cmdlist_immediate, host_memory2.data(), device_memory,
                           lzt::size_in_bytes(host_memory2), event0);
 
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS) {
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
   }
   lzt::validate_data_pattern(host_memory2.data(), size, 1);
@@ -180,7 +180,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
             zeCommandListAppendImageCopyFromMemory(
                 cmdlist_immediate, img.dflt_device_image_2_,
                 img.dflt_host_image_.raw_data(), nullptr, event0));
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS) {
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
     zeEventReset(event0);
   }
@@ -189,7 +189,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
                                    cmdlist_immediate, img.dflt_device_image_,
                                    img.dflt_device_image_2_, event0));
 
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS) {
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
     zeEventReset(event0);
   }
@@ -200,7 +200,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
                 cmdlist_immediate, dest_host_image_upper.raw_data(),
                 img.dflt_device_image_, nullptr, event0));
 
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS) {
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
     zeEventReset(event0);
   }
@@ -225,7 +225,7 @@ TEST_P(
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListAppendEventReset(cmdlist_immediate, event0));
   zeCommandListAppendBarrier(cmdlist_immediate, event1, 0, nullptr);
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS)
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS)
     EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSynchronize(event1, timeout));
   EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(event0))
       << "Failure investigated in LOKI-905";
@@ -241,7 +241,7 @@ TEST_P(
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeCommandListAppendSignalEvent(cmdlist_immediate, event0));
   zeCommandListAppendBarrier(cmdlist_immediate, event1, 0, nullptr);
-  if (mode == ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS)
+  if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS)
     EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSynchronize(event1, timeout));
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSynchronize(event0, timeout))
       << "Failure investigated in LOKI-905";
@@ -250,7 +250,7 @@ TEST_P(
 
 TEST_P(zeImmediateCommandListExecutionTests,
        GivenImmediateCommandListWhenAppendWaitOnEventsThenSuccessIsReturned) {
-  if (mode != ZE_COMMAND_QUEUE_MODE_ASYNCHRONOUS)
+  if (mode == ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS)
     return;
   ze_event_handle_t event1 = nullptr;
   ep.create_event(event1, ZE_EVENT_SCOPE_FLAG_HOST, ZE_EVENT_SCOPE_FLAG_NONE);
