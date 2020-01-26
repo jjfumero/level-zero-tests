@@ -404,8 +404,7 @@ deploy-artifactory:
 cleanup-windows:
   stage: cleanup
   tags:
-    - ilab
-    - win
+    - l0win-2-dockerupdate
   only:
     - merge_requests
     - master
