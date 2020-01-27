@@ -140,8 +140,8 @@ std::string to_string(const ze_result_t result) {
     return "ZE_RESULT_ERROR_UNINITIALIZED";
   } else if (result == ZE_RESULT_ERROR_DEVICE_LOST) {
     return "ZE_RESULT_ERROR_DEVICE_LOST";
-  } else if (result == ZE_RESULT_ERROR_UNSUPPORTED) {
-    return "ZE_RESULT_ERROR_UNSUPPORTED";
+  } else if (result == ZE_RESULT_ERROR_UNKNOWN) {
+    return "ZE_RESULT_ERROR_UNKNOWN";
   } else if (result == ZE_RESULT_ERROR_INVALID_ARGUMENT) {
     return "ZE_RESULT_ERROR_INVALID_ARGUMENT";
   } else if (result == ZE_RESULT_ERROR_OUT_OF_HOST_MEMORY) {
@@ -482,20 +482,16 @@ ze_image_type_t to_image_type(const std::string type) {
   }
 }
 
-void print_header_version() {
-  LOG_INFO << "API header version: " << ZE_MAJOR_VERSION(ZE_API_HEADER_VERSION)
-           << "." << ZE_MINOR_VERSION(ZE_API_HEADER_VERSION);
-}
-
 void print_driver_version() {
+  ze_driver_properties_t properties;
   uint32_t version = 0;
   ze_driver_handle_t driver = get_default_driver();
-  ze_result_t result = zeDriverGetDriverVersion(driver, &version);
+  ze_result_t result = zeDriverGetProperties(driver, &properties);
   if (result) {
-    std::runtime_error("zeDriverGetDriverVersion failed: " + to_string(result));
+    std::runtime_error("zeDriverGetProperties failed: " + to_string(result));
   }
   LOG_TRACE << "Driver version retrieved";
-
+  version = properties.version;
   LOG_INFO << "Driver version: " << version;
 }
 
@@ -538,7 +534,6 @@ void print_platform_overview(const std::string context) {
   if (context.size() > 0) {
     LOG_INFO << " (Context: " << context << ")";
   }
-  print_header_version();
   print_driver_version();
 
   const std::vector<ze_driver_handle_t> drivers = get_all_driver_handles();

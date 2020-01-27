@@ -387,7 +387,7 @@ protected:
               zeCommandListAppendBarrier(dev_access_[i].cmd_list, nullptr, 0,
                                          nullptr));
 
-    ze_thread_group_dimensions_t thread_group_dimensions;
+    ze_group_count_t thread_group_dimensions;
     thread_group_dimensions.groupCountX = 1;
     thread_group_dimensions.groupCountY = 1;
     thread_group_dimensions.groupCountZ = 1;

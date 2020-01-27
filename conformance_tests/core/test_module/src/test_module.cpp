@@ -344,8 +344,7 @@ protected:
     module_ = create_module_vector(device_, "module_add");
   }
 
-  void run_test(ze_module_handle_t mod,
-                ze_thread_group_dimensions_t th_group_dim,
+  void run_test(ze_module_handle_t mod, ze_group_count_t th_group_dim,
                 uint32_t group_size_x, uint32_t group_size_y,
                 uint32_t group_size_z, bool signal_to_host,
                 bool signal_from_host, enum TestType type) {
@@ -358,10 +357,10 @@ protected:
                              8, 9, 10, 11, 12, 13, 14, 15};
     std::vector<int> inpb = {1, 2,  3,  4,  5,  6,  7,  8,
                              9, 10, 11, 12, 13, 14, 15, 16};
-    void *args_buff = lzt::allocate_shared_memory(
-        2 * sizeof(ze_thread_group_dimensions_t), sizeof(int),
-        ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT,
-        device_);
+    void *args_buff =
+        lzt::allocate_shared_memory(2 * sizeof(ze_group_count_t), sizeof(int),
+                                    ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
+                                    ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
     void *actual_launch = lzt::allocate_shared_memory(
         sizeof(uint32_t), sizeof(uint32_t), ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
         ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, device_);
@@ -407,9 +406,9 @@ protected:
     ze_kernel_properties_t kernel_properties;
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeKernelGetProperties(function, &kernel_properties));
-    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountX, group_size_x);
-    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountY, group_size_y);
-    EXPECT_EQ(kernel_properties.compileGroupSize.groupCountZ, group_size_z);
+    EXPECT_EQ(kernel_properties.requiredGroupSizeX, group_size_x);
+    EXPECT_EQ(kernel_properties.requiredGroupSizeY, group_size_y);
+    EXPECT_EQ(kernel_properties.requiredGroupSizeZ, group_size_z);
     EXPECT_EQ(kernel_properties.numKernelArgs, 2);
     EXPECT_STREQ(kernel_properties.name, "module_add_constant");
 
@@ -429,24 +428,22 @@ protected:
                                        cmd_list, function, &th_group_dim,
                                        signal_event, num_wait, p_wait_events));
     } else if (type == FUNCTION_INDIRECT) {
-      ze_thread_group_dimensions_t *tg_dim =
-          static_cast<ze_thread_group_dimensions_t *>(args_buff);
+      ze_group_count_t *tg_dim = static_cast<ze_group_count_t *>(args_buff);
       // This test failing pending fix for LOKI-551
       EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendLaunchKernelIndirect(
                                        cmd_list, function, tg_dim, signal_event,
                                        num_wait, p_wait_events));
 
       // Intentionally update args_buff after Launch API
-      memcpy(args_buff, &th_group_dim, sizeof(ze_thread_group_dimensions_t));
+      memcpy(args_buff, &th_group_dim, sizeof(ze_group_count_t));
     } else if (type == MULTIPLE_INDIRECT) {
       int *mult_out_int = static_cast<int *>(mult_out);
       int *mult_in_int = static_cast<int *>(mult_in);
-      ze_thread_group_dimensions_t *tg_dim =
-          static_cast<ze_thread_group_dimensions_t *>(args_buff);
+      ze_group_count_t *tg_dim = static_cast<ze_group_count_t *>(args_buff);
       memcpy(mult_out_int, inpa.data(), 16 * sizeof(int));
       memcpy(mult_in_int, inpb.data(), 16 * sizeof(int));
       std::vector<ze_kernel_handle_t> function_list;
-      std::vector<ze_thread_group_dimensions_t> arg_buffer_list;
+      std::vector<ze_group_count_t> arg_buffer_list;
       std::vector<uint32_t> num_launch_arg_list;
       function_list.push_back(function);
       mult_function = lzt::create_function(mod, "module_add_two_arrays");
@@ -462,14 +459,14 @@ protected:
                 zeKernelSetGroupSize(mult_function, 16, 1, 1));
 
       arg_buffer_list.push_back(th_group_dim);
-      ze_thread_group_dimensions_t mult_th_group_dim;
+      ze_group_count_t mult_th_group_dim;
       mult_th_group_dim.groupCountX = 16;
       mult_th_group_dim.groupCountY = 1;
       mult_th_group_dim.groupCountZ = 1;
       arg_buffer_list.push_back(mult_th_group_dim);
       uint32_t *num_launch_arg = static_cast<uint32_t *>(actual_launch);
-      ze_thread_group_dimensions_t *mult_tg_dim =
-          static_cast<ze_thread_group_dimensions_t *>(args_buff);
+      ze_group_count_t *mult_tg_dim =
+          static_cast<ze_group_count_t *>(args_buff);
 
       EXPECT_EQ(ZE_RESULT_SUCCESS,
                 zeCommandListAppendLaunchMultipleKernelsIndirect(
@@ -478,8 +475,7 @@ protected:
 
       // Intentionally update args buffer and num_args after API
       num_launch_arg[0] = 2;
-      memcpy(args_buff, arg_buffer_list.data(),
-             2 * sizeof(ze_thread_group_dimensions_t));
+      memcpy(args_buff, arg_buffer_list.data(), 2 * sizeof(ze_group_count_t));
     }
 
     EXPECT_EQ(ZE_RESULT_SUCCESS,
@@ -701,21 +697,21 @@ TEST_F(
     ze_kernel_properties_t kernel_properties;
     EXPECT_EQ(ZE_RESULT_SUCCESS,
               zeKernelGetProperties(function, &kernel_properties));
-    EXPECT_LE(kernel_properties.compileGroupSize.groupCountX,
+    EXPECT_LE(kernel_properties.requiredGroupSizeX,
               dev_compute_properties.maxGroupCountX);
-    EXPECT_LE(kernel_properties.compileGroupSize.groupCountY,
+    EXPECT_LE(kernel_properties.requiredGroupSizeY,
               dev_compute_properties.maxGroupCountY);
-    EXPECT_LE(kernel_properties.compileGroupSize.groupCountZ,
+    EXPECT_LE(kernel_properties.requiredGroupSizeZ,
               dev_compute_properties.maxGroupCountZ);
 
     LOG_INFO << "Kernel Name = " << kernel_properties.name;
     LOG_INFO << "Num of Arguments = " << kernel_properties.numKernelArgs;
     LOG_INFO << "Group Size in X dim = "
-             << kernel_properties.compileGroupSize.groupCountX;
+             << kernel_properties.requiredGroupSizeX;
     LOG_INFO << "Group Size in Y dim = "
-             << kernel_properties.compileGroupSize.groupCountY;
+             << kernel_properties.requiredGroupSizeY;
     LOG_INFO << "Group Size in Z dim = "
-             << kernel_properties.compileGroupSize.groupCountZ;
+             << kernel_properties.requiredGroupSizeZ;
     lzt::destroy_function(function);
   }
 }
@@ -727,24 +723,32 @@ TEST_F(zeKernelCreateTests,
 
   for (auto mod : module_) {
     function = lzt::create_function(mod, "module_add_constant");
+    bool trueValue = true;
+    bool falseValue = false;
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_HOST_ACCESS, true));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_HOST_ACCESS,
+                                   sizeof(bool), &trueValue));
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_HOST_ACCESS, false));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_HOST_ACCESS,
+                                   sizeof(bool), &falseValue));
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_DEVICE_ACCESS, true));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_DEVICE_ACCESS,
+                                   sizeof(bool), &trueValue));
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_DEVICE_ACCESS, false));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_DEVICE_ACCESS,
+                                   sizeof(bool), &falseValue));
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_SHARED_ACCESS, true));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_SHARED_ACCESS,
+                                   sizeof(bool), &trueValue));
     EXPECT_EQ(ZE_RESULT_SUCCESS,
-              zeKernelSetAttribute(
-                  function, ZE_KERNEL_SET_ATTR_INDIRECT_SHARED_ACCESS, false));
+              zeKernelSetAttribute(function,
+                                   ZE_KERNEL_ATTR_INDIRECT_SHARED_ACCESS,
+                                   sizeof(bool), &falseValue));
     lzt::destroy_function(function);
   }
 }
@@ -764,7 +768,7 @@ TEST_P(
   uint32_t group_size_x;
   uint32_t group_size_y;
   uint32_t group_size_z;
-  ze_thread_group_dimensions_t thread_group_dimensions;
+  ze_group_count_t thread_group_dimensions;
 
   enum TestType test_type = GetParam();
 
@@ -813,5 +817,39 @@ INSTANTIATE_TEST_CASE_P(
     TestFunctionAndFunctionIndirectAndMultipleFunctionsIndirect,
     zeKernelLaunchTests,
     testing::Values(FUNCTION, FUNCTION_INDIRECT, MULTIPLE_INDIRECT));
+
+class ModuleGetKernelNamesTests
+    : public ::testing::Test,
+      public ::testing::WithParamInterface<uint32_t> {};
+
+TEST_P(
+    ModuleGetKernelNamesTests,
+    GivenValidModuleWhenGettingKernelNamesThenCorrectKernelNumberAndNamesAreReturned) {
+  int num = GetParam();
+  uint32_t kernel_count = 0;
+  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
+  std::string filename =
+      std::to_string(num) + "kernel" + (num == 1 ? "" : "s") + ".spv";
+  ze_module_handle_t module = lzt::create_module(device, filename);
+  std::vector<const char *> names(num);
+
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeModuleGetKernelNames(module, &kernel_count, nullptr));
+  EXPECT_EQ(kernel_count, num);
+  EXPECT_EQ(ZE_RESULT_SUCCESS,
+            zeModuleGetKernelNames(module, &kernel_count, names.data()));
+
+  LOG_DEBUG << kernel_count << " Kernels in Module:";
+  for (uint32_t i = 0; i < kernel_count; i++) {
+    LOG_DEBUG << "\t" << names[i];
+    EXPECT_EQ(names[i], "kernel" + std::to_string(i + 1));
+  }
+
+  lzt::destroy_module(module);
+}
+
+INSTANTIATE_TEST_CASE_P(ModuleGetKernelNamesParamTests,
+                        ModuleGetKernelNamesTests,
+                        ::testing::Values(0, 1, 10, 100, 1000));
 
 } // namespace

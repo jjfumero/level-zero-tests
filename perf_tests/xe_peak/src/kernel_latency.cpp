@@ -36,9 +36,13 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
   context.create_module(binary_file);
 
   void *inputBuf;
-  result = zeDriverAllocDeviceMem(
-      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-      static_cast<size_t>((num_items * sizeof(float))), 1, &inputBuf);
+  ze_device_mem_alloc_desc_t in_device_desc;
+  in_device_desc.ordinal = 0;
+  in_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  result =
+      zeDriverAllocDeviceMem(context.driver, &in_device_desc,
+                             static_cast<size_t>((num_items * sizeof(float))),
+                             1, context.device, &inputBuf);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
@@ -47,9 +51,13 @@ void XePeak::xe_peak_kernel_latency(L0Context &context) {
     std::cout << "inputBuf device buffer allocated\n";
 
   void *outputBuf;
-  result = zeDriverAllocDeviceMem(
-      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-      static_cast<size_t>((num_items * sizeof(float))), 1, &outputBuf);
+  ze_device_mem_alloc_desc_t out_device_desc;
+  out_device_desc.ordinal = 0;
+  out_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  result =
+      zeDriverAllocDeviceMem(context.driver, &out_device_desc,
+                             static_cast<size_t>((num_items * sizeof(float))),
+                             1, context.device, &outputBuf);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));

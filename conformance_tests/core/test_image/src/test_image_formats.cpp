@@ -76,8 +76,8 @@ void ImageFormatTests::run_test(void *inbuff, void *outbuff,
   EXPECT_EQ(ZE_RESULT_SUCCESS,
             zeKernelSetArgumentValue(kernel, 1, sizeof(img_out), &img_out));
 
-  ze_thread_group_dimensions_t group_dems = {image_width / group_size_x,
-                                             image_height / group_size_y, 1};
+  ze_group_count_t group_dems = {image_width / group_size_x,
+                                 image_height / group_size_y, 1};
   lzt::append_launch_function(command_list, kernel, &group_dems, nullptr, 0,
                               nullptr);
   lzt::append_barrier(command_list, nullptr, 0, nullptr);

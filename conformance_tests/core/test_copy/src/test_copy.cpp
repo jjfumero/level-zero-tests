@@ -341,7 +341,7 @@ protected:
     dr1.width = columns;
     dr1.height = 16;
     append_memory_copy_region(cl.command_list_, the_destination, &dr1, columns,
-                              the_source_buff_1, &sr1, columns, nullptr);
+                              0, the_source_buff_1, &sr1, columns, 0, nullptr);
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     // Copy the second 2K from the_source_buff_2 to the second 2K of
     // the_destination:
@@ -356,7 +356,7 @@ protected:
     dr2.width = columns;
     dr2.height = 32;
     append_memory_copy_region(cl.command_list_, the_destination, &dr2, columns,
-                              the_source_buff_2, &sr2, columns, nullptr);
+                              0, the_source_buff_2, &sr2, columns, 0, nullptr);
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     // Copy the last   1K from the_source_buff_1 to the last   1K of
     // the_destination:
@@ -371,7 +371,7 @@ protected:
     dr3.width = columns;
     dr3.height = 16;
     append_memory_copy_region(cl.command_list_, the_destination, &dr3, columns,
-                              the_source_buff_1, &sr3, columns, nullptr);
+                              0, the_source_buff_1, &sr3, columns, 0, nullptr);
     append_barrier(cl.command_list_, nullptr, 0, nullptr);
     // If the_destination is on the device, we need to copy it back to the host
     // to verify the data pattern:

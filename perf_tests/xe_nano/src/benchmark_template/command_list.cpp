@@ -27,20 +27,20 @@ void launch_function_no_parameter(XeApp *benchmark,
 
   benchmark->functionCreate(&function, "function_no_parameter");
 
-  ze_thread_group_dimensions_t thread_group_dimensions;
-  thread_group_dimensions.groupCountX = 1;
-  thread_group_dimensions.groupCountY = 1;
-  thread_group_dimensions.groupCountZ = 1;
+  ze_group_count_t group_count;
+  group_count.groupCountX = 1;
+  group_count.groupCountY = 1;
+  group_count.groupCountZ = 1;
 
   /* Warm up */
   for (int i = 0; i < probe_setting.warm_up_iteration; i++) {
-    zeCommandListAppendLaunchKernel(
-        command_list, function, &thread_group_dimensions, nullptr, 0, nullptr);
+    zeCommandListAppendLaunchKernel(command_list, function, &group_count,
+                                    nullptr, 0, nullptr);
   }
 
   NANO_PROBE(" Function with no parameters\t", probe_setting,
              zeCommandListAppendLaunchKernel, command_list, function,
-             &thread_group_dimensions, nullptr, 0, nullptr);
+             &group_count, nullptr, 0, nullptr);
 
   benchmark->functionDestroy(function);
   benchmark->commandListDestroy(command_list);

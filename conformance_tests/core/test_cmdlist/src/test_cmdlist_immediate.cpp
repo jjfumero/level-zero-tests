@@ -110,7 +110,7 @@ TEST_P(
   int *p_dev = static_cast<int *>(buffer);
   lzt::set_argument_value(kernel, 0, sizeof(p_dev), &p_dev);
   lzt::set_argument_value(kernel, 1, sizeof(addval), &addval);
-  ze_thread_group_dimensions_t tg;
+  ze_group_count_t tg;
   tg.groupCountX = static_cast<uint32_t>(size);
   tg.groupCountY = 1;
   tg.groupCountZ = 1;
@@ -118,7 +118,7 @@ TEST_P(
   lzt::append_launch_function(cmdlist_immediate, kernel, &tg, event0, 0,
                               nullptr);
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostSynchronize(event0, timeout));
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(event0));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(event0));
   EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(event0));
   for (size_t i = 0; i < size; i++) {
     EXPECT_EQ(static_cast<int *>(buffer)[i], addval);
@@ -151,7 +151,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
 
   if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
-    zeEventReset(event0);
+    zeEventHostReset(event0);
   }
   lzt::append_memory_copy(cmdlist_immediate, host_memory2.data(), device_memory,
                           lzt::size_in_bytes(host_memory2), event0);
@@ -182,7 +182,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
                 img.dflt_host_image_.raw_data(), nullptr, event0));
   if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
-    zeEventReset(event0);
+    zeEventHostReset(event0);
   }
   // Now, copy the image from the device to the device:
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeCommandListAppendImageCopy(
@@ -191,7 +191,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
 
   if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
-    zeEventReset(event0);
+    zeEventHostReset(event0);
   }
   // Finally copy the image from the device to the dest_host_image_upper for
   // validation:
@@ -202,7 +202,7 @@ TEST_P(zeImmediateCommandListExecutionTests,
 
   if (mode != ZE_COMMAND_QUEUE_MODE_SYNCHRONOUS) {
     zeEventHostSynchronize(event0, timeout);
-    zeEventReset(event0);
+    zeEventHostReset(event0);
   }
 
   // Validate the result of the above operations:

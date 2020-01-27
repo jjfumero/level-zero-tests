@@ -46,9 +46,12 @@ void XePeak::xe_peak_sp_compute(L0Context &context) {
       set_workgroups(context, number_of_work_items, &workgroup_info);
 
   void *device_input_value;
-  result = zeDriverAllocDeviceMem(context.driver, context.device,
-                                  ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-                                  sizeof(float), 1, &device_input_value);
+  ze_device_mem_alloc_desc_t in_device_desc;
+  in_device_desc.ordinal = 0;
+  in_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  result =
+      zeDriverAllocDeviceMem(context.driver, &in_device_desc, sizeof(float), 1,
+                             context.device, &device_input_value);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
@@ -57,10 +60,13 @@ void XePeak::xe_peak_sp_compute(L0Context &context) {
     std::cout << "device input value allocated\n";
 
   void *device_output_buffer;
+  ze_device_mem_alloc_desc_t out_device_desc;
+  out_device_desc.ordinal = 0;
+  out_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
   result = zeDriverAllocDeviceMem(
-      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+      context.driver, &out_device_desc,
       static_cast<size_t>((number_of_work_items * sizeof(float))), 1,
-      &device_output_buffer);
+      context.device, &device_output_buffer);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));

@@ -254,7 +254,7 @@ protected:
   ze_kernel_desc_t kernel_desc;
   ze_kernel_handle_t kernel;
 
-  ze_kernel_set_attribute_t set_attribute;
+  ze_kernel_attribute_t set_attribute;
 
   ze_cache_config_t cache_config;
 
@@ -264,6 +264,7 @@ protected:
   ze_sampler_handle_t sampler;
 
   uint32_t num = 0, version;
+  ze_driver_properties_t driver_properties;
   ze_bool_t can_access;
 };
 
@@ -466,12 +467,12 @@ TEST_F(
 
 TEST_F(
     TracingPrologueEpilogueTests,
-    GivenEnabledTracerWithzeDriverGetDriverVersionCallbacksWhenCallingzeDriverGetDriverVersionThenUserDataIsSet) {
-  prologues.Driver.pfnGetDriverVersionCb = lzt::prologue_callback;
-  epilogues.Driver.pfnGetDriverVersionCb = lzt::epilogue_callback;
+    GivenEnabledTracerWithzeDriverGetPropertiesCallbacksWhenCallingzeDriverGetPropertiesThenUserDataIsSet) {
+  prologues.Driver.pfnGetPropertiesCb = lzt::prologue_callback;
+  epilogues.Driver.pfnGetPropertiesCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  zeDriverGetDriverVersion(driver, &version);
+  zeDriverGetProperties(driver, &driver_properties);
 }
 
 TEST_F(
@@ -501,10 +502,14 @@ TEST_F(
   epilogues.Driver.pfnAllocSharedMemCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  device_desc.ordinal = 0;
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
   ASSERT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocSharedMem(
-                driver, device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-                ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, 0, 0, &shared_memory));
+            zeDriverAllocSharedMem(driver, &device_desc, &host_desc, 0, 0,
+                                   device, &shared_memory));
 
   zeDriverFreeMem(driver, shared_memory);
 }
@@ -516,9 +521,11 @@ TEST_F(
   epilogues.Driver.pfnAllocDeviceMemCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  device_desc.ordinal = 1;
   ASSERT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocDeviceMem(driver, device,
-                                   ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 1, 1, 1,
+            zeDriverAllocDeviceMem(driver, &device_desc, 1, 1, device,
                                    &device_memory));
 
   zeDriverFreeMem(driver, device_memory);
@@ -531,9 +538,10 @@ TEST_F(
   epilogues.Driver.pfnAllocHostMemCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
   ASSERT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocHostMem(driver, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, 1, 1,
-                                 &host_memory));
+            zeDriverAllocHostMem(driver, &host_desc, 1, 1, &host_memory));
 
   zeDriverFreeMem(driver, host_memory);
 }
@@ -545,9 +553,10 @@ TEST_F(
   epilogues.Driver.pfnFreeMemCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
   ASSERT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocHostMem(driver, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, 1, 0,
-                                 &host_memory));
+            zeDriverAllocHostMem(driver, &host_desc, 1, 0, &host_memory));
 
   zeDriverFreeMem(driver, host_memory);
 }
@@ -784,14 +793,14 @@ TEST_F(
   epilogues.CommandList.pfnAppendMemoryCopyRegionCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  ze_copy_region_t src_region = {0, 0, 1, 1};
-  ze_copy_region_t dst_region = {0, 0, 1, 1};
+  ze_copy_region_t src_region = {0, 0, 0, 1, 1, 0};
+  ze_copy_region_t dst_region = {0, 0, 0, 1, 1, 0};
 
   void *src = lzt::allocate_device_memory(10);
   void *dst = lzt::allocate_device_memory(10);
 
-  zeCommandListAppendMemoryCopyRegion(command_list, dst, &dst_region, 0, src,
-                                      &src_region, 0, nullptr);
+  zeCommandListAppendMemoryCopyRegion(command_list, dst, &dst_region, 0, 0, src,
+                                      &src_region, 0, 0, nullptr);
   zeCommandListDestroy(command_list);
   command_list = nullptr;
   lzt::free_memory(src);
@@ -915,7 +924,7 @@ TEST_F(
   epilogues.CommandList.pfnAppendLaunchKernelCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  ze_thread_group_dimensions_t args = {1, 0, 0};
+  ze_group_count_t args = {1, 0, 0};
 
   zeCommandListAppendLaunchKernel(command_list, kernel, &args, nullptr, 0,
                                   nullptr);
@@ -931,7 +940,7 @@ TEST_F(
   ready_tracer(tracer_handle, prologues, epilogues);
 
   uint32_t count = 1;
-  ze_thread_group_dimensions_t args = {1, 0, 0};
+  ze_group_count_t args = {1, 0, 0};
 
   zeCommandListAppendLaunchMultipleKernelsIndirect(
       command_list, 1, &kernel, &count, &args, nullptr, 0, nullptr);
@@ -1100,12 +1109,12 @@ TEST_F(
 
 TEST_F(
     TracingPrologueEpilogueTests,
-    GivenEnabledTracerWithzeEventResetCallbacksWhenCallingzeEventResetThenUserDataIsSet) {
-  prologues.Event.pfnResetCb = lzt::prologue_callback;
-  epilogues.Event.pfnResetCb = lzt::epilogue_callback;
+    GivenEnabledTracerWithzeEventHostResetCallbacksWhenCallingzeEventHostResetThenUserDataIsSet) {
+  prologues.Event.pfnHostResetCb = lzt::prologue_callback;
+  epilogues.Event.pfnHostResetCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  zeEventReset(event);
+  zeEventHostReset(event);
 }
 
 TEST_F(
@@ -1250,7 +1259,7 @@ TEST_F(
       lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  ze_thread_group_dimensions_t args = {1, 0, 0};
+  ze_group_count_t args = {1, 0, 0};
 
   zeCommandListAppendLaunchKernelIndirect(command_list, kernel, &args, nullptr,
                                           0, nullptr);
@@ -1303,7 +1312,9 @@ TEST_F(
   epilogues.Kernel.pfnSetAttributeCb = lzt::epilogue_callback;
   ready_tracer(tracer_handle, prologues, epilogues);
 
-  zeKernelSetAttribute(kernel, ZE_KERNEL_SET_ATTR_INDIRECT_HOST_ACCESS, 0);
+  bool value = false;
+  zeKernelSetAttribute(kernel, ZE_KERNEL_ATTR_INDIRECT_HOST_ACCESS,
+                       sizeof(bool), &value);
 }
 
 TEST_F(

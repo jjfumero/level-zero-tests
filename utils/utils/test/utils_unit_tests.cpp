@@ -73,11 +73,6 @@ TEST(XeResultToString, ZE_RESULT_ERROR_DEVICE_LOST) {
   EXPECT_EQ("ZE_RESULT_ERROR_DEVICE_LOST", level_zero_tests::to_string(r));
 }
 
-TEST(XeResultToString, ZE_RESULT_ERROR_UNSUPPORTED) {
-  const ze_result_t r = ZE_RESULT_ERROR_UNSUPPORTED;
-  EXPECT_EQ("ZE_RESULT_ERROR_UNSUPPORTED", level_zero_tests::to_string(r));
-}
-
 TEST(XeResultToString, ZE_RESULT_ERROR_INVALID_ARGUMENT) {
   const ze_result_t r = ZE_RESULT_ERROR_INVALID_ARGUMENT;
   EXPECT_EQ("ZE_RESULT_ERROR_INVALID_ARGUMENT ",

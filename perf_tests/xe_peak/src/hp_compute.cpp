@@ -49,10 +49,13 @@ void XePeak::xe_peak_hp_compute(L0Context &context) {
       set_workgroups(context, number_of_work_items, &workgroup_info);
 
   void *device_output_buffer;
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 0;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
   result = zeDriverAllocDeviceMem(
-      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
+      context.driver, &device_desc,
       static_cast<size_t>((number_of_work_items * sizeof(cl_half))), 1,
-      &device_output_buffer);
+      context.device, &device_output_buffer);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));

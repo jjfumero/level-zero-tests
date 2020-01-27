@@ -32,16 +32,16 @@ namespace lzt = level_zero_tests;
 namespace level_zero_tests {
 
 zet_tracer_handle_t create_tracer_handle(const zet_tracer_desc_t tracer_desc) {
-  return create_tracer_handle(zeDevice::get_instance()->get_device(),
+  return create_tracer_handle(zeDevice::get_instance()->get_driver(),
                               tracer_desc);
 }
 
-zet_tracer_handle_t create_tracer_handle(const ze_device_handle_t device,
+zet_tracer_handle_t create_tracer_handle(const ze_driver_handle_t driver,
                                          const zet_tracer_desc_t tracer_desc) {
   zet_tracer_handle_t tracer_handle;
 
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zetTracerCreate(device, &tracer_desc, &tracer_handle));
+            zetTracerCreate(driver, &tracer_desc, &tracer_handle));
 
   return tracer_handle;
 }

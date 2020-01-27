@@ -38,7 +38,9 @@ void ze_init(ze_init_flag_t init_flag) {
 uint32_t get_driver_version(ze_driver_handle_t driver) {
 
   uint32_t version = 0;
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGetDriverVersion(driver, &version));
+  ze_driver_properties_t properties;
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeDriverGetProperties(driver, &properties));
+  version = properties.version;
   EXPECT_NE(version, 0);
 
   return version;

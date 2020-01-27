@@ -531,9 +531,9 @@ long double XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
                                  std::to_string(result));
       }
 
-      result = zeEventReset(function_event);
+      result = zeEventHostReset(function_event);
       if (result) {
-        throw std::runtime_error("zeEventReset failed: " +
+        throw std::runtime_error("zeEventHostReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
@@ -564,9 +564,9 @@ long double XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
-      result = zeEventReset(function_event);
+      result = zeEventHostReset(function_event);
       if (result) {
-        throw std::runtime_error("zeEventReset failed: " +
+        throw std::runtime_error("zeEventHostReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
@@ -619,9 +619,9 @@ long double XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
         throw std::runtime_error("zeEventHostSynchronize failed: " +
                                  std::to_string(result));
       }
-      result = zeEventReset(kernel_launch_event);
+      result = zeEventHostReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("zeEventReset failed: " +
+        throw std::runtime_error("zeEventHostReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)
@@ -652,9 +652,9 @@ long double XePeak::run_kernel(L0Context context, ze_kernel_handle_t &function,
       if (verbose)
         std::cout << "Command queue synchronized\n";
 
-      result = zeEventReset(kernel_launch_event);
+      result = zeEventHostReset(kernel_launch_event);
       if (result) {
-        throw std::runtime_error("zeEventReset failed: " +
+        throw std::runtime_error("zeEventHostReset failed: " +
                                  std::to_string(result));
       }
       if (verbose)

@@ -39,10 +39,12 @@ void *allocate_host_memory(const size_t size, const size_t alignment) {
   const ze_host_mem_alloc_flag_t flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
 
   ze_driver_handle_t driver = lzt::get_default_driver();
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = flags;
 
   void *memory = nullptr;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocHostMem(driver, flags, size, alignment, &memory));
+            zeDriverAllocHostMem(driver, &host_desc, size, alignment, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;
@@ -79,10 +81,13 @@ void *allocate_device_memory(const size_t size, const size_t alignment,
                              ze_device_handle_t device_handle,
                              ze_driver_handle_t driver) {
   void *memory = nullptr;
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = ordinal;
+  device_desc.flags = flags;
 
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocDeviceMem(driver, device_handle, flags, ordinal, size,
-                                   alignment, &memory));
+            zeDriverAllocDeviceMem(driver, &device_desc, size, alignment,
+                                   device_handle, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;
@@ -116,9 +121,14 @@ void *allocate_shared_memory(const size_t size, const size_t alignment,
   auto driver = lzt::get_default_driver();
 
   void *memory = nullptr;
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = ordinal;
+  device_desc.flags = dev_flags;
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = host_flags;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocSharedMem(driver, device, dev_flags, ordinal,
-                                   host_flags, size, alignment, &memory));
+            zeDriverAllocSharedMem(driver, &device_desc, &host_desc, size,
+                                   alignment, device, &memory));
   EXPECT_NE(nullptr, memory);
 
   return memory;

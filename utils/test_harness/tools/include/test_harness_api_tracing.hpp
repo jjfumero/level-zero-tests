@@ -35,7 +35,7 @@ typedef struct _test_api_tracing_user_data {
 } test_api_tracing_user_data;
 
 zet_tracer_handle_t create_tracer_handle(const zet_tracer_desc_t tracer_desc);
-zet_tracer_handle_t create_tracer_handle(const ze_device_handle_t device,
+zet_tracer_handle_t create_tracer_handle(const ze_driver_handle_t driver,
                                          const zet_tracer_desc_t tracer_desc);
 
 void destroy_tracer_handle(zet_tracer_handle_t tracer_handle);

@@ -39,12 +39,17 @@ zeDevice *zeDevice::get_instance() {
   EXPECT_EQ(ZE_RESULT_SUCCESS, zeInit(ZE_INIT_FLAG_NONE));
 
   instance_->device_ = lzt::get_default_device();
+  instance_->driver_ = lzt::get_default_driver();
   return instance_;
 }
 
 ze_device_handle_t zeDevice::get_device() { return get_instance()->device_; }
+ze_driver_handle_t zeDevice::get_driver() { return get_instance()->driver_; }
 
-zeDevice::zeDevice() { device_ = nullptr; }
+zeDevice::zeDevice() {
+  device_ = nullptr;
+  driver_ = nullptr;
+}
 
 uint32_t get_ze_device_count() {
   return get_ze_device_count(lzt::get_default_driver());

@@ -101,8 +101,11 @@ void XeApp::memoryAlloc(size_t size, void **ptr) {
 
 void XeApp::memoryAlloc(ze_driver_handle_t driver, ze_device_handle_t device,
                         size_t size, void **ptr) {
-  SUCCESS_OR_TERMINATE(zeDriverAllocDeviceMem(
-      driver, device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0, size, 1, ptr));
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 0;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  SUCCESS_OR_TERMINATE(
+      zeDriverAllocDeviceMem(driver, &device_desc, size, 1, device, ptr));
 }
 
 void XeApp::memoryAllocHost(size_t size, void **ptr) {
@@ -112,8 +115,9 @@ void XeApp::memoryAllocHost(size_t size, void **ptr) {
 
 void XeApp::memoryAllocHost(ze_driver_handle_t driver, size_t size,
                             void **ptr) {
-  SUCCESS_OR_TERMINATE(zeDriverAllocHostMem(
-      driver, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, size, 1, ptr));
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
+  SUCCESS_OR_TERMINATE(zeDriverAllocHostMem(driver, &host_desc, size, 1, ptr));
 }
 
 void XeApp::memoryFree(const void *ptr) {

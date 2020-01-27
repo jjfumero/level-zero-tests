@@ -26,7 +26,7 @@
 
 #define __TEST_IPC_COMM_HPP__
 
-#include "ze_memory.h" /* for ze_memory_type_t */
+#include "ze_api.h"
 #include <cstddef>
 #include "ze_api.h"
 #include <boost/asio.hpp>

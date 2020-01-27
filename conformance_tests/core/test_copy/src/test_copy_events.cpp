@@ -131,10 +131,10 @@ TEST_F(
   EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventHostSynchronize(hEvent, 0));
 
   // Execute and verify GPU reads event
-  ze_copy_region_t sr = {0U, 0U, width, height};
-  ze_copy_region_t dr = {0U, 0U, width, height};
-  lzt::append_memory_copy_region(cmdlist, dst_buffer, &dr, width, src_buffer,
-                                 &sr, width, hEvent);
+  ze_copy_region_t sr = {0U, 0U, 0U, width, height, 0U};
+  ze_copy_region_t dr = {0U, 0U, 0U, width, height, 0U};
+  lzt::append_memory_copy_region(cmdlist, dst_buffer, &dr, width, 0, src_buffer,
+                                 &sr, width, 0, hEvent);
   lzt::append_barrier(cmdlist, nullptr, 0, nullptr);
   lzt::append_wait_on_events(cmdlist, 1, &hEvent);
   lzt::close_command_list(cmdlist);

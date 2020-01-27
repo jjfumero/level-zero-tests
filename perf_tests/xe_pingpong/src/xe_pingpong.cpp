@@ -93,24 +93,33 @@ void L0Context::init() {
                              std::to_string(result));
   }
 
-  result =
-      zeDriverAllocDeviceMem(driver, device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT,
-                             0, sizeof(int), 1, &device_input);
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 0;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  result = zeDriverAllocDeviceMem(driver, &device_desc, sizeof(int), 1, device,
+                                  &device_input);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));
   }
 
-  result = zeDriverAllocHostMem(driver, ZE_HOST_MEM_ALLOC_FLAG_DEFAULT,
-                                sizeof(int), 1, &host_output);
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
+  result =
+      zeDriverAllocHostMem(driver, &host_desc, sizeof(int), 1, &host_output);
   if (result) {
     throw std::runtime_error("zeDriverAllocHostMem failed: " +
                              std::to_string(result));
   }
 
-  result = zeDriverAllocSharedMem(
-      driver, device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-      ZE_HOST_MEM_ALLOC_FLAG_DEFAULT, sizeof(int), 1, &shared_output);
+  ze_device_mem_alloc_desc_t shared_device_desc;
+  shared_device_desc.ordinal = 0;
+  shared_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  ze_host_mem_alloc_desc_t shared_host_desc;
+  shared_host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
+  result =
+      zeDriverAllocSharedMem(driver, &shared_device_desc, &shared_host_desc,
+                             sizeof(int), 1, device, &shared_output);
   if (result) {
     throw std::runtime_error("zeDriverAllocSharedMem failed: " +
                              std::to_string(result));

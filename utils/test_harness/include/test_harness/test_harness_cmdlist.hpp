@@ -74,9 +74,10 @@ void append_memory_copy(ze_command_list_handle_t cl, void *dstptr,
                         const void *srcptr, size_t size);
 void append_memory_copy_region(ze_command_list_handle_t hCommandList,
                                void *dstptr, const ze_copy_region_t *dstRegion,
-                               uint32_t dstPitch, const void *srcptr,
+                               uint32_t dstPitch, uint32_t dstSlicePitch,
+                               const void *srcptr,
                                const ze_copy_region_t *srcRegion,
-                               uint32_t srcPitch,
+                               uint32_t srcPitch, uint32_t srcSlicePitch,
                                ze_event_handle_t hSignalEvent);
 
 void append_barrier(ze_command_list_handle_t cl,
@@ -94,7 +95,7 @@ void append_memory_ranges_barrier(ze_command_list_handle_t hCommandList,
 
 void append_launch_function(ze_command_list_handle_t hCommandList,
                             ze_kernel_handle_t hFunction,
-                            const ze_thread_group_dimensions_t *pLaunchFuncArgs,
+                            const ze_group_count_t *pLaunchFuncArgs,
                             ze_event_handle_t hSignalEvent,
                             uint32_t numWaitEvents,
                             ze_event_handle_t *phWaitEvents);

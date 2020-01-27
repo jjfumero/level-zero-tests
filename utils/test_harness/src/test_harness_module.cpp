@@ -190,7 +190,7 @@ void create_and_execute_function(ze_device_handle_t device,
         zeKernelSetArgumentValue(function, i++, arg.arg_size, arg.arg_value));
   }
 
-  ze_thread_group_dimensions_t thread_group_dimensions;
+  ze_group_count_t thread_group_dimensions;
   thread_group_dimensions.groupCountX = 1;
   thread_group_dimensions.groupCountY = 1;
   thread_group_dimensions.groupCountZ = 1;

@@ -142,20 +142,28 @@ protected:
 
     for (uint32_t i = 0; i < params.num_command_lists; i++) {
       void *host_shared = nullptr;
+      ze_device_mem_alloc_desc_t h_device_desc;
+      h_device_desc.ordinal = 1;
+      h_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED;
+      ze_host_mem_alloc_desc_t h_host_desc;
+      h_host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED;
       EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeDriverAllocSharedMem(driver, device,
-                                       ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       1, ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       buff_size_bytes, 1, &host_shared));
+                zeDriverAllocSharedMem(driver, &h_device_desc, &h_host_desc,
+                                       buff_size_bytes, 1, device,
+                                       &host_shared));
 
       EXPECT_NE(nullptr, host_shared);
       host_buffer.push_back(static_cast<uint8_t *>(host_shared));
       void *device_shared = nullptr;
+      ze_device_mem_alloc_desc_t d_device_desc;
+      d_device_desc.ordinal = 1;
+      d_device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED;
+      ze_host_mem_alloc_desc_t d_host_desc;
+      d_host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED;
       EXPECT_EQ(ZE_RESULT_SUCCESS,
-                zeDriverAllocSharedMem(driver, device,
-                                       ZE_DEVICE_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       1, ZE_HOST_MEM_ALLOC_FLAG_BIAS_UNCACHED,
-                                       buff_size_bytes, 1, &device_shared));
+                zeDriverAllocSharedMem(driver, &d_device_desc, &d_host_desc,
+                                       buff_size_bytes, 1, device,
+                                       &device_shared));
 
       EXPECT_NE(nullptr, device_shared);
       device_buffer.push_back(static_cast<uint8_t *>(device_shared));

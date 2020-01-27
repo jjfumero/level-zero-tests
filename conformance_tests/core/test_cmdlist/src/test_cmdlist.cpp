@@ -77,7 +77,7 @@ TEST_F(
 }
 
 // zeCommandListCreateImmediateTests currently fail with
-// 'ZE_RESULT_ERROR_UNSUPPORTED' LOKI-289 is open for the implementation of the
+// 'ZE_RESULT_ERROR_UNKNOWN' LOKI-289 is open for the implementation of the
 // API
 class zeCommandListCreateImmediateTests
     : public ::testing::Test,

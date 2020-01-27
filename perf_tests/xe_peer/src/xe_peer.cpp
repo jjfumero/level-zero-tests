@@ -146,7 +146,7 @@ void XePeer::bandwidth(bool bidirectional, peer_transfer_t transfer_type) {
     void *buffer_i = buffers.at(i);
     ze_command_list_handle_t command_list_a = device_context_i->command_list;
     ze_command_queue_handle_t command_queue_a = device_context_i->command_queue;
-    ze_thread_group_dimensions_t thread_group_dimensions;
+    ze_group_count_t thread_group_dimensions;
     uint32_t group_size_x;
     uint32_t group_size_y;
     uint32_t group_size_z;
@@ -299,7 +299,7 @@ void XePeer::latency(bool bidirectional, peer_transfer_t transfer_type) {
     void *buffer_i = buffers.at(i);
     ze_command_list_handle_t command_list_a = device_context_i->command_list;
     ze_command_queue_handle_t command_queue_a = device_context_i->command_queue;
-    ze_thread_group_dimensions_t thread_group_dimensions;
+    ze_group_count_t thread_group_dimensions;
     uint32_t group_size_x;
     uint32_t group_size_y;
     uint32_t group_size_z;

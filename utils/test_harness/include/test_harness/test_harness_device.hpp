@@ -34,11 +34,13 @@ class zeDevice {
 public:
   static zeDevice *get_instance();
   ze_device_handle_t get_device();
+  ze_driver_handle_t get_driver();
 
 private:
   zeDevice();
   static zeDevice *instance_;
   ze_device_handle_t device_ = nullptr;
+  ze_driver_handle_t driver_ = nullptr;
 };
 
 uint32_t get_ze_device_count();

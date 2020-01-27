@@ -364,7 +364,7 @@ void load_for_gpu() {
   lzt::append_barrier(cmd_list, nullptr, 0, nullptr);
   const int group_count_x = m / 16;
   const int group_count_y = n / 16;
-  ze_thread_group_dimensions_t tg;
+  ze_group_count_t tg;
   tg.groupCountX = group_count_x;
   tg.groupCountY = group_count_y;
   tg.groupCountZ = 1;

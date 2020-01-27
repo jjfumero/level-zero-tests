@@ -266,7 +266,7 @@ static std::vector<int> bitonic_sort_l0(std::vector<int> input) {
 
       const int group_count_x = static_cast<int>(input.size()) / group_size_x;
 
-      ze_thread_group_dimensions_t thread_group_dimensions;
+      ze_group_count_t thread_group_dimensions;
       thread_group_dimensions.groupCountX = group_count_x;
       thread_group_dimensions.groupCountY = 1;
       thread_group_dimensions.groupCountZ = 1;

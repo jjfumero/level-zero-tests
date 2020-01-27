@@ -104,7 +104,7 @@ void AppendMemoryRangesBarrierTest(
 
 // The following test fails and the failure is recorded in:
 // LOKI-303 zeCommandListAppendMemoryRangesBarrier() returns:
-// ZE_RESULT_ERROR_UNSUPPORTED
+// ZE_RESULT_ERROR_UNKNOWN
 class zeCommandListAppendMemoryRangesBarrierTests
     : public lzt::zeCommandListTests {};
 
@@ -159,7 +159,7 @@ TEST_F(
 
 // The following test fails and the failure is recorded in:
 // LOKI-303 zeCommandListAppendMemoryRangesBarrier() returns:
-// ZE_RESULT_ERROR_UNSUPPORTED
+// ZE_RESULT_ERROR_UNKNOWN
 class zeDeviceSystemBarrierTests : public ::testing::Test {};
 
 TEST_F(zeDeviceSystemBarrierTests,
@@ -393,7 +393,7 @@ TEST_P(
   int *p_dev = static_cast<int *>(dev_buff);
   lzt::set_argument_value(function_1, 0, sizeof(p_dev), &p_dev);
   lzt::set_argument_value(function_1, 1, sizeof(addval_2), &addval_2);
-  ze_thread_group_dimensions_t tg;
+  ze_group_count_t tg;
   tg.groupCountX = num_int;
   tg.groupCountY = 1;
   tg.groupCountZ = 1;

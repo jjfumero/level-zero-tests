@@ -87,10 +87,14 @@ void XePeak::_transfer_bw_shared_memory(L0Context &context,
   size_t local_memory_size =
       static_cast<size_t>(number_of_items * sizeof(float));
 
-  result = zeDriverAllocSharedMem(context.driver, context.device,
-                                  ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-                                  ZE_HOST_MEM_ALLOC_FLAG_DEFAULT,
-                                  local_memory_size, 1, &shared_memory_buffer);
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 0;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = ZE_HOST_MEM_ALLOC_FLAG_DEFAULT;
+  result = zeDriverAllocSharedMem(context.driver, &device_desc, &host_desc,
+                                  local_memory_size, 1, context.device,
+                                  &shared_memory_buffer);
   if (result) {
     throw std::runtime_error("zeDriverAllocSharedMem failed: " +
                              std::to_string(result));
@@ -133,9 +137,13 @@ void XePeak::xe_peak_transfer_bw(L0Context &context) {
   size_t local_memory_size = (local_memory.size() * sizeof(float));
 
   void *device_buffer;
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 0;
+  device_desc.flags = ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT;
   result = zeDriverAllocDeviceMem(
-      context.driver, context.device, ZE_DEVICE_MEM_ALLOC_FLAG_DEFAULT, 0,
-      static_cast<size_t>(sizeof(float) * number_of_items), 1, &device_buffer);
+      context.driver, &device_desc,
+      static_cast<size_t>(sizeof(float) * number_of_items), 1, context.device,
+      &device_buffer);
   if (result) {
     throw std::runtime_error("zeDriverAllocDeviceMem failed: " +
                              std::to_string(result));

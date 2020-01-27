@@ -134,7 +134,7 @@ protected:
         ZE_RESULT_SUCCESS,
         zeCommandListCreate(device, &command_list_description, &command_list));
 
-    ze_thread_group_dimensions_t thread_group_dimensions = {1, 1, 1};
+    ze_group_count_t thread_group_dimensions = {1, 1, 1};
 
     lzt::append_memory_copy(command_list, gpu_expected_output_buffer,
                             host_expected_output_buffer,

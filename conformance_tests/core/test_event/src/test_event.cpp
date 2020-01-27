@@ -191,7 +191,7 @@ TEST_F(zeDeviceCreateEventTests,
   ze_event_handle_t event = nullptr;
 
   ep.create_event(event);
-  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(event));
+  EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(event));
   ep.destroy_event(event);
 }
 
@@ -214,7 +214,7 @@ TEST_F(
         EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(host_event[j]));
       }
     }
-    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(host_event[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(host_event[i]));
   }
   ep.destroy_events(host_event);
 }
@@ -258,8 +258,8 @@ TEST_F(
       }
     }
     lzt::validate_data_pattern(dst_buff, copy_size, 1);
-    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(device_event[i]));
-    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(device_event[num_event - 1]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(device_event[i]));
+    EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(device_event[num_event - 1]));
     lzt::reset_command_list(cmd_list);
   }
 
@@ -363,7 +363,7 @@ TEST_F(zeEventSignalingTests,
         EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(device_event[j]));
       } else {
         EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventQueryStatus(device_event[j]));
-        EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventReset(device_event[j]));
+        EXPECT_EQ(ZE_RESULT_SUCCESS, zeEventHostReset(device_event[j]));
         EXPECT_EQ(ZE_RESULT_NOT_READY, zeEventQueryStatus(device_event[j]));
       }
     }

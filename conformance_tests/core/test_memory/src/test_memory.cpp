@@ -173,10 +173,15 @@ TEST_P(
   const size_t alignment = std::get<3>(GetParam());
 
   void *memory = nullptr;
+  ze_device_mem_alloc_desc_t device_desc;
+  device_desc.ordinal = 1;
+  device_desc.flags = dev_flags;
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = host_flags;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocSharedMem(lzt::get_default_driver(),
+            zeDriverAllocSharedMem(lzt::get_default_driver(), &device_desc,
+                                   &host_desc, size, alignment,
                                    lzt::zeDevice::get_instance()->get_device(),
-                                   dev_flags, 1, host_flags, size, alignment,
                                    &memory));
   EXPECT_NE(nullptr, memory);
 
@@ -313,8 +318,10 @@ TEST_P(
   const size_t alignment = std::get<2>(GetParam());
 
   void *memory = nullptr;
+  ze_host_mem_alloc_desc_t host_desc;
+  host_desc.flags = flags;
   EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zeDriverAllocHostMem(lzt::get_default_driver(), flags, size,
+            zeDriverAllocHostMem(lzt::get_default_driver(), &host_desc, size,
                                  alignment, &memory));
 
   EXPECT_NE(nullptr, memory);

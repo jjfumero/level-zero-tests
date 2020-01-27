@@ -31,40 +31,4 @@
 
 namespace lzt = level_zero_tests;
 
-namespace {
-
-class ModuleGetKernelNamesTests
-    : public ::testing::Test,
-      public ::testing::WithParamInterface<uint32_t> {};
-
-TEST_P(
-    ModuleGetKernelNamesTests,
-    GivenValidModuleWhenGettingKernelNamesThenCorrectKernelNumberAndNamesAreReturned) {
-  int num = GetParam();
-  uint32_t kernel_count = 0;
-  const ze_device_handle_t device = lzt::zeDevice::get_instance()->get_device();
-  std::string filename =
-      std::to_string(num) + "kernel" + (num == 1 ? "" : "s") + ".spv";
-  ze_module_handle_t module = lzt::create_module(device, filename);
-  std::vector<const char *> names(num);
-
-  EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zetModuleGetKernelNames(module, &kernel_count, nullptr));
-  EXPECT_EQ(kernel_count, num);
-  EXPECT_EQ(ZE_RESULT_SUCCESS,
-            zetModuleGetKernelNames(module, &kernel_count, names.data()));
-
-  LOG_DEBUG << kernel_count << " Kernels in Module:";
-  for (uint32_t i = 0; i < kernel_count; i++) {
-    LOG_DEBUG << "\t" << names[i];
-    EXPECT_EQ(names[i], "kernel" + std::to_string(i + 1));
-  }
-
-  lzt::destroy_module(module);
-}
-
-INSTANTIATE_TEST_CASE_P(ModuleGetKernelNamesParamTests,
-                        ModuleGetKernelNamesTests,
-                        ::testing::Values(0, 1, 10, 100, 1000));
-
-} // namespace
+namespace {} // namespace
