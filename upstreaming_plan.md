@@ -71,33 +71,44 @@ between **Delete**, **Keep Internal**, and **Upstream & Delete Internal**.
 - `upstreaming_plan.md` - **Keep Internal**
 - `*.spv` - **Delete**
 
-## Versioning
+## Versioning and Backwards Compatibility
 
-[VLCLJ-779](https://jira.devtools.intel.com/browse/VLCLJ-779)
+An important vendor use-case to consider for release versioning and backwards
+compatibility is the ability to build and run the tests against an old (e.g.,
+in-distro) API and loader. Vendors will not want to have to deal with compile or
+runtime errors from tests written against newer APIs, nor will they want to have
+to obtain old revisions / releases of the code in the event that newer tests
+have since been added or bugs in existing tests have since been fixed. Vendors
+may additionally wish to contribute enhancements or bugfixes to tests they are
+using.
 
-The tests need to be versioned in a way that supports these use-cases:
+Instead of forcing vendors to stick to older code versions, the latest version
+should always be compatible with older releases of the API and loader. This can
+be easily achieved and maintained by guarding tests that use newer API features
+with compile-time version checks. Vendors may always use the latest version of
+the tests, and tests that use newer API features will be compiled-out at build
+time.
 
-- Vendors (like us) want to pull old versions of the tests to make sure their
-  implementation didn't break anything for backwards-compatibility.
-- Vendors want to pull old versions of the tests that correspond to the version
-  of the spec they are writing their implementation against to validate that
-  their implementation fully supports that version of the spec.
-- Vendors found a bug in an old version of the tests, and they want to
-  contribute a fix for it so that it can be used to validate their
-  implementation properly.
+```cpp
+#if ZE_MAKE_VERSION(1, 2) <= ZE_API_HEADER_VERSION
+TEST(zeExampleTests, GivenXWhenUsingNewApiThenY) {
+  ...
+}
+#endif
+```
 
-The tests will be written and released against versions of the spec. If
-possible, the tests will also be sanity-checked against any available
-implementations that are supposed to conform to that version of the spec.
+None of the tests today require these guards, since all the tests are written
+against version 1.0 of the spec. Tests added after the open-sourcing takes place
+may require these guards if they use API features not present in 1.0.
 
-Each test must specify which versions of the spec for which it is valid. A
-release of the tests against a version of the spec means that the tests provide
-coverage for up to and including that version. Tests need to query the version
-of the spec from the loader and decide whether or not they are valid to run.
-Registration of the tests with gtest will be dynamic based on this version check
-(https://github.com/google/googletest/blob/master/googletest/docs/advanced.md#registering-tests-programmatically).
+Pre-merge CI can run builds against multiple prior releases of the loader and
+headers to automatically catch mistakes in these guards. Overhead of these
+extra checks would be negligible due to compiler caching with ccache.
 
-**Needs additional research and scoping**
+With sufficient pre-merge CI checks in open-source, discrete releases may not be
+necessary at all, with the `HEAD` of `master` always containing the latest fixes
+and improvements that have been fully tested. This also removes the need to
+version the tests in any additional way aside from the commit SHA.
 
 ## Automation
 
